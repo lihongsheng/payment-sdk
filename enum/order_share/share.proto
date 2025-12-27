@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+// 定义包名
+package order_share;
+option go_package = "./enum/order_share";
+
+enum Status {
+  UNKNOWN = 0;
+  PROCESSING = 1;
+  FINISHED = 2;
+}
+
+enum ShareOrderStaus {
+  SHARE_ORDER_UNKNOWN = 0;
+  SHARE_ORDER_PROCESSING = 1;
+  SHARE_ORDER_SUCCESS  = 2;
+  SHARE_ORDER_FAILED = 3;
+}

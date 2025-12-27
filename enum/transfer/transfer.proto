@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+// 定义包名
+package transfer;
+option go_package = "./enum/transfer";
+// // ACCEPTED:  转账已受理，可原单重试（非终态）。
+////
+//// PROCESSING:  转账锁定资金中。如果一直停留在该状态，建议检查账户余额是否足够，如余额不足，可充值后再原单重试（非终态）。
+////
+//// WAIT_USER_CONFIRM:  待收款用户确认，当前转账单据资金已锁定，可拉起微信收款确认页面进行收款确认（非终态）。
+////
+//// TRANSFERING:  转账中，可拉起微信收款确认页面再次重试确认收款（非终态）。
+////
+//// FINISHED:  转账成功，表示转账单据已成功（终态）。
+////
+//// FAIL:  转账失败，表示该笔转账单据已失败。若需重新向用户转账，请重新生成单据并再次发起（终态）。
+////
+//// CANCELING:  转账撤销中，商户撤销请求受理成功，该笔转账正在撤销中，需查单确认撤销的转账单据状态（非终态）。
+////
+//// CANCELLED:  转账撤销完成，代表转账单据已撤销成功（终态）。
+enum TransferStatus {
+  TransferStatus_UNKNOWN = 0;
+  TransferStatus_ACCEPTED = 1;
+  TransferStatus_PROCESSING = 2;
+  TransferStatus_WAIT_PAY = 3;
+  TransferStatus_FINISHED = 4;
+  TransferStatus_CLOSE = 5;
+  TransferStatus_CANCELED = 6;
+  TransferStatus_FAILED = 7;
+  TransferStatus_CANCELING = 8;
+  TransferStatus_TRANSFERING = 9;
+  TransferStatus_WAIT_USER_CONFIRM = 10;
+  //TransferStatus_SUCCESS = 11;
+}
+
+enum UnitTransferStatus {
+  UnitTransferStatus_UNKNOWN = 0;
+  UnitTransferStatus_ACCEPTED = 1;
+  UnitTransferStatus_PROCESSING = 2;
+  UnitTransferStatus_WAIT_PAY = 3;
+  UnitTransferStatus_FINISHED = 4;
+  UnitTransferStatus_CLOSE = 5;
+  UnitTransferStatus_CANCELED = 6;
+  UnitTransferStatus_FAILED = 7;
+  UnitTransferStatus_CANCELING = 8;
+  UnitTransferStatus_TRANSFERING = 9;
+  UnitTransferStatus_WAIT_USER_CONFIRM = 10;
+  UnitTransferStatus_SUCCESS = 11;
+}
+
+enum DetailStatus {
+  DetailStatus_UNKNOWN = 0;
+  DetailStatus_WAITING = 1;
+  DetailStatus_PROCESSING = 2;
+  DetailStatus_SUCCESS = 3;
+  DetailStatus_FAILED = 4;
+}

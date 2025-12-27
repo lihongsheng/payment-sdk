@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+// 定义包名
+package channel;
+option go_package = "./enum/channel";
+
+enum Channel {
+  Channel_UNKNOWN = 0;
+  // 支付宝
+  Alipay = 1;
+  // 微信
+  Wxpay = 2;
+  // 富有
+  Fuiou = 3;
+  //  拉卡拉正常版
+  Lakala_NORMAL = 4;
+  // 拉卡拉-缴费易
+  Lakala_JFYUI = 5;
+  // 易云汇
+  YUNHUI = 6;
+}
