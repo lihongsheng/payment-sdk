@@ -3,9 +3,9 @@ package user
 import (
 	"context"
 	"encoding/json"
-	"github.com/singer-stack-lab/payment-sdk/adapter/alipay/enum"
-	"github.com/singer-stack-lab/payment-sdk/adapter/alipay/model"
-	"github.com/singer-stack-lab/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/adapter/alipay/enum"
+	"github.com/lihongsheng/payment-sdk/adapter/alipay/model"
+	"github.com/lihongsheng/payment-sdk/config"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

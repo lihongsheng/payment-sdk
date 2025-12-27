@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/singer-stack-lab/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/config"
 	"io"
 	"net/http"
 	"testing"

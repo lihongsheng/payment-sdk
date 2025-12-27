@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/singer-stack-lab/payment-sdk/adapter/wxpay"
-	"github.com/singer-stack-lab/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay"
+	"github.com/lihongsheng/payment-sdk/config"
 	"github.com/stretchr/testify/assert"
 )
 

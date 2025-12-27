@@ -5,10 +5,10 @@ import (
 	"encoding/xml"
 	"fmt"
 	"github.com/go-resty/resty/v2"
-	"github.com/singer-stack-lab/payment-sdk/adapter/fuiou/enum"
-	"github.com/singer-stack-lab/payment-sdk/adapter/fuiou/model"
-	"github.com/singer-stack-lab/payment-sdk/adapter/fuiou/util"
-	"github.com/singer-stack-lab/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/model"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/util"
+	"github.com/lihongsheng/payment-sdk/config"
 	"net/url"
 )
 

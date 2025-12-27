@@ -3,7 +3,7 @@ package model
 import (
 	"errors"
 	"fmt"
-	"github.com/singer-stack-lab/payment-sdk/adapter/lakala/enum"
+	"github.com/lihongsheng/payment-sdk/adapter/lakala/enum"
 	"time"
 )
 

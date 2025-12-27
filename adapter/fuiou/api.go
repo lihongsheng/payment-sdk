@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/singer-stack-lab/payment-sdk/adapter/fuiou/client"
-	"github.com/singer-stack-lab/payment-sdk/adapter/fuiou/enum"
-	"github.com/singer-stack-lab/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/client"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
+	"github.com/lihongsheng/payment-sdk/config"
 	"strings"
 )
 

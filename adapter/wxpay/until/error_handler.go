@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 
-	errors2 "github.com/singer-stack-lab/payment-sdk/errors"
+	errors2 "github.com/lihongsheng/payment-sdk/errors"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
 	"github.com/zeromicro/go-zero/core/logc"
 )

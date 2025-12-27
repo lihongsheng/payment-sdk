@@ -1,7 +1,7 @@
 package enum
 
 import (
-	enum "github.com/singer-stack-lab/payment-sdk/enum/payment"
+	enum "github.com/lihongsheng/payment-sdk/enum/payment"
 	"strings"
 )
 

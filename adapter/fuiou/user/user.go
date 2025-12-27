@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/xml"
 	"fmt"
-	"github.com/singer-stack-lab/payment-sdk/adapter/fuiou"
-	"github.com/singer-stack-lab/payment-sdk/adapter/fuiou/model"
-	"github.com/singer-stack-lab/payment-sdk/config"
-	"github.com/singer-stack-lab/payment-sdk/errors"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/model"
+	"github.com/lihongsheng/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/errors"
 )
 
 const (

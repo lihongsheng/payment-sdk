@@ -1,6 +1,6 @@
 package enum
 
-import "github.com/singer-stack-lab/payment-sdk/enum/payment"
+import "github.com/lihongsheng/payment-sdk/enum/payment"
 
 const (
 	Version = "3.0"

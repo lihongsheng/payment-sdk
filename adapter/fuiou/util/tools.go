@@ -3,7 +3,7 @@ package util
 import (
 	"bytes"
 	"fmt"
-	"github.com/singer-stack-lab/payment-sdk/enum/transfer"
+	"github.com/lihongsheng/payment-sdk/enum/transfer"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
 	"io/ioutil"

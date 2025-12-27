@@ -5,22 +5,22 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/singer-stack-lab/payment-sdk/adapter/fuiou"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
 
-	enum2 "github.com/singer-stack-lab/payment-sdk/adapter/fuiou/enum"
-	"github.com/singer-stack-lab/payment-sdk/config"
-	"github.com/singer-stack-lab/payment-sdk/driver"
-	"github.com/singer-stack-lab/payment-sdk/driver/dto"
-	"github.com/singer-stack-lab/payment-sdk/enum/action"
-	enum "github.com/singer-stack-lab/payment-sdk/enum/payment"
+	enum2 "github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
+	"github.com/lihongsheng/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/driver"
+	"github.com/lihongsheng/payment-sdk/driver/dto"
+	"github.com/lihongsheng/payment-sdk/enum/action"
+	enum "github.com/lihongsheng/payment-sdk/enum/payment"
 
-	errors2 "github.com/singer-stack-lab/payment-sdk/errors"
+	errors2 "github.com/lihongsheng/payment-sdk/errors"
 
-	"github.com/singer-stack-lab/payment-sdk/tools"
+	"github.com/lihongsheng/payment-sdk/tools"
 	"github.com/zeromicro/go-zero/core/logc"
 )
 

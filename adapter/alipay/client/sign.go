@@ -9,9 +9,9 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
-	"github.com/singer-stack-lab/payment-sdk/adapter/alipay/enum"
-	"github.com/singer-stack-lab/payment-sdk/config"
-	"github.com/singer-stack-lab/payment-sdk/errors"
+	"github.com/lihongsheng/payment-sdk/adapter/alipay/enum"
+	"github.com/lihongsheng/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/errors"
 	"sort"
 )
 

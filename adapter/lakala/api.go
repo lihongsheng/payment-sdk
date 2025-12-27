@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/singer-stack-lab/payment-sdk/adapter/lakala/client"
-	"github.com/singer-stack-lab/payment-sdk/adapter/lakala/enum"
-	"github.com/singer-stack-lab/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/adapter/lakala/client"
+	"github.com/lihongsheng/payment-sdk/adapter/lakala/enum"
+	"github.com/lihongsheng/payment-sdk/config"
 	"strings"
 )
 

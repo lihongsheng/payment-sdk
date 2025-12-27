@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"github.com/singer-stack-lab/payment-sdk/enum/transfer"
+	"github.com/lihongsheng/payment-sdk/enum/transfer"
 	"time"
 )
 

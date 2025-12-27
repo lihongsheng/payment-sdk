@@ -8,9 +8,9 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
-	"github.com/singer-stack-lab/payment-sdk/adapter/fuiou/util"
-	"github.com/singer-stack-lab/payment-sdk/config"
-	"github.com/singer-stack-lab/payment-sdk/errors"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/util"
+	"github.com/lihongsheng/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/errors"
 	"sort"
 )
 

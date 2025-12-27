@@ -1,8 +1,8 @@
 package client
 
 import (
-	"github.com/singer-stack-lab/payment-sdk/adapter/fuiou/util"
-	"github.com/singer-stack-lab/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/util"
+	"github.com/lihongsheng/payment-sdk/config"
 	"testing"
 )
 

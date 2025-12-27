@@ -3,7 +3,7 @@ package lakala
 import (
 	"bytes"
 	"context"
-	"github.com/singer-stack-lab/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/config"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"

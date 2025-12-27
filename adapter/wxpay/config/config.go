@@ -1,1 +1,1 @@
-package wxpay
+package config

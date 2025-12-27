@@ -2,8 +2,8 @@ package model
 
 import (
 	"encoding/json"
-	"github.com/singer-stack-lab/payment-sdk/adapter/alipay/enum"
-	"github.com/singer-stack-lab/payment-sdk/errors"
+	"github.com/lihongsheng/payment-sdk/adapter/alipay/enum"
+	"github.com/lihongsheng/payment-sdk/errors"
 	"time"
 )
 

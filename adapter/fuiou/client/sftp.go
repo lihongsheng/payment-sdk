@@ -2,8 +2,8 @@ package client
 
 import (
 	"fmt"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
 	"github.com/pkg/sftp"
-	"github.com/singer-stack-lab/payment-sdk/adapter/fuiou/enum"
 	"golang.org/x/crypto/ssh"
 	"io"
 	"net/http"

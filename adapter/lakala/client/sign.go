@@ -8,9 +8,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/singer-stack-lab/payment-sdk/config"
-	"github.com/singer-stack-lab/payment-sdk/errors"
-	"github.com/singer-stack-lab/payment-sdk/tools"
+	"github.com/lihongsheng/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/errors"
+	"github.com/lihongsheng/payment-sdk/tools"
 	"time"
 )
 

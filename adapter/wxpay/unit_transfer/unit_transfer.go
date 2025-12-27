@@ -2,15 +2,15 @@ package unit_transfer
 
 import (
 	"context"
-	"github.com/singer-stack-lab/payment-sdk/adapter/wxpay"
-	"github.com/singer-stack-lab/payment-sdk/adapter/wxpay/client/mchtransfer"
-	"github.com/singer-stack-lab/payment-sdk/adapter/wxpay/until"
-	"github.com/singer-stack-lab/payment-sdk/config"
-	"github.com/singer-stack-lab/payment-sdk/driver"
-	"github.com/singer-stack-lab/payment-sdk/driver/dto"
-	"github.com/singer-stack-lab/payment-sdk/enum/action"
-	enum "github.com/singer-stack-lab/payment-sdk/enum/payment"
-	"github.com/singer-stack-lab/payment-sdk/errors"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client/mchtransfer"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
+	"github.com/lihongsheng/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/driver"
+	"github.com/lihongsheng/payment-sdk/driver/dto"
+	"github.com/lihongsheng/payment-sdk/enum/action"
+	enum "github.com/lihongsheng/payment-sdk/enum/payment"
+	"github.com/lihongsheng/payment-sdk/errors"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
 )
 

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"github.com/singer-stack-lab/payment-sdk/adapter/fuiou/enum"
-	"github.com/singer-stack-lab/payment-sdk/errors"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
+	"github.com/lihongsheng/payment-sdk/errors"
 	"time"
 )
 

@@ -1,11 +1,11 @@
 package until
 
 import (
-	enum2 "github.com/singer-stack-lab/payment-sdk/adapter/wxpay/enum"
-	shareEnum "github.com/singer-stack-lab/payment-sdk/enum/order_share"
-	enum "github.com/singer-stack-lab/payment-sdk/enum/payment"
-	"github.com/singer-stack-lab/payment-sdk/enum/refund"
-	"github.com/singer-stack-lab/payment-sdk/enum/transfer"
+	enum2 "github.com/lihongsheng/payment-sdk/adapter/wxpay/enum"
+	shareEnum "github.com/lihongsheng/payment-sdk/enum/order_share"
+	enum "github.com/lihongsheng/payment-sdk/enum/payment"
+	"github.com/lihongsheng/payment-sdk/enum/refund"
+	"github.com/lihongsheng/payment-sdk/enum/transfer"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/profitsharing"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/refunddomestic"
 )

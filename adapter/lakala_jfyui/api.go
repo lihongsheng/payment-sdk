@@ -1,8 +1,8 @@
 package lakala_jfyui
 
 import (
-	"github.com/singer-stack-lab/payment-sdk/adapter/lakala_jfyui/client"
-	"github.com/singer-stack-lab/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/adapter/lakala_jfyui/client"
+	"github.com/lihongsheng/payment-sdk/config"
 	"strings"
 )
 

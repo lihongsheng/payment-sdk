@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	errors2 "github.com/singer-stack-lab/payment-sdk/errors"
-	"github.com/singer-stack-lab/payment-sdk/tools"
+	errors2 "github.com/lihongsheng/payment-sdk/errors"
+	"github.com/lihongsheng/payment-sdk/tools"
 )
 
 // PaymentRequest 富友支付请求参数结构体

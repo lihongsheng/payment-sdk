@@ -2,7 +2,7 @@ package model
 
 import (
 	"fmt"
-	"github.com/singer-stack-lab/payment-sdk/tools"
+	"github.com/lihongsheng/payment-sdk/tools"
 	"strings"
 )
 

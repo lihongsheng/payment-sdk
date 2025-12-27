@@ -2,8 +2,8 @@ package payment
 
 import (
 	"context"
-	"github.com/singer-stack-lab/payment-sdk/config"
-	"github.com/singer-stack-lab/payment-sdk/driver/dto"
+	"github.com/lihongsheng/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"

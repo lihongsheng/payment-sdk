@@ -3,9 +3,9 @@ package user
 import (
 	"context"
 	"fmt"
-	"github.com/singer-stack-lab/payment-sdk/adapter/fuiou/enum"
-	"github.com/singer-stack-lab/payment-sdk/adapter/fuiou/model"
-	"github.com/singer-stack-lab/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/model"
+	"github.com/lihongsheng/payment-sdk/config"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"

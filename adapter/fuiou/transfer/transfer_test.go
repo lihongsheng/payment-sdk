@@ -3,9 +3,9 @@ package transfer
 import (
 	"context"
 	"fmt"
-	"github.com/singer-stack-lab/payment-sdk/config"
-	"github.com/singer-stack-lab/payment-sdk/driver/dto"
-	"github.com/singer-stack-lab/payment-sdk/enum/transfer"
+	"github.com/lihongsheng/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/driver/dto"
+	"github.com/lihongsheng/payment-sdk/enum/transfer"
 	"testing"
 	"time"
 )

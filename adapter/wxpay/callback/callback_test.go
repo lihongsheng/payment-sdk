@@ -8,7 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/singer-stack-lab/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments"
 	"io/ioutil"

@@ -2,10 +2,10 @@ package refund
 
 import (
 	"context"
-	"github.com/singer-stack-lab/payment-sdk/adapter/wxpay/until"
-	"github.com/singer-stack-lab/payment-sdk/config"
-	"github.com/singer-stack-lab/payment-sdk/driver/dto"
-	enum "github.com/singer-stack-lab/payment-sdk/enum/payment"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
+	"github.com/lihongsheng/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/driver/dto"
+	enum "github.com/lihongsheng/payment-sdk/enum/payment"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
