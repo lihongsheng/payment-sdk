@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
+	"github.com/lihongsheng/payment-sdk/driver/iface"
 	"github.com/lihongsheng/payment-sdk/enum/action"
 	"github.com/lihongsheng/payment-sdk/tools"
 	"time"
 
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay"
 	"github.com/lihongsheng/payment-sdk/config"
-	"github.com/lihongsheng/payment-sdk/driver"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	enum "github.com/lihongsheng/payment-sdk/enum/payment"
 	errors2 "github.com/lihongsheng/payment-sdk/errors"
@@ -27,7 +27,7 @@ type Jsapi struct {
 	client jsapi.JsapiApiService
 }
 
-func NewJsApi(conf config.Config) (driver.Pay, error) {
+func NewJsApi(conf config.Config) (iface.Pay, error) {
 	api, err := wxpay.InitClient(conf)
 	if err != nil {
 		return nil, err

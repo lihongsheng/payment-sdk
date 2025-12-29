@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	tools2 "github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
+	"github.com/lihongsheng/payment-sdk/driver/iface"
 	"time"
 
 	"github.com/lihongsheng/payment-sdk/enum/action"
@@ -17,7 +18,6 @@ import (
 	//errors2 "github.com/lihongsheng/payment-sdk/errors"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay"
 	"github.com/lihongsheng/payment-sdk/config"
-	"github.com/lihongsheng/payment-sdk/driver"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/native"
@@ -28,7 +28,7 @@ type Native struct {
 	client native.NativeApiService
 }
 
-func NewNative(conf config.Config) (driver.Pay, error) {
+func NewNative(conf config.Config) (iface.Pay, error) {
 	api, err := wxpay.InitClient(conf)
 	if err != nil {
 		return nil, err

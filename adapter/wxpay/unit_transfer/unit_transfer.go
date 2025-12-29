@@ -6,8 +6,8 @@ import (
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client/mchtransfer"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
 	"github.com/lihongsheng/payment-sdk/config"
-	"github.com/lihongsheng/payment-sdk/driver"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
+	"github.com/lihongsheng/payment-sdk/driver/iface"
 	"github.com/lihongsheng/payment-sdk/enum/action"
 	enum "github.com/lihongsheng/payment-sdk/enum/payment"
 	"github.com/lihongsheng/payment-sdk/errors"
@@ -19,7 +19,7 @@ type Transfer struct {
 	client mchtransfer.TransferApiService
 }
 
-func NewTransfer(conf config.Config) (driver.UnitTransfer, error) {
+func NewTransfer(conf config.Config) (iface.UnitTransfer, error) {
 	api, err := wxpay.InitClient(conf)
 	if err != nil {
 		return nil, err

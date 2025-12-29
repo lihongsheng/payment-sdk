@@ -8,8 +8,8 @@ import (
 	"github.com/lihongsheng/payment-sdk/adapter/yunhui"
 	"github.com/lihongsheng/payment-sdk/adapter/yunhui/model"
 	"github.com/lihongsheng/payment-sdk/config"
-	"github.com/lihongsheng/payment-sdk/driver"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
+	"github.com/lihongsheng/payment-sdk/driver/iface"
 	enum "github.com/lihongsheng/payment-sdk/enum/payment"
 	"github.com/lihongsheng/payment-sdk/enum/refund"
 	errors2 "github.com/lihongsheng/payment-sdk/errors"
@@ -28,7 +28,7 @@ type Refund struct {
 	payment        enum.Payment
 }
 
-func NewRefund(conf config.Config, product enum.PaymentProduct, payment enum.Payment) (driver.Refund, error) {
+func NewRefund(conf config.Config, product enum.PaymentProduct, payment enum.Payment) (iface.Refund, error) {
 	api, err := yunhui.NewApi(conf)
 	if err != nil {
 		return nil, err

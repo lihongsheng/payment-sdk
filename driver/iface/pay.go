@@ -1,4 +1,4 @@
-package driver
+package iface
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 )
 
-type PayDriver interface {
+type PaymentDriver interface {
 	Open(c config.Config) (Pay, error)
 }
 

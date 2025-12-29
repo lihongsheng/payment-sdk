@@ -8,8 +8,8 @@ import (
 	"github.com/lihongsheng/payment-sdk/adapter/lakala_jfyui"
 	"github.com/lihongsheng/payment-sdk/adapter/lakala_jfyui/model"
 	"github.com/lihongsheng/payment-sdk/config"
-	"github.com/lihongsheng/payment-sdk/driver"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
+	"github.com/lihongsheng/payment-sdk/driver/iface"
 	"github.com/lihongsheng/payment-sdk/enum/action"
 	enum "github.com/lihongsheng/payment-sdk/enum/payment"
 	errors2 "github.com/lihongsheng/payment-sdk/errors"
@@ -26,7 +26,7 @@ type JFYUI struct {
 	payment        enum.Payment
 }
 
-func NewJFYUI(conf config.Config, product enum.PaymentProduct, payment enum.Payment) (driver.Pay, error) {
+func NewJFYUI(conf config.Config, product enum.PaymentProduct, payment enum.Payment) (iface.Pay, error) {
 	api, err := lakala_jfyui.NewApi(conf)
 	if err != nil {
 		return nil, err

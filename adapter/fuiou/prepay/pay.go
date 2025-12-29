@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou"
+	"github.com/lihongsheng/payment-sdk/driver/iface"
 	"net/url"
 	"strconv"
 	"strings"
@@ -13,7 +14,6 @@ import (
 
 	enum2 "github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
 	"github.com/lihongsheng/payment-sdk/config"
-	"github.com/lihongsheng/payment-sdk/driver"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/enum/action"
 	enum "github.com/lihongsheng/payment-sdk/enum/payment"
@@ -38,7 +38,7 @@ type Pay struct {
 	payment        enum.Payment
 }
 
-func NewPay(conf config.Config, product enum.PaymentProduct, payment enum.Payment) (driver.Pay, error) {
+func NewPay(conf config.Config, product enum.PaymentProduct, payment enum.Payment) (iface.Pay, error) {
 	api, err := fuiou.NewApi(conf)
 	if err != nil {
 		return nil, err

@@ -9,8 +9,8 @@ import (
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/model"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/util"
 	"github.com/lihongsheng/payment-sdk/config"
-	"github.com/lihongsheng/payment-sdk/driver"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
+	"github.com/lihongsheng/payment-sdk/driver/iface"
 	"github.com/lihongsheng/payment-sdk/errors"
 	"time"
 )
@@ -20,7 +20,7 @@ type Transfer struct {
 	conf   config.Config
 }
 
-func NewTransfer(conf config.Config) (driver.UnitTransfer, error) {
+func NewTransfer(conf config.Config) (iface.UnitTransfer, error) {
 	newClient, err := client.NewClient(conf)
 	if err != nil {
 		return nil, err

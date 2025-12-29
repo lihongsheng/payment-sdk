@@ -8,8 +8,8 @@ import (
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/model"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/util"
 	"github.com/lihongsheng/payment-sdk/config"
-	"github.com/lihongsheng/payment-sdk/driver"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
+	"github.com/lihongsheng/payment-sdk/driver/iface"
 	"github.com/lihongsheng/payment-sdk/enum/refund"
 	"github.com/lihongsheng/payment-sdk/errors"
 )
@@ -19,7 +19,7 @@ type Refund struct {
 	conf   config.Config
 }
 
-func NewRefund(conf config.Config) (driver.Refund, error) {
+func NewRefund(conf config.Config) (iface.Refund, error) {
 	newClient, err := client.NewClient(conf)
 	if err != nil {
 		return nil, err

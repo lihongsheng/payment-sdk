@@ -6,11 +6,12 @@ option go_package = "./enum/action";
 
 
 enum Action {
-  //Redirect | Qrcode | Prepay
+  // 未知
   Action_UNKNOWN = 0;
+  // 跳转支付
   Redirect = 1;
+  // 跳转二维码
   Qrcode = 2;
+  // 预支付
   Prepay = 3;
-  // 无回调的跳转支付，拉卡拉私有协议版
-  RedirectNOBack = 4;
 }

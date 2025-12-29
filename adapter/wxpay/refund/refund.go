@@ -6,8 +6,8 @@ import (
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
 	"github.com/lihongsheng/payment-sdk/config"
-	"github.com/lihongsheng/payment-sdk/driver"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
+	"github.com/lihongsheng/payment-sdk/driver/iface"
 	enum "github.com/lihongsheng/payment-sdk/enum/payment"
 	"github.com/lihongsheng/payment-sdk/enum/refund"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
@@ -19,7 +19,7 @@ type Refund struct {
 	client refunddomestic.RefundsApiService
 }
 
-func NewRefund(conf config.Config) (driver.Refund, error) {
+func NewRefund(conf config.Config) (iface.Refund, error) {
 	api, err := wxpay.InitClient(conf)
 	if err != nil {
 		return nil, err

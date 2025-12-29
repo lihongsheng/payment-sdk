@@ -2,10 +2,10 @@ package payment
 
 import (
 	"context"
+	"github.com/lihongsheng/payment-sdk/driver/iface"
 
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay"
 	"github.com/lihongsheng/payment-sdk/config"
-	"github.com/lihongsheng/payment-sdk/driver"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	enum "github.com/lihongsheng/payment-sdk/enum/payment"
 )
@@ -14,7 +14,7 @@ type Lite struct {
 	*Jsapi
 }
 
-func NewLite(conf config.Config) (driver.Pay, error) {
+func NewLite(conf config.Config) (iface.Pay, error) {
 	api, err := wxpay.InitClient(conf)
 	if err != nil {
 		return nil, err

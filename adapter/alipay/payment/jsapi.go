@@ -7,8 +7,8 @@ import (
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/model"
 	"github.com/lihongsheng/payment-sdk/config"
-	"github.com/lihongsheng/payment-sdk/driver"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
+	"github.com/lihongsheng/payment-sdk/driver/iface"
 	"github.com/lihongsheng/payment-sdk/enum/action"
 	"github.com/lihongsheng/payment-sdk/enum/payment"
 	"github.com/lihongsheng/payment-sdk/errors"
@@ -21,7 +21,7 @@ type Jsapi struct {
 	*alipay.Api
 }
 
-func NewJsApi(conf config.Config) (driver.Pay, error) {
+func NewJsApi(conf config.Config) (iface.Pay, error) {
 	api, err := alipay.NewApi(conf)
 	if err != nil {
 		return nil, err
