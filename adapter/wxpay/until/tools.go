@@ -1,13 +1,22 @@
 package until
 
 import (
+	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
 	enum2 "github.com/lihongsheng/payment-sdk/adapter/wxpay/enum"
 	shareEnum "github.com/lihongsheng/payment-sdk/enum/order_share"
 	enum "github.com/lihongsheng/payment-sdk/enum/payment"
 	"github.com/lihongsheng/payment-sdk/enum/refund"
 	"github.com/lihongsheng/payment-sdk/enum/transfer"
+	"github.com/wechatpay-apiv3/wechatpay-go/core/notify"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/profitsharing"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/refunddomestic"
+	"io/ioutil"
+	"net/http"
 )
 
 var PaymentStatus = map[string]enum.Status{
@@ -203,4 +212,75 @@ func GetTransferDetailStatus(status string) transfer.DetailStatus {
 		return transfer.DetailStatus_DetailStatus_FAILED
 	}
 	return transfer.DetailStatus_DetailStatus_UNKNOWN
+}
+
+func GetRequestBody(request *http.Request) ([]byte, error) {
+	body, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read request body err: %v", err)
+	}
+
+	_ = request.Body.Close()
+	request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+	return body, nil
+}
+
+func ProcessBody(apiV3Key string, request *http.Request, content interface{}) (*notify.Request, error) {
+	body, err := GetRequestBody(request)
+	if err != nil {
+		return nil, err
+	}
+	ret := new(notify.Request)
+	if err := json.Unmarshal(body, ret); err != nil {
+		return nil, fmt.Errorf("parse request body error: %v", err)
+	}
+	aead, err := GetAes(apiV3Key)
+	if err != nil {
+		return nil, err
+	}
+	plaintext, err := doAEADOpen(
+		aead,
+		ret.Resource.Nonce,
+		ret.Resource.Ciphertext,
+		ret.Resource.AssociatedData,
+	)
+	if err != nil {
+		return ret, fmt.Errorf("%s decrypt error: %v", ret.Resource.Algorithm, err)
+	}
+	ret.Resource.Plaintext = plaintext
+	if err = json.Unmarshal([]byte(plaintext), &content); err != nil {
+		return ret, fmt.Errorf("unmarshal plaintext to content failed: %v", err)
+	}
+	return ret, nil
+}
+
+func doAEADOpen(c cipher.AEAD, nonce, ciphertext, additionalData string) (string, error) {
+	data, err := base64.StdEncoding.DecodeString(ciphertext)
+	if err != nil {
+		return "", err
+	}
+	plaintext, err := c.Open(
+		nil,
+		[]byte(nonce),
+		data,
+		[]byte(additionalData),
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return string(plaintext), nil
+}
+
+func GetAes(apiV3Key string) (cipher.AEAD, error) {
+	c, err := aes.NewCipher([]byte(apiV3Key))
+	if err != nil {
+		return nil, err
+	}
+	aesgcm, err := cipher.NewGCM(c)
+	if err != nil {
+		return nil, err
+	}
+	return aesgcm, nil
 }

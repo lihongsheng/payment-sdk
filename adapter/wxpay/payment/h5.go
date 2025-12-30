@@ -14,27 +14,25 @@ import (
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments"
 	"github.com/zeromicro/go-zero/core/logc"
 
-	//errors2 "github.com/lihongsheng/payment-sdk/errors"
-	"github.com/lihongsheng/payment-sdk/adapter/wxpay"
-	"github.com/lihongsheng/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/h5"
 )
 
 type H5 struct {
-	*wxpay.Api
+	*Callback
 	client h5.H5ApiService
 }
 
 func NewH5(conf config.Config) (iface.Pay, error) {
-	api, err := wxpay.InitClient(conf)
+	api, err := NewCallback(conf)
 	if err != nil {
 		return nil, err
 	}
 	return &H5{
-		Api:    api,
-		client: h5.H5ApiService{Client: api.Client},
+		Callback: api,
+		client:   h5.H5ApiService{Client: api.Client},
 	}, nil
 }
 

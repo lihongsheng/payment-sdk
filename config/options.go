@@ -35,15 +35,15 @@ package config
 //        "param_object"
 //    ]
 //}
-
-type Param struct {
-	// 变量在html 展示的标签名称
-	Label string `json:"label"`
-	// 变量类型 String|Int|Array|Object|Bool
-	Type string `json:"type"`
-	// 验证格式
-	ValidateReg string `json:"validate_reg"`
-	// String|Int|Email|Phone|Domain|Url|Reg
-	ValidateType string `json:"validate_type"`
-	Object       *Param `json:"object"`
-}
+//
+//type Param struct {
+//	// 变量在html 展示的标签名称
+//	Label string `json:"label"`
+//	// 变量类型 String|Int|Array|Object|Bool
+//	Type string `json:"type"`
+//	// 验证格式
+//	ValidateReg string `json:"validate_reg"`
+//	// String|Int|Email|Phone|Domain|Url|Reg
+//	ValidateType string `json:"validate_type"`
+//	Object       *Param `json:"object"`
+//}

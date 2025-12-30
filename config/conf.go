@@ -1,26 +1,19 @@
 package config
 
-type Config struct {
-	AppID   string
-	MchID   string
-	APIKey  string
-	Cert    Cert
-	Proxy   Proxy
-	ApiHost string
-	Version string
-	Extra   string
-}
+import (
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
+	"github.com/lihongsheng/payment-sdk/enum/channel"
+	"github.com/lihongsheng/payment-sdk/enum/payment"
+)
 
-type Cert struct {
-	// 微信私钥或者其他平台私钥
-	CertPrivateKey string `json:"cert_private_key"`
-	// 微信证书序列号
-	CertificateSerialNumber string `json:"certificate_serial_number"`
-	// 微信公钥ID
-	PublicKeyID string `json:"public_key_id"`
-	// 微信公钥
-	PublicKey      string `json:"public_key"`
-	ScoreServiceID string `json:"score_service_id"`
+type Config struct {
+	Proxy          *Proxy
+	Channel        channel.Channel        `json:"channel"`
+	Payment        payment.Payment        `json:"payment"`
+	PaymentProduct payment.PaymentProduct `json:"payment_product"`
+	Config         string                 `json:"config"`
+	WxConfig       *config.Config         `json:"wx_config"`
+	//
 }
 
 type Proxy struct {
@@ -28,4 +21,60 @@ type Proxy struct {
 	Port     int
 	UserName string
 	Password string
+}
+
+// Option 选项函数类型
+type Option func(*Config)
+
+func WithChannel(ch channel.Channel) Option {
+	return func(c *Config) {
+		c.Channel = ch
+	}
+}
+func WithPayment(pay payment.Payment) Option {
+	return func(c *Config) {
+		c.Payment = pay
+	}
+}
+
+func WithPaymentProduct(pay payment.PaymentProduct) Option {
+	return func(c *Config) {
+		c.PaymentProduct = pay
+	}
+}
+
+func WithWxConfig(cf *config.Config) Option {
+	return func(c *Config) {
+		c.WxConfig = cf
+	}
+}
+
+func WithConfig(cf string) Option {
+	return func(c *Config) {
+		c.Config = cf
+	}
+}
+
+func WithProxy(cf *Proxy) Option {
+	return func(c *Config) {
+		c.Proxy = cf
+	}
+}
+
+func NewPayment() *Config {
+	return &Config{
+		Channel:        channel.Channel_Wxpay,
+		Payment:        payment.Payment_Wxpay,
+		PaymentProduct: payment.PaymentProduct_JSAPI,
+		Config:         "",
+	}
+}
+
+func NewRefund() *Config {
+	return &Config{
+		Channel:        channel.Channel_Wxpay,
+		Payment:        payment.Payment_Wxpay,
+		PaymentProduct: payment.PaymentProduct_JSAPI,
+		Config:         "",
+	}
 }

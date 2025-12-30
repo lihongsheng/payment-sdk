@@ -9,20 +9,20 @@ import (
 
 type CallbackPayDetail struct {
 	// 实付金额
-	PayAmount Amount
+	PayAmount Amount `json:"pay_amount"`
 	// 订单号
-	OrderNo string
+	OrderNo string `json:"order_no"`
 	// 交易单号
-	TradeNo     string
-	Status      enum.Status
-	SuccessTime int64
+	TradeNo     string      `json:"trade_no"`
+	Status      enum.Status `json:"status"`
+	SuccessTime int64       `json:"success_time"`
 	// H5 | JSAPI | NATIVE | APP | 扫码
-	PaymentProduct string
+	PaymentProduct string `json:"payment_product"`
 	// 支付发卡行，不一定都有
-	BankType       string
-	OriginResponse string
-	EventAction    enum1.Event
-	EventRefund    *EventRefundActionParams
+	BankType       string                   `json:"bank_type"`
+	OriginResponse string                   `json:"origin_response"`
+	EventAction    enum1.Event              `json:"event_action"`
+	EventRefund    *EventRefundActionParams `json:"event_refund"`
 }
 
 type EventRefundActionParams struct {

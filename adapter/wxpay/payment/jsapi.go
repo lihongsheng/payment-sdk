@@ -10,8 +10,7 @@ import (
 	"github.com/lihongsheng/payment-sdk/tools"
 	"time"
 
-	"github.com/lihongsheng/payment-sdk/adapter/wxpay"
-	"github.com/lihongsheng/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	enum "github.com/lihongsheng/payment-sdk/enum/payment"
 	errors2 "github.com/lihongsheng/payment-sdk/errors"
@@ -23,19 +22,27 @@ import (
 )
 
 type Jsapi struct {
-	*wxpay.Api
+	*Callback
 	client jsapi.JsapiApiService
 }
 
 func NewJsApi(conf config.Config) (iface.Pay, error) {
-	api, err := wxpay.InitClient(conf)
+	api, err := newJsApi(conf)
+	if err != nil {
+		return nil, err
+	}
+	return api, nil
+}
+
+func newJsApi(conf config.Config) (*Jsapi, error) {
+	api, err := NewCallback(conf)
 	if err != nil {
 		return nil, err
 	}
 	svc := jsapi.JsapiApiService{Client: api.Client}
 	return &Jsapi{
-		Api:    api,
-		client: svc,
+		Callback: api,
+		client:   svc,
 	}, nil
 }
 

@@ -15,15 +15,12 @@ import (
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
 	"github.com/lihongsheng/payment-sdk/config"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
-	enum "github.com/lihongsheng/payment-sdk/enum/payment"
 	"github.com/lihongsheng/payment-sdk/enum/refund"
 	"github.com/lihongsheng/payment-sdk/enum/transfer"
 	errors2 "github.com/lihongsheng/payment-sdk/errors"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/auth/verifiers"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/notify"
-	"github.com/wechatpay-apiv3/wechatpay-go/services/payments"
 	"github.com/wechatpay-apiv3/wechatpay-go/utils"
-	"github.com/zeromicro/go-zero/core/logc"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -86,52 +83,53 @@ const (
 	Wechatpay_Nonce     = "Wechatpay-Nonce"
 )
 
-func CallbackPaymentParse(ctx context.Context, conf config.Config, req *http.Request) (*dto.CallbackPayDetail, error) {
-	pubKeyID := conf.Cert.PublicKeyID
-	mchAPIv3Key := conf.APIKey
-	publicKey, err := utils.LoadPublicKey(conf.Cert.PublicKey)
-	if err != nil {
-		return nil, errors.New("wxpay load merchant PublicKey key errors")
-	}
-	no, err := notify.NewRSANotifyHandler(mchAPIv3Key, verifiers.NewSHA256WithRSAPubkeyVerifier(pubKeyID, *publicKey))
-	if err != nil {
-		return nil, errors2.ErrorSystemError("wxpay new RSA NotifyHandler errors").WithCause(err)
-	}
-	var resp = &payments.Transaction{}
-	_, err = no.ParseNotifyRequest(ctx, req, resp)
-	if err != nil {
-		_, proErr := ProcessBody(mchAPIv3Key, req, resp)
-		if proErr != nil {
-			return nil, err
-		}
-		//return nil, errors2.ErrorSystemError("wxpay parse notify request errors").WithCause(err)
-	}
-	if resp.TransactionId == nil || (resp.TransactionId != nil && *resp.TransactionId == "") {
-		return nil, errors2.ErrorSystemError("wxpay parse notify not find TransactionId").WithCause(err)
-	}
-	status := until.PaymentStatus[until.StringPoint(resp.TradeState)]
-	if status == enum.Status_Status_UNKNOWN {
-		logc.Error(ctx, "wxPayErrStatus", logc.Field("resp", resp))
-		return nil, until.ErrorHandler(ctx, nil, err, "status is unknown")
-	}
-	var successTime time.Time
-	if resp.SuccessTime == nil && *resp.SuccessTime != "" {
-		successTime, _ = time.Parse(time.RFC3339, *resp.SuccessTime)
-	}
-	originBy, _ := json.Marshal(resp)
-	return &dto.CallbackPayDetail{
-		OrderNo: until.StringPoint(resp.OutTradeNo),
-		TradeNo: until.StringPoint(resp.TransactionId),
-		PayAmount: dto.Amount{
-			Currency: until.StringPoint(resp.Amount.Currency),
-			Total:    until.Int64Point(resp.Amount.Total),
-		},
-		Status:         status,
-		PaymentProduct: enum.PaymentProduct_JSAPI.String(),
-		SuccessTime:    successTime.Unix(),
-		OriginResponse: string(originBy),
-	}, nil
-}
+//
+//func CallbackPaymentParse(ctx context.Context, conf config.Config, req *http.Request) (*dto.CallbackPayDetail, error) {
+//	pubKeyID := conf.Cert.PublicKeyID
+//	mchAPIv3Key := conf.APIKey
+//	publicKey, err := utils.LoadPublicKey(conf.Cert.PublicKey)
+//	if err != nil {
+//		return nil, errors.New("wxpay load merchant PublicKey key errors")
+//	}
+//	no, err := notify.NewRSANotifyHandler(mchAPIv3Key, verifiers.NewSHA256WithRSAPubkeyVerifier(pubKeyID, *publicKey))
+//	if err != nil {
+//		return nil, errors2.ErrorSystemError("wxpay new RSA NotifyHandler errors").WithCause(err)
+//	}
+//	var resp = &payments.Transaction{}
+//	_, err = no.ParseNotifyRequest(ctx, req, resp)
+//	if err != nil {
+//		_, proErr := ProcessBody(mchAPIv3Key, req, resp)
+//		if proErr != nil {
+//			return nil, err
+//		}
+//		//return nil, errors2.ErrorSystemError("wxpay parse notify request errors").WithCause(err)
+//	}
+//	if resp.TransactionId == nil || (resp.TransactionId != nil && *resp.TransactionId == "") {
+//		return nil, errors2.ErrorSystemError("wxpay parse notify not find TransactionId").WithCause(err)
+//	}
+//	status := until.PaymentStatus[until.StringPoint(resp.TradeState)]
+//	if status == enum.Status_Status_UNKNOWN {
+//		logc.Error(ctx, "wxPayErrStatus", logc.Field("resp", resp))
+//		return nil, until.ErrorHandler(ctx, nil, err, "status is unknown")
+//	}
+//	var successTime time.Time
+//	if resp.SuccessTime == nil && *resp.SuccessTime != "" {
+//		successTime, _ = time.Parse(time.RFC3339, *resp.SuccessTime)
+//	}
+//	originBy, _ := json.Marshal(resp)
+//	return &dto.CallbackPayDetail{
+//		OrderNo: until.StringPoint(resp.OutTradeNo),
+//		TradeNo: until.StringPoint(resp.TransactionId),
+//		PayAmount: dto.Amount{
+//			Currency: until.StringPoint(resp.Amount.Currency),
+//			Total:    until.Int64Point(resp.Amount.Total),
+//		},
+//		Status:         status,
+//		PaymentProduct: enum.PaymentProduct_JSAPI.String(),
+//		SuccessTime:    successTime.Unix(),
+//		OriginResponse: string(originBy),
+//	}, nil
+//}
 
 //
 //func CallbackRefundParse2(ctx context.Context, conf config.Config, req *http.Request) (*dto.RefundDetail, error) {
