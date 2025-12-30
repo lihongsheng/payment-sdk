@@ -57,18 +57,14 @@ func RefundRegister(name channel.Channel, driver iface.RefundDriver) {
 	refundDrivers[name] = driver
 }
 
-func Payment(driverName channel.Channel, options ...config.Option) (iface.Pay, error) {
+func Payment(driverName channel.Channel, cf config.Config) (iface.Pay, error) {
 	driversMu.RLock()
 	driver, ok := paymentDrivers[driverName]
 	driversMu.RUnlock()
 	if !ok {
 		return nil, fmt.Errorf("payment: unknown driver %s (forgotten import?)", driverName.String())
 	}
-	cf := config.NewPayment()
-	for _, option := range options {
-		option(cf)
-	}
-	connector, err := driver.Open(*cf)
+	connector, err := driver.Open(cf)
 	if err != nil {
 		return nil, err
 	}
