@@ -6,7 +6,7 @@ import (
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
 	"time"
 
-	"github.com/lihongsheng/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	enum "github.com/lihongsheng/payment-sdk/enum/payment"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +19,7 @@ func TestJsapi_Pay(t *testing.T) {
 		AppID: "wx6c663032961e5e4b",
 		MchID: "1730424164",
 		Cert: config.Cert{
-			CertPrivateKey: `-----BEGIN PRIVATE KEY-----
+			Private: `-----BEGIN PRIVATE KEY-----
 MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC9h7iMvdgwoQgZ
 jspOMMNptXdR6eyPLtN0DA1AU/laYTSKvA6POYDzvv6XA8fOQblGYpM6rV8ebsGN
 O2rCCTllZ8S79S0JD/WoYfGqCU+A/B5qgFM+IxfH1o1yk7s4kdeKm5e8mXR22fyu
@@ -47,9 +47,9 @@ hGtWCs7qMcdvz8a7X84NXuCxBuw4WZlikeLTQENZzny1u9GKWrczEcKFzMiF7u+e
 7kfnZzOO1Dph+Ut/8Y0XwVJZDfsZca+dOfDDgJIjZMKqGqJ+67VpVTyguXu7NW7a
 tdnfEMZWEZvzWlXYE6j4DVXF
 -----END PRIVATE KEY-----`,
-			CertificateSerialNumber: "1A6DEA49B006CC47A477C387244985669DB0EA0B",
-			PublicKeyID:             "PUB_KEY_ID_0117304241642025110600182326001207",
-			PublicKey: `-----BEGIN PUBLIC KEY-----
+			PrivateNumber: "1A6DEA49B006CC47A477C387244985669DB0EA0B",
+			PublicNumber:  "PUB_KEY_ID_0117304241642025110600182326001207",
+			Public: `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA9CUWaMY8Fd5HfSVNKJtQ
 FjwZ57sruwz4cRK2HCvHUaNsWMdy5S2zfGIwD8Z9YfJESa3AmSV42jb1tFu3tb+W
 ew6JMLRHolknZuEokDO0zH49fhnVP/6x2FItGy4/lIBaoPg49LHXxCZxVqshykV7
@@ -59,8 +59,7 @@ C0N/dHAbJuftpoXWSxAxJdI0r2+Vy1VqDglJ9KxCiPf9B87eirOnZgn6YgKJ8a35
 iQIDAQAB
 -----END PUBLIC KEY-----`,
 		},
-		APIKey: "hafkjfhkhjewhkjjhfkw135213213131",
-		Proxy:  config.Proxy{},
+		APISecret: "hafkjfhkhjewhkjjhfkw135213213131",
 	}
 	api, err := NewJsApi(cccc)
 	if api == nil {

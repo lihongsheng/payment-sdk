@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/config"
 	enum2 "github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
-	"github.com/lihongsheng/payment-sdk/config"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
 	enum "github.com/lihongsheng/payment-sdk/enum/payment"
@@ -15,6 +15,7 @@ import (
 	errors2 "github.com/lihongsheng/payment-sdk/errors"
 	"github.com/lihongsheng/payment-sdk/tools"
 	"github.com/zeromicro/go-zero/core/logc"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -125,7 +126,7 @@ func (r *Refund) buildRefundRequest(req *dto.RefundRequest) *RefundRequest {
 	if r.payment == enum.Payment_Alipay {
 		result.OrderType = "ALIPAY"
 	}
-	result.GenSign(r.C.APIKey)
+	result.GenSign(r.C.APISecret)
 	return result
 }
 
@@ -177,6 +178,10 @@ func (r *Refund) buildRefundQueryRequest(req dto.RefundQuery) *RefundQueryReques
 	} else {
 		result.Version = r.C.Version
 	}
-	result.GenSign(r.C.APIKey)
+	result.GenSign(r.C.APISecret)
 	return result
+}
+
+func (r *Refund) Callback(ctx context.Context, req *http.Request) (*dto.CallbackRefundDetail, error) {
+	return nil, errors2.ErrorNoSupport("not support refund callback", nil)
 }

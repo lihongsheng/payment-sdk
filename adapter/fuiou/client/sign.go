@@ -8,8 +8,8 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/config"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/util"
-	"github.com/lihongsheng/payment-sdk/config"
 	"github.com/lihongsheng/payment-sdk/errors"
 	"sort"
 )
@@ -42,7 +42,7 @@ func (s *Sign) Sign(signParams map[string]string, filter map[string]struct{}) (s
 	//fmt.Println("signStr", signStr)
 	// 需要转码为GBK
 	signBy, _ := util.GbkEncode(signStr)
-	sign, err = s.RsaSign(signBy, s.C.Cert.CertPrivateKey)
+	sign, err = s.RsaSign(signBy, s.C.Cert.Private)
 	return sign, err
 }
 
@@ -89,7 +89,7 @@ func (s *Sign) EncryptByPublicKey(srcData []byte, publicKeyBytes []byte) (string
 	if err != nil {
 		return "", err
 	}
-	// 类型断言为*rsa.PublicKey
+	// 类型断言为*rsa.Public
 	publicKey, ok := pubInterface.(*rsa.PublicKey)
 	if !ok {
 		return "", errors.ErrorParamError("not a RSA public key")

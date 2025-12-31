@@ -11,7 +11,7 @@ package unit_transfer
 //			CertPrivateKey:          cert.CertPrivateKey,
 //			CertificateSerialNumber: cert.CertificateSerialNumber,
 //			PublicKeyID:             cert.PublicKeyID,
-//			PublicKey:               cert.PublicKey,
+//			Public:               cert.Public,
 //		},
 //		APIKey: "LFJEGAVFJHGVQH566654564646546546",
 //		Proxy:  config.Proxy{},

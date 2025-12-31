@@ -3,18 +3,18 @@ package config
 import "github.com/lihongsheng/payment-sdk/config/proxy"
 
 type Config struct {
-	// 微信app id
-	AppID string `json:"app_id"`
 	// 微信商户id
 	MchID string `json:"mch_id"`
 	// 微信api v3 秘钥
 	APISecret string `json:"api_secret"`
-	// 证书相关
-	Cert Cert `json:"cert"`
-	// 转账相关
-	ScoreServiceID string `json:"score_service_id"`
+	// 富有订单前缀
+	OrderPrefix string `json:"order_prefix"`
+	// 富有接口地址
+	ApiHost string `json:"api_host"`
+	Cert    Cert   `json:"cert"`
 	// 代理
-	Proxy proxy.Proxy `json:"proxy"`
+	Proxy   proxy.Proxy `json:"proxy"`
+	Version string      `json:"version"`
 }
 
 type Cert struct {
@@ -25,5 +25,5 @@ type Cert struct {
 	// 微信公钥证书序列号
 	PublicNumber string `json:"public_number"`
 	// 微信公钥
-	Public string `json:"public"`
+	PublicKey string `json:"public_key"`
 }

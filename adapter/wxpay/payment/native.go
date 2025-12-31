@@ -14,7 +14,7 @@ import (
 	"github.com/skip2/go-qrcode"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments"
 	"github.com/zeromicro/go-zero/core/logc"
-	
+
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
@@ -22,7 +22,7 @@ import (
 )
 
 type Native struct {
-	*Callback
+	*CallbackMethod
 	client native.NativeApiService
 }
 
@@ -32,8 +32,8 @@ func NewNative(conf config.Config) (iface.Pay, error) {
 		return nil, err
 	}
 	return &Native{
-		Callback: api,
-		client:   native.NativeApiService{Client: api.Client},
+		CallbackMethod: api,
+		client:         native.NativeApiService{Client: api.Client},
 	}, nil
 }
 

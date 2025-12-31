@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
 
-	"github.com/lihongsheng/payment-sdk/adapter/wxpay"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client/payscore"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
-	"github.com/lihongsheng/payment-sdk/config"
+
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/enum/action"
 	"github.com/lihongsheng/payment-sdk/enum/payment"
@@ -20,24 +20,24 @@ import (
 // 支付分先享模式
 
 type AfterPay struct {
-	*wxpay.Api
+	*CallbackMethod
 	client payscore.ScoreApiService
 }
 
 func NewAfterPay(conf config.Config) (iface.Pay, error) {
-	api, err := wxpay.InitClient(conf)
+	api, err := NewCallback(conf)
 	if err != nil {
 		return nil, err
 	}
 	svc := payscore.ScoreApiService{Client: api.Client}
 	return &AfterPay{
-		Api:    api,
-		client: svc,
+		CallbackMethod: api,
+		client:         svc,
 	}, nil
 }
 
 func (a *AfterPay) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, error) {
-	resp, result, err := a.client.Prepay(ctx, a.BuildPayParmams(req))
+	resp, result, err := a.client.Prepay(ctx, a.BuildPayParams(req))
 	if err != nil {
 		return nil, until.ErrorHandler(ctx, result, err, "")
 	}
@@ -60,11 +60,11 @@ func (a *AfterPay) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse
 	}, nil
 }
 
-func (a *AfterPay) BuildPayParmams(req *dto.PayOrder) payscore.CreateServiceOrderRequest {
+func (a *AfterPay) BuildPayParams(req *dto.PayOrder) payscore.CreateServiceOrderRequest {
 	r := payscore.CreateServiceOrderRequest{
 		OutOrderNo:          core.String(req.Order.OrderNo),
 		Appid:               core.String(a.C.AppID),
-		ServiceId:           core.String(a.C.Cert.ScoreServiceID),
+		ServiceId:           core.String(a.C.ScoreServiceID),
 		ServiceIntroduction: core.String(req.Order.Subject),
 		PostPayments:        nil,
 		PostDiscounts:       nil,
@@ -93,7 +93,7 @@ func (a *AfterPay) BuildPayParmams(req *dto.PayOrder) payscore.CreateServiceOrde
 
 func (a *AfterPay) Query(ctx context.Context, req dto.Query) (*dto.PayDetail, error) {
 	reqParams := payscore.GetServiceOrderRequest{
-		ServiceId: core.String(a.C.Cert.ScoreServiceID),
+		ServiceId: core.String(a.C.ScoreServiceID),
 		Appid:     core.String(a.C.AppID),
 	}
 	if req.TradeNo != "" {
@@ -132,7 +132,7 @@ func (a *AfterPay) Query(ctx context.Context, req dto.Query) (*dto.PayDetail, er
 
 func (a *AfterPay) Close(ctx context.Context, req dto.CloseQuery) error {
 	reqParams := payscore.CancelServiceOrderRequest{
-		ServiceId: core.String(a.C.Cert.ScoreServiceID),
+		ServiceId: core.String(a.C.ScoreServiceID),
 		Appid:     core.String(a.C.AppID),
 	}
 	if req.OrderNo != "" {
@@ -152,7 +152,7 @@ func (a *AfterPay) Complete(ctx context.Context, req *dto.PayOrder) (*dto.PayRes
 	reqParams := payscore.CompleteServiceOrderRequest{
 		OutOrderNo: core.String(req.Order.OrderNo),
 		Appid:      core.String(a.C.AppID),
-		ServiceId:  core.String(a.C.Cert.ScoreServiceID),
+		ServiceId:  core.String(a.C.ScoreServiceID),
 		PostPayments: []payscore.Payment{{
 			Name: core.String(req.Order.Subject),
 		}},

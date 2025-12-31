@@ -10,13 +10,13 @@ import (
 
 var driversMu sync.RWMutex
 
-//go:linkname paymentDrivers
+// paymentDrivers
 var paymentDrivers = make(map[channel.Channel]iface.PaymentDriver)
 
-//go:linkname refundDrivers
+// refundDrivers
 var refundDrivers = make(map[channel.Channel]iface.RefundDriver)
 
-//go:linkname unitTransferDrivers
+// unitTransferDrivers
 var unitTransferDrivers = make(map[string]iface.UnitTransfer)
 
 // UnitTransferRegister

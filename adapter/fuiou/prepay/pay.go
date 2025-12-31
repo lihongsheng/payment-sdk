@@ -1,22 +1,26 @@
 package prepay
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/model"
+	"io/ioutil"
+	"net/http"
+
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/config"
+	enum2 "github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
+	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
+	"github.com/lihongsheng/payment-sdk/enum/action"
+	enum "github.com/lihongsheng/payment-sdk/enum/payment"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
-
-	enum2 "github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
-	"github.com/lihongsheng/payment-sdk/config"
-	"github.com/lihongsheng/payment-sdk/driver/dto"
-	"github.com/lihongsheng/payment-sdk/enum/action"
-	enum "github.com/lihongsheng/payment-sdk/enum/payment"
 
 	errors2 "github.com/lihongsheng/payment-sdk/errors"
 
@@ -191,7 +195,7 @@ func (p *Pay) buildPayParams(req *dto.PayOrder) *PaymentRequest {
 	if p.payment == enum.Payment_Alipay {
 		result.TradeType = enum2.AliPaymentProductMap[p.paymentProduct]
 	}
-	result.GenSign(p.C.APIKey)
+	result.GenSign(p.C.APISecret)
 	return result
 }
 func (p *Pay) Query(ctx context.Context, req dto.Query) (*dto.PayDetail, error) {
@@ -244,7 +248,7 @@ func (p *Pay) buildQueryParams(req dto.Query) OrderRequest {
 	} else {
 		result.Version = p.C.Version
 	}
-	result.GenSign(p.C.APIKey)
+	result.GenSign(p.C.APISecret)
 	return *result
 }
 
@@ -286,10 +290,58 @@ func (p *Pay) buildCloseParams(req dto.CloseQuery) CloseOrderRequest {
 	} else {
 		result.Version = p.C.Version
 	}
-	result.GenSign(p.C.APIKey)
+	result.GenSign(p.C.APISecret)
 	return *result
 }
 
 func (p *Pay) Complete(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, error) {
 	return nil, errors2.ErrorNoSupport("not support Complete")
+}
+
+func (p *Pay) Callback(ctx context.Context, req *http.Request) (*dto.CallbackPayDetail, error) {
+	originBy, err := getRequestBody(req)
+	if err != nil {
+		return nil, err
+	}
+	resp := &model.PaymentCallback{}
+	err = json.Unmarshal(originBy, resp)
+	if err != nil {
+		return nil, err
+	}
+	if !resp.IsSuccess() {
+		return nil, errors.New(fmt.Sprintf("%s - %s", resp.ResultCode, resp.ResultMsg))
+	}
+
+	if resp.Sign != resp.GenSign(p.C.APISecret) {
+		return nil, errors.New("签名错误：" + string(originBy))
+	}
+	// 外部需要在比对下金额
+	status := enum.Status_Status_UNKNOWN
+	orderAmt, _ := strconv.Atoi(resp.OrderAmt)
+	if orderAmt > 0 {
+		status = enum.Status_Success
+	}
+	return &dto.CallbackPayDetail{
+		OrderNo: enum2.ParseOrder(p.C.OrderPrefix, resp.MchntOrderNo),
+		TradeNo: resp.TransactionId,
+		PayAmount: dto.Amount{
+			Currency: "CNY",
+			Total:    int64(orderAmt),
+		},
+		Status:         status,
+		PaymentProduct: enum.PaymentProduct_JSAPI.String(),
+		OriginResponse: string(originBy),
+	}, nil
+}
+
+func getRequestBody(request *http.Request) ([]byte, error) {
+	body, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read request body err: %v", err)
+	}
+
+	_ = request.Body.Close()
+	request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+	return body, nil
 }

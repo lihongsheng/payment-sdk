@@ -3,7 +3,6 @@ package payment
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
@@ -11,44 +10,36 @@ import (
 	enum1 "github.com/lihongsheng/payment-sdk/enum"
 	enum "github.com/lihongsheng/payment-sdk/enum/payment"
 	errors2 "github.com/lihongsheng/payment-sdk/errors"
-	"github.com/wechatpay-apiv3/wechatpay-go/core/auth/verifiers"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/notify"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments"
-	"github.com/wechatpay-apiv3/wechatpay-go/utils"
 	"github.com/zeromicro/go-zero/core/logc"
 	"net/http"
 	"time"
 )
 
-type Callback struct {
+type CallbackMethod struct {
 	*wxpay.Api
 }
 
-func NewCallback(conf config.Config) (*Callback, error) {
+func NewCallback(conf config.Config) (*CallbackMethod, error) {
 	api, err := wxpay.InitClient(conf)
 	if err != nil {
 		return nil, err
 	}
-	return &Callback{
+	return &CallbackMethod{
 		Api: api,
 	}, nil
 }
 
-func (c *Callback) Callback(ctx context.Context, req *http.Request) (*dto.CallbackPayDetail, error) {
-	pubKeyID := c.C.Cert.PublicNumber
-	mchAPIv3Key := c.C.APISecret
-	publicKey, err := utils.LoadPublicKey(c.C.Cert.PublicKey)
-	if err != nil {
-		return nil, errors.New("wxpay load merchant PublicKey key errors")
-	}
-	no, err := notify.NewRSANotifyHandler(mchAPIv3Key, verifiers.NewSHA256WithRSAPubkeyVerifier(pubKeyID, *publicKey))
+func (c *CallbackMethod) Callback(ctx context.Context, req *http.Request) (*dto.CallbackPayDetail, error) {
+	no, err := notify.NewRSANotifyHandler(c.C.APISecret, c.Verifier)
 	if err != nil {
 		return nil, errors2.ErrorSystemError("wxpay new RSA NotifyHandler errors").WithCause(err)
 	}
 	var resp = &payments.Transaction{}
 	_, err = no.ParseNotifyRequest(ctx, req, resp)
 	if err != nil {
-		_, proErr := until.ProcessBody(mchAPIv3Key, req, resp)
+		_, proErr := until.ProcessBody(c.C.APISecret, req, resp)
 		if proErr != nil {
 			return nil, err
 		}

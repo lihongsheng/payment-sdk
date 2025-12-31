@@ -5,10 +5,10 @@ import (
 	"encoding/xml"
 	"fmt"
 	"github.com/go-resty/resty/v2"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/config"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/model"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/util"
-	"github.com/lihongsheng/payment-sdk/config"
 	"net/url"
 )
 
@@ -95,7 +95,7 @@ func (c *Client) PostReqFrom(ctx context.Context, path string, req Req, header m
 	return resp, nil
 }
 
-// PostEncryptFrom
+// PostEncryptFrom 转账使用
 // 加密post
 // 私钥签名
 // 公钥加密
@@ -134,7 +134,7 @@ func (c *Client) PostEncryptFrom(ctx context.Context, path string, req Req, head
 		}
 	}
 	encryptResponse.OriginBody = string(body)
-	messageGbk, err := c.Sign.DecryptByKey(encryptResponse.Message, []byte(c.Conf.Cert.CertPrivateKey))
+	messageGbk, err := c.Sign.DecryptByKey(encryptResponse.Message, []byte(c.Conf.Cert.Private))
 	if err != nil {
 		return nil, err
 	}

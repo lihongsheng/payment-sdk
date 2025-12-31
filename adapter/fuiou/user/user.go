@@ -5,8 +5,8 @@ import (
 	"encoding/xml"
 	"fmt"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/config"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/model"
-	"github.com/lihongsheng/payment-sdk/config"
 	"github.com/lihongsheng/payment-sdk/errors"
 )
 

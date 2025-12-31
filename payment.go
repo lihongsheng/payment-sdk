@@ -2,7 +2,7 @@ package payment_sdk
 
 import (
 	"errors"
-	_ "github.com/lihongsheng/payment-sdk/adapter/wxpay"
+	_ "github.com/lihongsheng/payment-sdk/adapter/wxpay/driver"
 	"github.com/lihongsheng/payment-sdk/config"
 	"github.com/lihongsheng/payment-sdk/driver"
 	"github.com/lihongsheng/payment-sdk/driver/iface"

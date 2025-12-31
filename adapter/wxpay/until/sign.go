@@ -150,7 +150,7 @@ func LoadPublicKeyWithPath(path string) (publicKey *rsa.PublicKey, err error) {
 // EncryptOAEPWithPublicKey 使用 OAEP padding方式用公钥进行加密
 func EncryptOAEPWithPublicKey(message string, publicKey *rsa.PublicKey) (ciphertext string, err error) {
 	if publicKey == nil {
-		return "", fmt.Errorf("you should input *rsa.PublicKey")
+		return "", fmt.Errorf("you should input *rsa.Public")
 	}
 	ciphertextByte, err := rsa.EncryptOAEP(sha1.New(), rand.Reader, publicKey, []byte(message), nil)
 	if err != nil {

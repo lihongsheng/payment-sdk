@@ -6,9 +6,10 @@ import (
 )
 
 const (
-	Version     = "1.0"
-	ApiHost     = "https://aipay-cloud.fuioupay.com"
-	OrderPrefix = "F"
+	Version      = "1.0"
+	ApiHost      = "https://aipay-cloud.fuioupay.com"
+	OrderPrefix  = "F"
+	TransferHost = "https://richfront.fuioupay.com"
 )
 
 var (

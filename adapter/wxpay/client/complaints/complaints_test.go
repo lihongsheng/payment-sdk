@@ -293,7 +293,7 @@ func TestQueryNoticeUrl2(t *testing.T) {
 			CertificateSerialNumber: cert.CertificateSerialNumber,
 			PublicKeyID:             cert.PublicKeyID,
 			PublicKey:               cert.PublicKey,
-			// PublicKey: `-----BEGIN PUBLIC KEY-----
+			// Public: `-----BEGIN PUBLIC KEY-----
 			//			MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA9CUWaMY8Fd5HfSVNKJtQFjwZ57sruwz4cRK2HCvHUaNsWMdy5S2zfGIwD8Z9YfJESa3AmSV42jb1tFu3tb+Wew6JMLRHolknZuEokDO0zH49fhnVP/6x2FItGy4/lIBaoPg49LHXxCZxVqshykV7m3/bd9MGYgoMHSQKKJhYzNCbL2Gp8L7ChtVctReG6eGjcOOk+a4hztWA7e1Qig8zLsGGnI+rcowMHn9ZTLwYa9taBNotVwa8qqOTCs9s22/6ZCDJHJELMrNrvjRNomjlC0N/dHAbJuftpoXWSxAxJdI0r2+Vy1VqDglJ9KxCiPf9B87eirOnZgn6YgKJ8a35iQIDAQAB
 			//			-----END PUBLIC KEY-----`,
 		},

@@ -2,25 +2,19 @@ package config
 
 import (
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
+	"github.com/lihongsheng/payment-sdk/config/proxy"
 	"github.com/lihongsheng/payment-sdk/enum/channel"
 	"github.com/lihongsheng/payment-sdk/enum/payment"
 )
 
 type Config struct {
-	Proxy          *Proxy
+	Proxy          proxy.Proxy
 	Channel        channel.Channel        `json:"channel"`
 	Payment        payment.Payment        `json:"payment"`
 	PaymentProduct payment.PaymentProduct `json:"payment_product"`
 	Config         string                 `json:"config"`
 	WxConfig       *config.Config         `json:"wx_config"`
 	//
-}
-
-type Proxy struct {
-	Host     string
-	Port     int
-	UserName string
-	Password string
 }
 
 // Option 选项函数类型
@@ -55,7 +49,7 @@ func WithConfig(cf string) Option {
 	}
 }
 
-func WithProxy(cf *Proxy) Option {
+func WithProxy(cf proxy.Proxy) Option {
 	return func(c *Config) {
 		c.Proxy = cf
 	}
