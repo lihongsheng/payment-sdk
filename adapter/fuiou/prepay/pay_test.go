@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/lihongsheng/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/config"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	enum "github.com/lihongsheng/payment-sdk/enum/payment"
 	"github.com/lihongsheng/payment-sdk/tools"
@@ -15,14 +15,12 @@ import (
 
 func TestPay_Pay(t *testing.T) {
 	c := config.Config{
-		AppID:   "",
-		MchID:   "0002900F1503036",
-		APIKey:  "f00dac5077ea11e754e14c9541bc0170",
-		Cert:    config.Cert{},
-		Proxy:   config.Proxy{},
-		ApiHost: "https://aipaytest.fuioupay.com/",
-		Version: "",
-		Extra:   `{"order_prefix":"1066"}`,
+		MchID:       "0002900F1503036",
+		APISecret:   "f00dac5077ea11e754e14c9541bc0170",
+		Cert:        config.Cert{},
+		ApiHost:     "https://aipaytest.fuioupay.com/",
+		Version:     "",
+		OrderPrefix: "1066",
 	}
 	pppp, err := NewPay(c, enum.PaymentProduct_JSAPI, enum.Payment_Wxpay)
 	assert.NoError(t, err)
@@ -40,7 +38,7 @@ func TestPay_Pay(t *testing.T) {
 		},
 		Payer: dto.Payer{
 			OpenID: "ogdvH6h9jPp5R3f1fyLsQjdB-fAc",
-			AppID:  "wxfa089da95020ba1a",
+			AppID:  "wxfa0000000000",
 		},
 		RedirectUrl:    "",
 		TimeExpire:     time.Now().Add(time.Hour).Unix(),
@@ -66,13 +64,12 @@ func TestPay_Pay(t *testing.T) {
 
 func TestPay_Query(t *testing.T) {
 	c := config.Config{
-		AppID:   "",
-		MchID:   "0002900F1503036",
-		APIKey:  "f00dac5077ea11e754e14c9541bc0170",
-		Cert:    config.Cert{},
-		Proxy:   config.Proxy{},
-		ApiHost: "https://aipaytest.fuioupay.com/",
-		Version: "1.0",
+		MchID:       "0002900F1503036",
+		APISecret:   "f00dac5077ea11e754e14c9541bc0170",
+		Cert:        config.Cert{},
+		ApiHost:     "https://aipaytest.fuioupay.com/",
+		Version:     "",
+		OrderPrefix: "1066",
 	}
 	pppp, err := NewPay(c, enum.PaymentProduct_JSAPI, enum.Payment_Wxpay)
 	assert.NoError(t, err)
@@ -90,13 +87,12 @@ func TestPay_Query(t *testing.T) {
 
 func TestPay_Close(t *testing.T) {
 	c := config.Config{
-		AppID:   "",
-		MchID:   "0002900F1503036",
-		APIKey:  "f00dac5077ea11e754e14c9541bc0170",
-		Cert:    config.Cert{},
-		Proxy:   config.Proxy{},
-		ApiHost: "https://aipaytest.fuioupay.com/",
-		Version: "1.0",
+		MchID:       "0002900F1503036",
+		APISecret:   "f00dac5077ea11e754e14c9541bc0170",
+		Cert:        config.Cert{},
+		ApiHost:     "https://aipaytest.fuioupay.com/",
+		Version:     "",
+		OrderPrefix: "1066",
 	}
 	pppp, err := NewPay(c, enum.PaymentProduct_JSAPI, enum.Payment_Wxpay)
 	assert.NoError(t, err)
@@ -113,14 +109,12 @@ func TestPay_Close(t *testing.T) {
 
 func TestPay_Query2(t *testing.T) {
 	c := config.Config{
-		AppID:   "",
-		MchID:   "0008710FA369999",
-		APIKey:  "71a01b40caa811f09a88a57d8f5260d8",
-		Cert:    config.Cert{},
-		Proxy:   config.Proxy{},
-		ApiHost: "https://aipay-cloud.fuioupay.com",
-		Version: "1.0",
-		Extra:   `{"wx_app_id": "wxc233b52c912ad8f7", "order_prefix": "19856", "wx_app_secret": "1660bd2be85e638319381da7867ce294"}`,
+		MchID:       "0002900F1503036",
+		APISecret:   "f00dac5077ea11e754e14c9541bc0170",
+		Cert:        config.Cert{},
+		ApiHost:     "https://aipaytest.fuioupay.com/",
+		Version:     "",
+		OrderPrefix: "1066",
 	}
 	pppp, err := NewPay(c, enum.PaymentProduct_JSAPI, enum.Payment_Wxpay)
 	assert.NoError(t, err)
@@ -146,3 +140,31 @@ func TestPay_QueryBody(t *testing.T) {
 	err := json.Unmarshal([]byte(body), resp)
 	assert.NoError(t, err)
 }
+
+//
+//func TestCallbackPaymentParse(t *testing.T) {
+//	c := config.Config{
+//		AppID:   "",
+//		MchID:   "",
+//		APIKey:  "",
+//		Cert:    config.Cert{},
+//		Proxy:   config.Proxy{},
+//		ApiHost: "https://aipay-cloud.fuioupay.com",
+//		Version: "1.0",
+//		Extra:   `{"wx_app_id": "wxc233b52c912ad8f7", "order_prefix": "19856", "wx_app_secret": "1660bd2be85e638319381da7867ce294"}`,
+//	}
+//	ctx := context.Background()
+//	r := &http.Request{}
+//	r.Body = ioutil.NopCloser(bytes.NewBuffer([]byte(bbb)))
+//	client, err := NewAPICallback(c)
+//	assert.NoError(t, err)
+//	rr, err := client.CallbackPaymentParse(ctx, r)
+//
+//	assert.NoError(t, err)
+//	fmt.Println(err)
+//	if rr != nil {
+//		fmt.Println("---------------------------------")
+//		b, _ := json.Marshal(rr)
+//		fmt.Println(string(b))
+//	}
+//}

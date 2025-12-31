@@ -23,6 +23,8 @@ type CallbackPayDetail struct {
 	OriginResponse string                   `json:"origin_response"`
 	EventAction    enum1.Event              `json:"event_action"`
 	EventRefund    *EventRefundActionParams `json:"event_refund"`
+	// 正确返回的body内容
+	Response string `json:"response"`
 }
 
 type EventRefundActionParams struct {

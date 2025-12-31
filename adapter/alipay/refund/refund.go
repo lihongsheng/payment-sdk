@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/client"
+	"github.com/lihongsheng/payment-sdk/adapter/alipay/config"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/model"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/util"
-	"github.com/lihongsheng/payment-sdk/config"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
 	"github.com/lihongsheng/payment-sdk/enum/refund"
 	"github.com/lihongsheng/payment-sdk/errors"
+	"net/http"
 )
 
 type Refund struct {
@@ -154,4 +155,8 @@ func (r *Refund) Query(ctx context.Context, req dto.RefundQuery) (*dto.RefundDet
 		result.SuccessTime = response.AlipayTradeFastpayRefundQueryResponse.RefundSuccessTime()
 	}
 	return result, nil
+}
+
+func (r *Refund) Callback(ctx context.Context, req *http.Request) (*dto.CallbackRefundDetail, error) {
+	return nil, errors.ErrorNoSupport("not support refund callback", nil)
 }

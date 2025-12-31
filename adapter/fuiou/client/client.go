@@ -113,7 +113,7 @@ func (c *Client) PostEncryptFrom(ctx context.Context, path string, req Req, head
 	req.Sign(sign)
 	xmlStr, err := req.Xml()
 	xmlGbk, _ := util.Utf8ToGbk(xmlStr)
-	encryptStr, err := c.Sign.EncryptByPublicKey([]byte(xmlGbk), []byte(c.Conf.Cert.PublicKey))
+	encryptStr, err := c.Sign.EncryptByPublicKey([]byte(xmlGbk), []byte(c.Conf.Cert.Public))
 	if err != nil {
 		return nil, err
 	}

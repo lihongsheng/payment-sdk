@@ -17,7 +17,6 @@ import (
 	"github.com/zeromicro/go-zero/core/logc"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -28,30 +27,17 @@ const (
 
 type Refund struct {
 	*fuiou.Api
-	paymentProduct enum.PaymentProduct
-	payment        enum.Payment
+	payment enum.Payment
 }
 
-func NewRefund(conf config.Config, product enum.PaymentProduct, payment enum.Payment) (iface.Refund, error) {
+func NewRefund(conf config.Config, payment enum.Payment) (iface.Refund, error) {
 	api, err := fuiou.NewApi(conf)
 	if err != nil {
 		return nil, err
 	}
-	if api.Extra.OrderPrefix == "" {
-		return nil, errors.New("富有订单前缀需要配置")
-	}
-	if _, exists := enum2.WxPaymentProductMap[product]; !exists {
-		return nil, errors2.ErrorNoSupport("product [%s] is not exists", product.String())
-	}
-	if conf.ApiHost == "" {
-		conf.ApiHost = enum2.ApiHost
-	} else {
-		conf.ApiHost = strings.TrimRight(conf.ApiHost, "/")
-	}
 	return &Refund{
-		Api:            api,
-		paymentProduct: product,
-		payment:        payment,
+		Api:     api,
+		payment: payment,
 	}, nil
 }
 
@@ -100,7 +86,7 @@ func (r *Refund) Refund(ctx context.Context, req *dto.RefundRequest) (*dto.Refun
 
 func (r *Refund) buildRefundRequest(req *dto.RefundRequest) *RefundRequest {
 	result := &RefundRequest{
-		Version:            "",
+		Version:            r.C.Version,
 		MchntCd:            r.C.MchID,
 		RandomStr:          tools.GenerateRandomDigits(4),
 		MchntOrderNo:       enum2.GenOrder(r.Extra.OrderPrefix, req.OrderNo),
@@ -114,17 +100,12 @@ func (r *Refund) buildRefundRequest(req *dto.RefundRequest) *RefundRequest {
 		ReservedDeviceInfo: "",
 		Sign:               "",
 	}
-	if r.C.Version == "" {
-		result.Version = enum2.Version
-	} else {
-		result.Version = r.C.Version
-	}
 
 	if r.payment == enum.Payment_Wxpay {
-		result.OrderType = "WECHAT"
+		result.OrderType = enum2.OrderTypeWECHAT
 	}
 	if r.payment == enum.Payment_Alipay {
-		result.OrderType = "ALIPAY"
+		result.OrderType = enum2.OrderTypeALIPAY
 	}
 	result.GenSign(r.C.APISecret)
 	return result
@@ -166,18 +147,14 @@ func (r *Refund) Query(ctx context.Context, req dto.RefundQuery) (*dto.RefundDet
 
 func (r *Refund) buildRefundQueryRequest(req dto.RefundQuery) *RefundQueryRequest {
 	result := &RefundQueryRequest{
-		Version:       "",
+		Version:       r.C.Version,
 		MchntCd:       r.C.MchID,
 		RandomStr:     tools.GenerateRandomDigits(4),
 		RefundOrderNo: enum2.GenOrder(r.Extra.OrderPrefix, req.RefundNo),
 		TermId:        tools.GenerateRandomDigits(4),
 		Sign:          "",
 	}
-	if r.C.Version == "" {
-		result.Version = enum2.Version
-	} else {
-		result.Version = r.C.Version
-	}
+
 	result.GenSign(r.C.APISecret)
 	return result
 }

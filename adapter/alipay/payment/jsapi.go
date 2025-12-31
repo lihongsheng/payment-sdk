@@ -3,10 +3,9 @@ package payment
 import (
 	"context"
 	"encoding/json"
-	"github.com/lihongsheng/payment-sdk/adapter/alipay"
+	"github.com/lihongsheng/payment-sdk/adapter/alipay/config"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/model"
-	"github.com/lihongsheng/payment-sdk/config"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
 	"github.com/lihongsheng/payment-sdk/enum/action"
@@ -18,16 +17,16 @@ import (
 // https://opendocs.alipay.com/mini/6039ed0c_alipay.trade.create?scene=de4d6a1e0c6e423b9eefa7c3a6dcb7a5&pathHash=779dc517
 
 type Jsapi struct {
-	*alipay.Api
+	*CallbackMethod
 }
 
 func NewJsApi(conf config.Config) (iface.Pay, error) {
-	api, err := alipay.NewApi(conf)
+	api, err := NewCallback(conf)
 	if err != nil {
 		return nil, err
 	}
 	return &Jsapi{
-		Api: api,
+		api,
 	}, nil
 }
 
@@ -52,7 +51,7 @@ func (j *Jsapi) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, e
 		return nil, errors.ErrorSystemError(response.ErrorResponse.SubCode+":"+response.ErrorResponse.SubMsg, nil)
 	}
 	respTrue := false
-	if response.AlipayTradeCreateResponse.Code != "" && response.AlipayTradeCreateResponse.Code == enum.RESPONSE_SUCCESS_CODE {
+	if response.AlipayTradeCreateResponse.Code == enum.RESPONSE_SUCCESS_CODE {
 		respTrue = true
 	}
 	if response.AlipayTradeCreateResponse.SubCode == "" && response.AlipayTradeCreateResponse.TradeNo != "" {

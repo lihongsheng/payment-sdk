@@ -1,10 +1,13 @@
 package util
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/enum"
 	"github.com/lihongsheng/payment-sdk/enum/payment"
 	"github.com/lihongsheng/payment-sdk/enum/transfer"
+	"io/ioutil"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -113,4 +116,16 @@ func GetUnitTransferStatus(status string) transfer.UnitTransferStatus {
 		return transfer.UnitTransferStatus_UnitTransferStatus_FAILED
 	}
 	return transfer.UnitTransferStatus_UnitTransferStatus_UNKNOWN
+}
+
+func GetRequestBody(request *http.Request) ([]byte, error) {
+	body, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read request body err: %v", err)
+	}
+
+	_ = request.Body.Close()
+	request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+	return body, nil
 }

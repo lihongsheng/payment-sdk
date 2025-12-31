@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
+	"github.com/lihongsheng/payment-sdk/adapter/alipay/config"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/enum"
-	"github.com/lihongsheng/payment-sdk/config"
 	"github.com/lihongsheng/payment-sdk/errors"
 	"net/url"
 	"strings"
@@ -32,10 +32,14 @@ func NewClient(conf config.Config) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
+	sign, err := NewSign(conf)
+	if err != nil {
+		return nil, err
+	}
 	return &Client{
 		Conf:   conf,
 		Client: client,
-		Sign:   NewSign(conf),
+		Sign:   sign,
 	}, nil
 }
 

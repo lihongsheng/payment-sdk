@@ -1,6 +1,7 @@
 package config
 
 import (
+	fuiou "github.com/lihongsheng/payment-sdk/adapter/fuiou/config"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 	"github.com/lihongsheng/payment-sdk/config/proxy"
 	"github.com/lihongsheng/payment-sdk/enum/channel"
@@ -14,7 +15,7 @@ type Config struct {
 	PaymentProduct payment.PaymentProduct `json:"payment_product"`
 	Config         string                 `json:"config"`
 	WxConfig       *config.Config         `json:"wx_config"`
-	//
+	FuiouConfig    *fuiou.Config          `json:"fuiou_config"`
 }
 
 // Option 选项函数类型

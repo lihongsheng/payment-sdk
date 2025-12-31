@@ -1,13 +1,12 @@
 package prepay
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/model"
-	"io/ioutil"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/util"
 	"net/http"
 
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou"
@@ -46,9 +45,6 @@ func NewPay(conf config.Config, product enum.PaymentProduct, payment enum.Paymen
 	api, err := fuiou.NewApi(conf)
 	if err != nil {
 		return nil, err
-	}
-	if api.Extra.OrderPrefix == "" {
-		return nil, errors.New("富有订单前缀需要配置")
 	}
 	if _, exists := enum2.WxPaymentProductMap[product]; !exists {
 		return nil, errors2.ErrorNoSupport("product [%s] is not exists", product.String())
@@ -99,13 +95,16 @@ func (p *Pay) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, err
 		Status:         enum.Status_Pending,
 		PaymentProduct: p.paymentProduct.String(),
 		OriginResponse: string(by),
+		Action: dto.Action{
+			Action: action.Action_Prepay.String(),
+		},
 	}
 	switch reqParam.TradeType {
-	case enum2.FWC:
+	case enum2.FWC: // 支付宝服务窗
 		re.Action = dto.Action{
 			Action: action.Action_Redirect.String(),
 			Parameters: map[string]string{
-				action.PrepayID: resp.ReservedTransactionId,
+				"trade_no": resp.ReservedTransactionId,
 			},
 		}
 	case enum2.JSAPI, enum2.LETPAY:
@@ -125,10 +124,7 @@ func (p *Pay) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, err
 			if len(prepayID) == 0 {
 				return nil, errors2.ErrorSystemError("fuiou not return prepayID error")
 			}
-			re.Action = dto.Action{
-				Action:     action.Action_Prepay.String(),
-				Parameters: actionParams,
-			}
+			re.Action.Parameters = actionParams
 		}
 	}
 	return re, nil
@@ -155,7 +151,8 @@ func (p *Pay) buildPayParams(req *dto.PayOrder) *PaymentRequest {
 		ReservedFyTermId:     "",
 		ReservedExpireMinute: 0,
 		//ReservedDeviceInfo:   DeviceInfo{},
-		Sign: "",
+		Sign:    "",
+		Version: p.C.Version,
 	}
 	if req.SceneInfo != nil {
 		result.TermIp = req.SceneInfo.ClientIp
@@ -182,11 +179,6 @@ func (p *Pay) buildPayParams(req *dto.PayOrder) *PaymentRequest {
 		result.TxnBeginTs = time.Now().Format("20060102150405")
 	} else {
 		result.TxnBeginTs = req.Order.CreateAt.Format("20060102150405")
-	}
-	if p.C.Version == "" {
-		result.Version = enum2.Version
-	} else {
-		result.Version = p.C.Version
 	}
 
 	if p.payment == enum.Payment_Wxpay {
@@ -235,18 +227,13 @@ func (p *Pay) Query(ctx context.Context, req dto.Query) (*dto.PayDetail, error) 
 }
 func (p *Pay) buildQueryParams(req dto.Query) OrderRequest {
 	result := &OrderRequest{
-		Version:      "",
+		Version:      p.C.Version,
 		MchntCd:      p.C.MchID,
 		RandomStr:    tools.GenerateRandomDigits(4),
 		OrderType:    enum2.GetOrderType(p.payment, p.paymentProduct),
 		MchntOrderNo: enum2.GenOrder(p.Extra.OrderPrefix, req.OrderNo),
 		TermId:       tools.GenerateRandomDigits(4),
 		Sign:         "",
-	}
-	if p.C.Version == "" {
-		result.Version = enum2.Version
-	} else {
-		result.Version = p.C.Version
 	}
 	result.GenSign(p.C.APISecret)
 	return *result
@@ -277,18 +264,13 @@ func (p *Pay) Close(ctx context.Context, req dto.CloseQuery) error {
 
 func (p *Pay) buildCloseParams(req dto.CloseQuery) CloseOrderRequest {
 	result := &CloseOrderRequest{
-		Version:      "",
+		Version:      p.C.Version,
 		MchntCd:      p.C.MchID,
 		RandomStr:    tools.GenerateRandomDigits(4),
 		OrderType:    enum2.GetOrderType(p.payment, p.paymentProduct),
 		MchntOrderNo: req.OrderNo,
 		TermId:       tools.GenerateRandomDigits(4),
 		Sign:         "",
-	}
-	if p.C.Version == "" {
-		result.Version = enum2.Version
-	} else {
-		result.Version = p.C.Version
 	}
 	result.GenSign(p.C.APISecret)
 	return *result
@@ -299,7 +281,7 @@ func (p *Pay) Complete(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse
 }
 
 func (p *Pay) Callback(ctx context.Context, req *http.Request) (*dto.CallbackPayDetail, error) {
-	originBy, err := getRequestBody(req)
+	originBy, err := util.GetRequestBody(req)
 	if err != nil {
 		return nil, err
 	}
@@ -331,17 +313,6 @@ func (p *Pay) Callback(ctx context.Context, req *http.Request) (*dto.CallbackPay
 		Status:         status,
 		PaymentProduct: enum.PaymentProduct_JSAPI.String(),
 		OriginResponse: string(originBy),
+		Response:       "1",
 	}, nil
-}
-
-func getRequestBody(request *http.Request) ([]byte, error) {
-	body, err := ioutil.ReadAll(request.Body)
-	if err != nil {
-		return nil, fmt.Errorf("read request body err: %v", err)
-	}
-
-	_ = request.Body.Close()
-	request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
-
-	return body, nil
 }

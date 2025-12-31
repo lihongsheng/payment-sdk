@@ -17,21 +17,21 @@ var paymentDrivers = make(map[channel.Channel]iface.PaymentDriver)
 var refundDrivers = make(map[channel.Channel]iface.RefundDriver)
 
 // unitTransferDrivers
-var unitTransferDrivers = make(map[string]iface.UnitTransfer)
+// var unitTransferDrivers = make(map[string]iface.UnitTransfer)
 
 // UnitTransferRegister
-// 单人转账
-func UnitTransferRegister(name channel.Channel, driver iface.PaymentDriver) {
-	driversMu.Lock()
-	defer driversMu.Unlock()
-	if driver == nil {
-		panic("Payment: Register driver is nil")
-	}
-	if _, dup := paymentDrivers[name]; dup {
-		panic("Payment: Register called twice for driver " + name.String())
-	}
-	paymentDrivers[name] = driver
-}
+// 单人单次转账
+//func UnitTransferRegister(name channel.Channel, driver iface.PaymentDriver) {
+//	driversMu.Lock()
+//	defer driversMu.Unlock()
+//	if driver == nil {
+//		panic("Payment: Register driver is nil")
+//	}
+//	if _, dup := paymentDrivers[name]; dup {
+//		panic("Payment: Register called twice for driver " + name.String())
+//	}
+//	paymentDrivers[name] = driver
+//}
 
 func PaymentRegister(name channel.Channel, driver iface.PaymentDriver) {
 	driversMu.Lock()

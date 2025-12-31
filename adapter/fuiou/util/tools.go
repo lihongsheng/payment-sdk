@@ -7,6 +7,7 @@ import (
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"strings"
 )
@@ -115,4 +116,16 @@ func GetTransferStatus(s string) (transfer.DetailStatus, string) {
 		return transfer.DetailStatus_DetailStatus_FAILED, "回退"
 	}
 	return transfer.DetailStatus_DetailStatus_UNKNOWN, "未知状态:" + s
+}
+
+func GetRequestBody(request *http.Request) ([]byte, error) {
+	body, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read request body err: %v", err)
+	}
+
+	_ = request.Body.Close()
+	request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+	return body, nil
 }
