@@ -17,11 +17,11 @@ import (
 // https://opendocs.alipay.com/mini/6039ed0c_alipay.trade.create?scene=de4d6a1e0c6e423b9eefa7c3a6dcb7a5&pathHash=779dc517
 
 type Jsapi struct {
-	*CallbackMethod
+	*Api
 }
 
 func NewJsApi(conf config.Config) (iface.Pay, error) {
-	api, err := NewCallback(conf)
+	api, err := NewApi(conf)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (j *Jsapi) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, e
 		commonParam[enum.COMMON_PARAM_NOTIFY_URL_NAME] = req.NotifyUrl
 	}
 	commonParam[enum.COMMON_PARAM_METHOD_NAME] = enum.ALIPAY_TRADES_CREATE
-	resp, err := j.Client.DoPost(commonParam, reqParam, nil)
+	resp, err := j.Client.DoPost(ctx, commonParam, reqParam, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func (j *Jsapi) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, e
 func (j *Jsapi) buildPayParams(req *dto.PayOrder) model.JsApiPaymentRequest {
 	result := model.JsApiPaymentRequest{
 		OutTradeNo:         req.Order.OrderNo,
-		ProductCode:        enum.FACE_TO_FACE_PAYMENT,
+		ProductCode:        enum.JSAPI,
 		OpAppId:            j.C.AppID,
 		TotalAmount:        req.Order.PayAmount.ToFloatString(),
 		ExtendParams:       nil,

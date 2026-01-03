@@ -14,6 +14,10 @@ type Config struct {
 type Cert struct {
 	// 私钥 rsa 格式
 	Private string `json:"private_key"`
+	// 私钥证书序列号
+	PrivateNumber string `json:"private_number"`
+	// 公钥证书序列号
+	PublicNumber string `json:"public_number"`
 	// 公钥 rsa 格式
 	Public string `json:"public_key"`
 }

@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
@@ -72,7 +73,7 @@ func (c *Client) GetCommonRequestParams() map[string]string {
 	}
 }
 
-func (c *Client) DoPost(commonParams map[string]string, body any, header map[string]string) (*resty.Response, error) {
+func (c *Client) DoPost(ctx context.Context, commonParams map[string]string, body any, header map[string]string) (*resty.Response, error) {
 	req := c.Client.R()
 	if header != nil {
 		req.SetHeaders(header)
@@ -116,7 +117,7 @@ func (c *Client) DoPost(commonParams map[string]string, body any, header map[str
 		bodyParams[enum.COMMON_PARAM_NOTIFY_URL_NAME] = commonParams[enum.COMMON_PARAM_NOTIFY_URL_NAME]
 	}
 	req.SetFormData(bodyParams)
-	return req.Post(HostName)
+	return req.SetContext(ctx).Post(HostName)
 }
 
 func (c *Client) GetResponseSignContent(body string, method string) (string, error) {

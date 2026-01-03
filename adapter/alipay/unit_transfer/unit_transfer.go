@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/client"
+	"github.com/lihongsheng/payment-sdk/adapter/alipay/config"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/model"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/util"
-	"github.com/lihongsheng/payment-sdk/config"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
 	"github.com/lihongsheng/payment-sdk/errors"
@@ -61,14 +61,14 @@ func (t *Transfer) Transfer(ctx context.Context, req *dto.UintTransferRequest) (
 	}
 	commonParam := t.Client.GetCommonRequestParams()
 	commonParam[enum.COMMON_PARAM_METHOD_NAME] = enum.ALIPAY_FUND_TRANS_UNI_TRANSFER
-	commonParam["app_cert_sn"] = t.conf.Cert.CertificateSerialNumber
-	commonParam["alipay_root_cert_sn"] = t.conf.Cert.PublicKeyID
+	commonParam["app_cert_sn"] = t.conf.Cert.PrivateNumber
+	commonParam["alipay_root_cert_sn"] = t.conf.Cert.PublicNumber
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Println("panic", err)
 		}
 	}()
-	resp, err := t.Client.DoPost(commonParam, reqParam, nil)
+	resp, err := t.Client.DoPost(ctx, commonParam, reqParam, nil)
 	if err != nil {
 		fmt.Println("err", err.Error())
 		return nil, err
@@ -122,7 +122,7 @@ func (t *Transfer) Query(ctx context.Context, req dto.UintTransferQueryRequest) 
 	}
 	commonParam := t.Client.GetCommonRequestParams()
 	commonParam[enum.COMMON_PARAM_METHOD_NAME] = enum.ALIPAY_FUND_TRANS_COMMON_QUERY
-	resp, err := t.Client.DoPost(commonParam, reqParam, nil)
+	resp, err := t.Client.DoPost(ctx, commonParam, reqParam, nil)
 	if err != nil {
 		return nil, err
 	}

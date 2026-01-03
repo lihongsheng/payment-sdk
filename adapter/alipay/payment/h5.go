@@ -3,7 +3,6 @@ package payment
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/config"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/model"
@@ -16,11 +15,11 @@ import (
 )
 
 type H5 struct {
-	*CallbackMethod
+	*Api
 }
 
 func NewH5(conf config.Config) (iface.Pay, error) {
-	api, err := NewCallback(conf)
+	api, err := NewApi(conf)
 	if err != nil {
 		return nil, err
 	}
@@ -29,19 +28,18 @@ func NewH5(conf config.Config) (iface.Pay, error) {
 	}, nil
 }
 
-func (h *H5) Pay(ctcx context.Context, req *dto.PayOrder) (*dto.PayResponse, error) {
+func (h *H5) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, error) {
 	reqParam := h.buildFacePaymentRequest(req)
 	commonParam := h.Client.GetCommonRequestParams()
 	if req.NotifyUrl != "" {
 		commonParam[enum.COMMON_PARAM_NOTIFY_URL_NAME] = req.NotifyUrl
 	}
-	commonParam[enum.COMMON_PARAM_METHOD_NAME] = enum.ALIPAY_TRADES_PAY
-	resp, err := h.Client.DoPost(commonParam, reqParam, nil)
+	commonParam[enum.COMMON_PARAM_METHOD_NAME] = enum.ALIPAY_H5_TRADES_CREATE
+	resp, err := h.Client.DoPost(ctx, commonParam, reqParam, nil)
 	if err != nil {
 		return nil, err
 	}
 	body := resp.Body()
-	fmt.Println(string(body))
 	var response model.FacePaymentResponse
 	err = json.Unmarshal(body, &response)
 	if err != nil {
@@ -51,10 +49,7 @@ func (h *H5) Pay(ctcx context.Context, req *dto.PayOrder) (*dto.PayResponse, err
 		return nil, errors.ErrorSystemError(response.ErrorResponse.SubCode+":"+response.ErrorResponse.SubMsg, nil)
 	}
 	respTrue := false
-	if response.AlipayTradePayResponse.Code != "" && response.AlipayTradePayResponse.Code == enum.RESPONSE_SUCCESS_CODE {
-		respTrue = true
-	}
-	if response.AlipayTradePayResponse.SubCode == "" && response.AlipayTradePayResponse.TradeNo != "" {
+	if response.AlipayTradePayResponse.Code == enum.RESPONSE_SUCCESS_CODE {
 		respTrue = true
 	}
 	if !respTrue {
@@ -84,7 +79,7 @@ func (h *H5) Pay(ctcx context.Context, req *dto.PayOrder) (*dto.PayResponse, err
 func (h *H5) buildFacePaymentRequest(req *dto.PayOrder) model.FacePaymentRequest {
 	result := model.FacePaymentRequest{
 		OutTradeNo:   req.Order.OrderNo,
-		ProductCode:  enum.FACE_TO_FACE_PAYMENT,
+		ProductCode:  enum.QUICK_WAP_WAY,
 		TotalAmount:  req.Order.PayAmount.ToFloatString(),
 		ExtendParams: nil,
 		Subject:      req.Order.Subject,
@@ -124,7 +119,7 @@ func (h *H5) buildFacePaymentRequest(req *dto.PayOrder) model.FacePaymentRequest
 // 不用发起请求，需要自行拼接下边的参数参数,返给前端
 // <form name="punchout_form" method="post" action="https://openapi-sandbox.dl.alipaydev.com/gateway.do?charset=UTF8&method=alipay.trade.wap.pay&sign=DB%2FbC%2Bg8P9Pv6rBcPEl92eamGikPbfUzi4IGWHZrXe8NtcNDbC4bIklULdqLAGjwdCsdWKiJIEALRS72CL5tzDMAJctCyEjN15EPbMnHaIVoxG1dV3lc4bAahqv8FZ0GlUYJbwevhR0PXZashoXFDIGjk8Qt3OuzeQa8tTt%2FoSgWzsRp6ANBdyEqral6py2KI7PghI%2Bjo4VyfijGFtqevay44J7Vmu78l0TvgVUqOZsDz98%2FABNq%2FH%2Ft2MKGbSWE9G44Rfj5W7YGlqHjjCtovKygKXnEGX5lJy2AgrOEydi8R2Mqp7xKZPsL4bki%2FfY4XVpHSrU7NergUhLbIVL5bQ%3D%3D&app_id=9021000133622619&sign_type=RSA2&timestamp=2025-10-15+18%3A01%3A09&alipay_sdk=alipay-sdk-java-4.35.171.ALL&format=json"> <input type="hidden" name="biz_content" value="{&quot;time_expire&quot;:&quot;2025-10-16 10:00:00&quot;,&quot;out_trade_no&quot;:&quot;70501111111S001111119&quot;,&quot;total_amount&quot;:&quot;0.01&quot;,&quot;subject&quot;:&quot;大乐透&quot;,&quot;product_code&quot;:&quot;QUICK_WAP_WAY&quot;,&quot;seller_id&quot;:&quot;2088102147948060&quot;}"> <input type="submit" value="立即支付" style="display:none" > </form> <script>document.forms[0].submit();</script>
 
-//	resp, err := h.Client.DoPost(commonParam, reqParam, nil)
+//	resp, err := h.Client.DoPost(ctx, commonParam, reqParam, nil)
 //	if err != nil {
 //		return nil, err
 //	}

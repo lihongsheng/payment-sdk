@@ -38,7 +38,7 @@ func (r *Refund) Refund(ctx context.Context, req *dto.RefundRequest) (*dto.Refun
 	}
 	commonParam := r.Client.GetCommonRequestParams()
 	commonParam[enum.COMMON_PARAM_METHOD_NAME] = enum.ALIPAY_REFUND_CREATE
-	resp, err := r.Client.DoPost(commonParam, reqParam, nil)
+	resp, err := r.Client.DoPost(ctx, commonParam, reqParam, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -52,12 +52,10 @@ func (r *Refund) Refund(ctx context.Context, req *dto.RefundRequest) (*dto.Refun
 		return nil, errors.ErrorSystemError(response.ErrorResponse.SubMsg, nil)
 	}
 	respTrue := false
-	if response.AlipayTradeRefundResponse.Code != "" && response.AlipayTradeRefundResponse.Code == enum.RESPONSE_SUCCESS_CODE {
+	if response.AlipayTradeRefundResponse.Code == enum.RESPONSE_SUCCESS_CODE {
 		respTrue = true
 	}
-	if response.AlipayTradeRefundResponse.SubCode == "" && response.AlipayTradeRefundResponse.TradeNo != "" {
-		respTrue = true
-	}
+
 	if !respTrue {
 		return nil, errors.ErrorSystemError("not return trade_no;"+string(body), nil)
 	}
@@ -114,7 +112,7 @@ func (r *Refund) Query(ctx context.Context, req dto.RefundQuery) (*dto.RefundDet
 	}
 	commonParam := r.Client.GetCommonRequestParams()
 	commonParam[enum.COMMON_PARAM_METHOD_NAME] = enum.ALIPAY_REFUND_QUERY
-	resp, err := r.Client.DoPost(commonParam, reqParam, nil)
+	resp, err := r.Client.DoPost(ctx, commonParam, reqParam, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -128,12 +126,10 @@ func (r *Refund) Query(ctx context.Context, req dto.RefundQuery) (*dto.RefundDet
 		return nil, errors.ErrorSystemError(response.ErrorResponse.SubMsg, nil).WithCause(err)
 	}
 	respTrue := false
-	if response.AlipayTradeFastpayRefundQueryResponse.Code != "" && response.AlipayTradeFastpayRefundQueryResponse.Code == enum.RESPONSE_SUCCESS_CODE {
+	if response.AlipayTradeFastpayRefundQueryResponse.Code == enum.RESPONSE_SUCCESS_CODE {
 		respTrue = true
 	}
-	if response.AlipayTradeFastpayRefundQueryResponse.SubCode == "" && response.AlipayTradeFastpayRefundQueryResponse.TradeNo != "" {
-		respTrue = true
-	}
+
 	if !respTrue {
 		return nil, errors.ErrorSystemError("not return trade_no;"+string(body), nil)
 	}
