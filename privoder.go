@@ -2,6 +2,9 @@ package payment_sdk
 
 import (
 	"errors"
+	_ "github.com/lihongsheng/payment-sdk/adapter/alipay/driver"
+	_ "github.com/lihongsheng/payment-sdk/adapter/fuiou/driver"
+	_ "github.com/lihongsheng/payment-sdk/adapter/lakala/driver"
 	_ "github.com/lihongsheng/payment-sdk/adapter/wxpay/driver"
 	"github.com/lihongsheng/payment-sdk/config"
 	"github.com/lihongsheng/payment-sdk/driver"
@@ -21,5 +24,19 @@ func Payment(options ...config.Option) (iface.Pay, error) {
 	if cf.Payment == payment.Payment_Payment_UNKNOWN {
 		return nil, errors.New("payment: unknown payment")
 	}
-	return driver.Payment(cf.Channel, *cf)
+	return driver.Payment(*cf)
+}
+
+func Refund(options ...config.Option) (iface.Refund, error) {
+	cf := config.NewRefund()
+	for _, option := range options {
+		option(cf)
+	}
+	if cf.Channel == channel.Channel_Channel_UNKNOWN {
+		return nil, errors.New("payment: unknown channel")
+	}
+	if cf.Payment == payment.Payment_Payment_UNKNOWN {
+		return nil, errors.New("payment: unknown payment")
+	}
+	return driver.Refund(*cf)
 }

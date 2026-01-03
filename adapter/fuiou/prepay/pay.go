@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/client"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/model"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/util"
 	"net/http"
 
-	"github.com/lihongsheng/payment-sdk/adapter/fuiou"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/config"
 	enum2 "github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
@@ -36,13 +36,13 @@ const (
 )
 
 type Pay struct {
-	*fuiou.Api
+	*client.Client
 	paymentProduct enum.PaymentProduct
 	payment        enum.Payment
 }
 
 func NewPay(conf config.Config, product enum.PaymentProduct, payment enum.Payment) (iface.Pay, error) {
-	api, err := fuiou.NewApi(conf)
+	api, err := client.NewClient(conf)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func NewPay(conf config.Config, product enum.PaymentProduct, payment enum.Paymen
 		conf.ApiHost = strings.TrimRight(conf.ApiHost, "/")
 	}
 	return &Pay{
-		Api:            api,
+		Client:         api,
 		paymentProduct: product,
 		payment:        payment,
 	}, nil
@@ -86,7 +86,7 @@ func (p *Pay) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, err
 		return nil, errors2.ErrorSystemError("pay is error;err:%s", resp.ResultMsg).WithCause(errors.New(fmt.Sprintf("code:%s;Msg:%s", resp.ResultCode, resp.ResultMsg)))
 	}
 	re := &dto.PayResponse{
-		OrderNo: p.Extra.OrderPrefix + req.Order.OrderNo,
+		OrderNo: p.C.OrderPrefix + req.Order.OrderNo,
 		TradeNo: resp.ReservedFyOrderNo,
 		PayAmount: dto.Amount{
 			Currency: req.Order.PayAmount.Currency,
@@ -134,7 +134,7 @@ func (p *Pay) buildPayParams(req *dto.PayOrder) *PaymentRequest {
 		MchntCd:              p.C.MchID,
 		RandomStr:            tools.GenerateRandomDigits(4),
 		OrderAmt:             req.Order.PayAmount.Total,
-		MchntOrderNo:         enum2.GenOrder(p.Extra.OrderPrefix, req.Order.OrderNo),
+		MchntOrderNo:         enum2.GenOrder(p.C.OrderPrefix, req.Order.OrderNo),
 		ProductId:            "",
 		TermId:               tools.GenerateRandomDigits(4),
 		GoodsDes:             req.Order.Subject,
@@ -231,7 +231,7 @@ func (p *Pay) buildQueryParams(req dto.Query) OrderRequest {
 		MchntCd:      p.C.MchID,
 		RandomStr:    tools.GenerateRandomDigits(4),
 		OrderType:    enum2.GetOrderType(p.payment, p.paymentProduct),
-		MchntOrderNo: enum2.GenOrder(p.Extra.OrderPrefix, req.OrderNo),
+		MchntOrderNo: enum2.GenOrder(p.C.OrderPrefix, req.OrderNo),
 		TermId:       tools.GenerateRandomDigits(4),
 		Sign:         "",
 	}

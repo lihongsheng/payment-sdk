@@ -8,9 +8,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/lihongsheng/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/adapter/lakala/config"
 	"github.com/lihongsheng/payment-sdk/errors"
 	"github.com/lihongsheng/payment-sdk/tools"
+	"net/http"
+	"regexp"
 	"time"
 )
 
@@ -28,11 +30,11 @@ type Sign struct {
 }
 
 func NewSign(conf config.Config) (*Sign, error) {
-	publicKey, err := tools.LoadPublicKey(conf.Cert.PublicKey)
+	publicKey, err := tools.LoadPublicKey(conf.Cert.Public)
 	if err != nil {
 		return nil, err
 	}
-	privateKey, err := tools.LoadPrivateKey(conf.Cert.CertPrivateKey)
+	privateKey, err := tools.LoadPrivateKey(conf.Cert.Private)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +48,7 @@ func NewSign(conf config.Config) (*Sign, error) {
 func (s *Sign) Gen(body interface{}) (string, error) {
 	singParam := SignParams{
 		AppID:     s.conf.AppID,
-		SerialNO:  s.conf.Cert.CertificateSerialNumber,
+		SerialNO:  s.conf.Cert.PrivateNumber,
 		Timestamp: fmt.Sprintf("%d", time.Now().Unix()),
 		NonceStr:  tools.GenerateRandomDigits(12),
 	}
@@ -120,4 +122,44 @@ func (s *Sign) RsaVerify(data string, signatureBase64 string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func (s *Sign) ParseSign(req *http.Request) (SignParams, string, error) {
+	auth := req.Header.Get("Authorization")
+	if auth == "" {
+		return SignParams{}, "", errors.ErrorParamError("not find Authorization")
+	}
+	timestamp, nonceStr, signature, exists := ExtractLKLAuthParams(auth)
+	if !exists {
+		return SignParams{}, "", errors.ErrorParamError("not find Authorization")
+	}
+	signParams := SignParams{
+		Timestamp: timestamp,
+		NonceStr:  nonceStr,
+	}
+	return signParams, signature, nil
+}
+
+// ExtractLKLAuthParams 对齐PHP逻辑提取timestamp、nonce_str、signature
+// 参数：authorization - 原始授权字符串（如"LKLAPI-SHA256withRSA timestamp=\"1765848504\",nonce_str=\"bGfguYYXFzbO\",signature=\"xxx\""）
+// 返回：timestamp, nonceStr, signature, 提取成功标识
+func ExtractLKLAuthParams(authorization string) (timestamp, nonceStr, signature string, ok bool) {
+	// 完全对齐PHP的正则表达式：
+	// PHP: /timestamp="(\d+)",nonce_str="(\w+)",signature="([^"]+)"/
+	// Go中需转义反斜杠，规则完全一致：
+	// \d+ → 匹配纯数字（timestamp）
+	// \w+ → 匹配字母/数字/下划线（nonce_str）
+	// [^"]+ → 匹配除双引号外的所有字符（signature，兼容特殊字符）
+	pattern := `timestamp="(\d+)",nonce_str="(\w+)",signature="([^"]+)"`
+	re := regexp.MustCompile(pattern)
+	matches := re.FindStringSubmatch(authorization)
+	// 注意：FindStringSubmatch匹配成功时，matches[0]是完整匹配串，1/2/3是捕获组（对齐PHP的$matches[1/2/3]）
+	if len(matches) < 4 { // 匹配成功时至少有4个元素（0:完整串,1:timestamp,2:nonce_str,3:signature）
+		return "", "", "", false
+	}
+	// 按PHP的捕获组顺序赋值
+	timestamp = matches[1]
+	nonceStr = matches[2]
+	signature = matches[3]
+	return timestamp, nonceStr, signature, true
 }

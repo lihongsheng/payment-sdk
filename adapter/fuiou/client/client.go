@@ -9,7 +9,9 @@ import (
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/model"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/util"
+	enum2 "github.com/lihongsheng/payment-sdk/adapter/lakala/enum"
 	"net/url"
+	"strings"
 )
 
 var skipQueryParams = map[string]struct{}{
@@ -28,18 +30,26 @@ type Req interface {
 }
 
 type Client struct {
-	Conf   config.Config
+	C      config.Config
 	Client *resty.Client
 	Sign   *Sign
 }
 
 func NewClient(conf config.Config) (*Client, error) {
+	if conf.ApiHost == "" {
+		conf.ApiHost = enum2.ApiHost
+	} else {
+		conf.ApiHost = strings.TrimRight(conf.ApiHost, "/")
+	}
+	if conf.Version == "" {
+		conf.Version = enum2.Version
+	}
 	client, err := providerClient(conf)
 	if err != nil {
 		return nil, err
 	}
 	return &Client{
-		Conf:   conf,
+		C:      conf,
 		Client: client,
 		Sign:   NewSign(conf),
 	}, nil
@@ -83,7 +93,7 @@ func (c *Client) PostReqFrom(ctx context.Context, path string, req Req, header m
 	xmlGbk, _ := util.URLEncodeGBK(xml)
 	values := url.Values{}
 	values.Add(enum.POST_COMMON_PARAM, xmlGbk)
-	resp, err := r.SetFormDataFromValues(values).Post(c.Conf.ApiHost + path)
+	resp, err := r.SetFormDataFromValues(values).Post(c.C.ApiHost + path)
 	if err != nil {
 		return nil, err
 	}
@@ -113,14 +123,14 @@ func (c *Client) PostEncryptFrom(ctx context.Context, path string, req Req, head
 	req.Sign(sign)
 	xmlStr, err := req.Xml()
 	xmlGbk, _ := util.Utf8ToGbk(xmlStr)
-	encryptStr, err := c.Sign.EncryptByPublicKey([]byte(xmlGbk), []byte(c.Conf.Cert.Public))
+	encryptStr, err := c.Sign.EncryptByPublicKey([]byte(xmlGbk), []byte(c.C.Cert.Public))
 	if err != nil {
 		return nil, err
 	}
 	values := url.Values{}
-	values.Add(enum.POST_ENCRYPT_COMMON_PARAM_MCN, c.Conf.MchID)
+	values.Add(enum.POST_ENCRYPT_COMMON_PARAM_MCN, c.C.MchID)
 	values.Add(enum.POST_ENCRYPT_COMMON_PARAM_MESSAGE, encryptStr)
-	resp, err := r.SetFormDataFromValues(values).Post(c.Conf.ApiHost + path)
+	resp, err := r.SetFormDataFromValues(values).Post(c.C.ApiHost + path)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +144,7 @@ func (c *Client) PostEncryptFrom(ctx context.Context, path string, req Req, head
 		}
 	}
 	encryptResponse.OriginBody = string(body)
-	messageGbk, err := c.Sign.DecryptByKey(encryptResponse.Message, []byte(c.Conf.Cert.Private))
+	messageGbk, err := c.Sign.DecryptByKey(encryptResponse.Message, []byte(c.C.Cert.Private))
 	if err != nil {
 		return nil, err
 	}

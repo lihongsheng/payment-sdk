@@ -5,10 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/lihongsheng/payment-sdk/adapter/lakala"
+	"github.com/lihongsheng/payment-sdk/tools"
+	"net/http"
+
+	"github.com/lihongsheng/payment-sdk/adapter/lakala/client"
+	"github.com/lihongsheng/payment-sdk/adapter/lakala/config"
 	enum2 "github.com/lihongsheng/payment-sdk/adapter/lakala/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/lakala/model"
-	"github.com/lihongsheng/payment-sdk/config"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
 	"github.com/lihongsheng/payment-sdk/enum/action"
@@ -25,18 +28,18 @@ const (
 )
 
 type Pay struct {
-	*lakala.Api
+	*client.Client
 	paymentProduct enum.PaymentProduct
 	payment        enum.Payment
 }
 
 func NewPay(conf config.Config, product enum.PaymentProduct, payment enum.Payment) (iface.Pay, error) {
-	api, err := lakala.NewApi(conf)
+	api, err := client.NewClient(conf)
 	if err != nil {
 		return nil, err
 	}
 	return &Pay{
-		Api:            api,
+		Client:         api,
 		paymentProduct: product,
 		payment:        payment,
 	}, nil
@@ -104,7 +107,7 @@ func (p *Pay) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, err
 func (p *Pay) buildPayParams(req *dto.PayOrder) *model.PaymentRequest {
 	r := &model.PaymentRequest{
 		MerchantNo:  p.C.MchID,
-		TermNo:      p.Extra.TermNO,
+		TermNo:      p.C.TermNO,
 		OutTradeNo:  req.Order.OrderNo,
 		AccountType: enum2.PaymentMap[p.payment],
 		TransType:   enum2.ProductMap[p.paymentProduct],
@@ -129,7 +132,7 @@ func (p *Pay) buildPayParams(req *dto.PayOrder) *model.PaymentRequest {
 func (p *Pay) Query(ctx context.Context, req dto.Query) (*dto.PayDetail, error) {
 	reqParam := model.PaymentQueryRequest{
 		MerchantNo: p.C.MchID,
-		TermNo:     p.Extra.TermNO,
+		TermNo:     p.C.TermNO,
 		OutTradeNo: req.OrderNo,
 		TradeNo:    req.TradeNo,
 	}
@@ -175,4 +178,42 @@ func (p *Pay) Close(ctx context.Context, req dto.CloseQuery) error {
 
 func (p *Pay) Complete(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, error) {
 	return nil, errors2.ErrorNoSupport("not support Complete")
+}
+
+func (p *Pay) Callback(ctx context.Context, req *http.Request) (*dto.CallbackPayDetail, error) {
+	originBy, err := tools.GetRequestBody(req)
+	if err != nil {
+		return nil, err
+	}
+	resp := &model.PaymentCallbackRequest{}
+	err = json.Unmarshal(originBy, resp)
+	if err != nil {
+		return nil, err
+	}
+	signParam, sign, err := p.Sign.ParseSign(req)
+	if err != nil {
+		return nil, err
+	}
+	signStr := p.Sign.BuildCallbackSignStr(signParam, string(originBy))
+	signResp, err := p.Sign.RsaVerify(signStr, sign)
+	if err != nil {
+		return nil, errors.New("验证签名失败：" + err.Error())
+	}
+	if !signResp {
+		return nil, errors.New("验证签名失败：" + string(originBy))
+	}
+	status := enum.Status_Status_UNKNOWN
+	orderAmt, _ := strconv.Atoi(resp.TotalAmount)
+	status = enum2.GetPaymentStatus(resp.TradeStatus)
+	return &dto.CallbackPayDetail{
+		OrderNo: resp.OutTradeNo,
+		TradeNo: resp.TradeNo,
+		PayAmount: dto.Amount{
+			Currency: "CNY",
+			Total:    int64(orderAmt),
+		},
+		Status:         status,
+		PaymentProduct: enum.PaymentProduct_JSAPI.String(),
+		OriginResponse: string(originBy),
+	}, nil
 }

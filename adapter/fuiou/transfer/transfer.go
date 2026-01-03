@@ -5,7 +5,7 @@ import (
 	"encoding/xml"
 	error2 "errors"
 	"fmt"
-	"github.com/lihongsheng/payment-sdk/adapter/fuiou"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/client"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/config"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/model"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/util"
@@ -21,16 +21,16 @@ const (
 )
 
 type Transfer struct {
-	*fuiou.Api
+	*client.Client
 }
 
 func NewTransfer(conf config.Config) (*Transfer, error) {
-	api, err := fuiou.NewApi(conf)
+	api, err := client.NewClient(conf)
 	if err != nil {
 		return nil, err
 	}
 	return &Transfer{
-		Api: api,
+		api,
 	}, nil
 }
 

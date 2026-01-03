@@ -57,12 +57,12 @@ func RefundRegister(name channel.Channel, driver iface.RefundDriver) {
 	refundDrivers[name] = driver
 }
 
-func Payment(driverName channel.Channel, cf config.Config) (iface.Pay, error) {
+func Payment(cf config.Config) (iface.Pay, error) {
 	driversMu.RLock()
-	driver, ok := paymentDrivers[driverName]
+	driver, ok := paymentDrivers[cf.Channel]
 	driversMu.RUnlock()
 	if !ok {
-		return nil, fmt.Errorf("payment: unknown driver %s (forgotten import?)", driverName.String())
+		return nil, fmt.Errorf("payment: unknown driver %s (forgotten import?)", cf.Channel.String())
 	}
 	connector, err := driver.Open(cf)
 	if err != nil {
@@ -71,18 +71,14 @@ func Payment(driverName channel.Channel, cf config.Config) (iface.Pay, error) {
 	return connector, nil
 }
 
-func Refund(driverName channel.Channel, options ...config.Option) (iface.Refund, error) {
+func Refund(cf config.Config) (iface.Refund, error) {
 	driversMu.RLock()
-	driver, ok := refundDrivers[driverName]
+	driver, ok := refundDrivers[cf.Channel]
 	driversMu.RUnlock()
 	if !ok {
-		return nil, fmt.Errorf("refund: unknown driver %s (forgotten import?)", driverName.String())
+		return nil, fmt.Errorf("refund: unknown driver %s (forgotten import?)", cf.Channel.String())
 	}
-	cf := config.NewRefund()
-	for _, option := range options {
-		option(cf)
-	}
-	connector, err := driver.Open(*cf)
+	connector, err := driver.Open(cf)
 	if err != nil {
 		return nil, err
 	}

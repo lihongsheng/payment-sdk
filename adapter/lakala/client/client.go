@@ -2,20 +2,30 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/go-resty/resty/v2"
+	"github.com/lihongsheng/payment-sdk/adapter/lakala/config"
+	"github.com/lihongsheng/payment-sdk/adapter/lakala/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/lakala/model"
-	"github.com/lihongsheng/payment-sdk/config"
 	"net/url"
+	"strings"
 )
 
 type Client struct {
-	Conf   config.Config
+	C      config.Config
 	Client *resty.Client
 	Sign   *Sign
 }
 
 func NewClient(conf config.Config) (*Client, error) {
+	conf.ApiHost = strings.TrimRight(conf.ApiHost, "/")
+	if conf.ApiHost == "" {
+		conf.ApiHost = enum.ApiHost
+	}
+	if conf.TermNO == "" {
+		return nil, errors.New("拉卡拉支付必须配置终端号")
+	}
 	client, err := providerClient(conf)
 	if err != nil {
 		return nil, err
@@ -25,7 +35,7 @@ func NewClient(conf config.Config) (*Client, error) {
 		return nil, err
 	}
 	return &Client{
-		Conf:   conf,
+		C:      conf,
 		Client: client,
 		Sign:   sign,
 	}, nil

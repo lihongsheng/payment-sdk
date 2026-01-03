@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/xml"
 	"fmt"
-	"github.com/lihongsheng/payment-sdk/adapter/fuiou"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/client"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/config"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/model"
 	"github.com/lihongsheng/payment-sdk/errors"
@@ -20,16 +20,16 @@ const (
 )
 
 type User struct {
-	*fuiou.Api
+	*client.Client
 }
 
 func NewUser(conf config.Config) (*User, error) {
-	api, err := fuiou.NewApi(conf)
+	api, err := client.NewClient(conf)
 	if err != nil {
 		return nil, err
 	}
 	return &User{
-		Api: api,
+		api,
 	}, nil
 }
 

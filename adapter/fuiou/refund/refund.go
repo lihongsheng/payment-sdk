@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/lihongsheng/payment-sdk/adapter/fuiou"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/client"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/config"
 	enum2 "github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
@@ -26,17 +26,17 @@ const (
 )
 
 type Refund struct {
-	*fuiou.Api
+	*client.Client
 	payment enum.Payment
 }
 
 func NewRefund(conf config.Config, payment enum.Payment) (iface.Refund, error) {
-	api, err := fuiou.NewApi(conf)
+	api, err := client.NewClient(conf)
 	if err != nil {
 		return nil, err
 	}
 	return &Refund{
-		Api:     api,
+		Client:  api,
 		payment: payment,
 	}, nil
 }
@@ -89,8 +89,8 @@ func (r *Refund) buildRefundRequest(req *dto.RefundRequest) *RefundRequest {
 		Version:            r.C.Version,
 		MchntCd:            r.C.MchID,
 		RandomStr:          tools.GenerateRandomDigits(4),
-		MchntOrderNo:       enum2.GenOrder(r.Extra.OrderPrefix, req.OrderNo),
-		RefundOrderNo:      enum2.GenOrder(r.Extra.OrderPrefix, req.RefundNo),
+		MchntOrderNo:       enum2.GenOrder(r.C.OrderPrefix, req.OrderNo),
+		RefundOrderNo:      enum2.GenOrder(r.C.OrderPrefix, req.RefundNo),
 		TermId:             tools.GenerateRandomDigits(4),
 		TermIp:             "",
 		OrderType:          "",
@@ -131,7 +131,7 @@ func (r *Refund) Query(ctx context.Context, req dto.RefundQuery) (*dto.RefundDet
 	reservedRefundAmt, _ := strconv.Atoi(resp.ReservedRefundAmt)
 	re := &dto.RefundDetail{
 		RefundNo:      req.RefundNo,
-		OrderNo:       enum2.ParseOrder(r.Extra.OrderPrefix, resp.MchntOrderNo),
+		OrderNo:       enum2.ParseOrder(r.C.OrderPrefix, resp.MchntOrderNo),
 		TradeRefundNo: resp.RefundId,
 		TradeNo:       resp.TransactionId,
 		Amount: dto.Amount{
@@ -150,7 +150,7 @@ func (r *Refund) buildRefundQueryRequest(req dto.RefundQuery) *RefundQueryReques
 		Version:       r.C.Version,
 		MchntCd:       r.C.MchID,
 		RandomStr:     tools.GenerateRandomDigits(4),
-		RefundOrderNo: enum2.GenOrder(r.Extra.OrderPrefix, req.RefundNo),
+		RefundOrderNo: enum2.GenOrder(r.C.OrderPrefix, req.RefundNo),
 		TermId:        tools.GenerateRandomDigits(4),
 		Sign:          "",
 	}
