@@ -11,10 +11,8 @@ option go_package = "./errors";
 enum ErrorReason {
   // 设置缺省错误码
   option (errors.default_code) = 500;
-
   // 重复请求
   DUPLICATE_REQUEST = 0 [(errors.code) = 400];
-  // 为某个枚举单独设置错误码业务错误
   UNAUTHORIZED = 1 [(errors.code) = 401];
   SIGN_ERROR = 2 [(errors.code) = 401];
   FORBIDDEN = 3 [(errors.code) = 403];

@@ -22,20 +22,18 @@ enum PaymentProduct {
   APP = 2;
   // JSAPI
   JSAPI = 3;
-  // 原生支付
-  Native = 4;
   // 人脸支付
-  Face = 5;
+  Face = 4;
   // 扫码
-  Qrcode = 6;
+  Qrcode = 5;
   // 设备扫码
-  Scan = 7;
+  Scan = 6;
   // 小程序
-  LITE = 8;
+  LITE = 7;
   // 先享后付
-  AFTER_PAY = 9;
+  AFTER_PAY = 8;
   // 免押金付款使用
-  DEPOSIT_PAY = 10;
+  DEPOSIT_PAY = 9;
 }
 
 enum Currency {

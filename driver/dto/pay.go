@@ -51,7 +51,7 @@ type Order struct {
 	Subject string `json:"subject"`
 	// 订单描述
 	Desc string `json:"desc"`
-	//
+	// 订单创建时间
 	CreateAt time.Time `json:"create_at"`
 }
 
@@ -132,6 +132,8 @@ type Action struct {
 	// Method     string
 	Url        string            `json:"url"`
 	Parameters map[string]string `json:"parameters"`
+	// GET | POST
+	RedirectMethod string `json:"redirect_method"`
 }
 
 type Query struct {

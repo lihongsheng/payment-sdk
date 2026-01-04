@@ -49,7 +49,7 @@ func (n *Native) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, 
 	return &dto.PayResponse{
 		PaymentProduct: enum.PaymentProduct_Native.String(),
 		Action: dto.Action{
-			Action: action.Action_Redirect.String(),
+			Action: action.Action_Qrcode.String(),
 			Parameters: map[string]string{
 				"qrcode": qrCode,
 			},

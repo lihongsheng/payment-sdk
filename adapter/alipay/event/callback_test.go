@@ -1,4 +1,4 @@
-package alipay
+package event
 
 //
 //func TestCallbackPaymentParse(t *testing.T) {

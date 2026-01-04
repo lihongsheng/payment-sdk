@@ -25,11 +25,6 @@ type Config struct {
 // Option 选项函数类型
 type Option func(*Config)
 
-func WithChannel(ch channel.Channel) Option {
-	return func(c *Config) {
-		c.Channel = ch
-	}
-}
 func WithPayment(pay payment.Payment) Option {
 	return func(c *Config) {
 		c.Payment = pay
@@ -74,7 +69,6 @@ func WithProxy(cf proxy.Proxy) Option {
 
 func NewPayment() *Config {
 	return &Config{
-		Channel:        channel.Channel_Wxpay,
 		Payment:        payment.Payment_Wxpay,
 		PaymentProduct: payment.PaymentProduct_JSAPI,
 		Config:         "",
@@ -83,7 +77,6 @@ func NewPayment() *Config {
 
 func NewRefund() *Config {
 	return &Config{
-		Channel:        channel.Channel_Wxpay,
 		Payment:        payment.Payment_Wxpay,
 		PaymentProduct: payment.PaymentProduct_JSAPI,
 		Config:         "",

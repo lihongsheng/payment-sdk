@@ -14,6 +14,7 @@ const (
 	COMMON_PARAM_FORMAT_NAME = "format"
 	// notify_url
 	COMMON_PARAM_NOTIFY_URL_NAME = "notify_url"
+	COMMON_PARAM_RETURN_URL_NAME = "return_url"
 	// app_auth_token
 	COMMON_PARAM_APP_AUTH_TOKEN_NAME = "app_auth_token"
 	COMMON_PARAM_Biz_NAME            = "biz_content"

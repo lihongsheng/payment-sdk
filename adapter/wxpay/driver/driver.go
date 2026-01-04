@@ -32,17 +32,23 @@ func (p Payment) Open(c config.Config) (iface.Pay, error) {
 		}
 	}
 	switch c.PaymentProduct {
-	case payment.PaymentProduct_JSAPI, payment.PaymentProduct_LITE:
+	case payment.PaymentProduct_JSAPI:
 		return payment2.NewJsApi(cf)
+	case payment.PaymentProduct_LITE:
+		return payment2.NewLite(cf)
 	case payment.PaymentProduct_H5:
 		return payment2.NewH5(cf)
+	case payment.PaymentProduct_Qrcode:
+		return payment2.NewNative(cf)
+	case payment.PaymentProduct_APP:
+		return payment2.NewApp(cf)
 	}
 	return nil, errors.New("payment: unknown payment product")
 }
 
 func init() {
-	driver.PaymentRegister(channel.Channel_Wxpay, Payment{})
-	driver.RefundRegister(channel.Channel_Wxpay, Refund{})
+	driver.PaymentRegister(channel.Channel_Wxpay.String(), Payment{})
+	driver.RefundRegister(channel.Channel_Wxpay.String(), Refund{})
 }
 
 type Refund struct{}

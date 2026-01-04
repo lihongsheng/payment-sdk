@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/lihongsheng/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/adapter/alipay/config"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

@@ -4,6 +4,7 @@ const (
 	JSAPI = "JSAPI_PAY"
 	// QUICK_WAP_WAY
 	QUICK_WAP_WAY = "QUICK_WAP_WAY"
+	APP_WAY       = "alipay.trade.app.pay"
 	// FACE_TO_FACE_PAYMENT
 	FACE_TO_FACE_PAYMENT = "FACE_TO_FACE_PAYMENT"
 )

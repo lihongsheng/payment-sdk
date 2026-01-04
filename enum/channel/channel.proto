@@ -13,7 +13,7 @@ enum Channel {
   // 富有
   Fuiou = 3;
   //  拉卡拉正常版
-  Lakala_NORMAL = 4;
+  Lakala = 4;
   // 拉卡拉-缴费易
   Lakala_JFYUI = 5;
   // 易云汇

@@ -35,8 +35,8 @@ func (p Payment) Open(c config.Config) (iface.Pay, error) {
 }
 
 func init() {
-	driver.PaymentRegister(channel.Channel_Wxpay, Payment{})
-	driver.RefundRegister(channel.Channel_Wxpay, Refund{})
+	driver.PaymentRegister(channel.Channel_Lakala.String(), Payment{})
+	driver.RefundRegister(channel.Channel_Lakala.String(), Refund{})
 }
 
 type Refund struct{}

@@ -74,6 +74,10 @@ func (c *Client) GetCommonRequestParams() map[string]string {
 }
 
 func (c *Client) DoPost(ctx context.Context, commonParams map[string]string, body any, header map[string]string) (*resty.Response, error) {
+	reqUrl, bodyParams, err := c.PageExecute(commonParams, body)
+	if err != nil {
+		return nil, err
+	}
 	req := c.Client.R()
 	if header != nil {
 		req.SetHeaders(header)
@@ -84,22 +88,30 @@ func (c *Client) DoPost(ctx context.Context, commonParams map[string]string, bod
 	if req.Header.Get("Accept") == "" {
 		req.SetHeader("Accept", "application/json")
 	}
+	req.SetQueryParamsFromValues(reqUrl.Query())
+	req.SetFormData(bodyParams)
+	return req.SetContext(ctx).Post(HostName)
+}
 
-	bodyParams := map[string]string{}
+func (c *Client) PageExecute(commonParams map[string]string, body any) (u *url.URL, bodyParams map[string]string, err error) {
+	req, err := url.Parse(HostName)
+	if err != nil {
+		return nil, nil, err
+	}
 	switch body.(type) {
 	case map[string]string:
 		bodyParams = body.(map[string]string)
 	default:
 		by, err := json.Marshal(body)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		byStr := string(by)
 		bodyParams[enum.COMMON_PARAM_Biz_NAME] = byStr
 	}
 	sign, err := c.Sign.Sign(commonParams, bodyParams)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	queryParams := url.Values{}
 	queryParams.Add(enum.COMMON_PARAM_SING_NAME, sign)
@@ -109,15 +121,17 @@ func (c *Client) DoPost(ctx context.Context, commonParams map[string]string, bod
 		}
 		queryParams.Add(k, v)
 	}
-	req.SetQueryParamsFromValues(queryParams)
+	req.RawQuery = queryParams.Encode()
 	if commonParams[enum.COMMON_PARAM_APP_AUTH_TOKEN_NAME] != "" {
 		bodyParams[enum.COMMON_PARAM_APP_AUTH_TOKEN_NAME] = commonParams[enum.COMMON_PARAM_APP_AUTH_TOKEN_NAME]
 	}
 	if commonParams[enum.COMMON_PARAM_NOTIFY_URL_NAME] != "" {
 		bodyParams[enum.COMMON_PARAM_NOTIFY_URL_NAME] = commonParams[enum.COMMON_PARAM_NOTIFY_URL_NAME]
 	}
-	req.SetFormData(bodyParams)
-	return req.SetContext(ctx).Post(HostName)
+	if commonParams[enum.COMMON_PARAM_RETURN_URL_NAME] != "" {
+		bodyParams[enum.COMMON_PARAM_RETURN_URL_NAME] = commonParams[enum.COMMON_PARAM_RETURN_URL_NAME]
+	}
+	return req, bodyParams, nil
 }
 
 func (c *Client) GetResponseSignContent(body string, method string) (string, error) {
