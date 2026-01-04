@@ -50,7 +50,6 @@ func (h *App) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, err
 	actionParams["prepayId"] = until.StringPoint(resp.PrepayId)
 	actionParams["timeStamp"] = fmt.Sprintf("%d", time.Now().Unix())
 	actionParams["nonceStr"] = tools.GenerateRandomDigits(10)
-	actionParams["signType"] = "RSA"
 	actionParams["packageValue"] = "Sign=WXPay"
 	signParams := fmt.Sprintf("%s\n%s\n%s\n%s\n", actionParams["appId"], actionParams["timeStamp"], actionParams["nonceStr"], actionParams["prepayId"])
 	sign, _ := utils.SignSHA256WithRSA(signParams, h.PrivateKey)
