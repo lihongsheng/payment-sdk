@@ -17,21 +17,21 @@ import (
 	"time"
 )
 
-type CallbackMethod struct {
+type Api struct {
 	*wxpay.Api
 }
 
-func NewCallback(conf config.Config) (*CallbackMethod, error) {
+func NewApi(conf config.Config) (*Api, error) {
 	api, err := wxpay.InitClient(conf)
 	if err != nil {
 		return nil, err
 	}
-	return &CallbackMethod{
+	return &Api{
 		Api: api,
 	}, nil
 }
 
-func (c *CallbackMethod) Callback(ctx context.Context, req *http.Request) (*dto.CallbackPayDetail, error) {
+func (c *Api) Callback(ctx context.Context, req *http.Request) (*dto.CallbackPayDetail, error) {
 	no, err := notify.NewRSANotifyHandler(c.C.APISecret, c.Verifier)
 	if err != nil {
 		return nil, errors2.ErrorSystemError("wxpay new RSA NotifyHandler errors").WithCause(err)

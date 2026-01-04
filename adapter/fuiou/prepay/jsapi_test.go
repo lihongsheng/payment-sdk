@@ -22,7 +22,7 @@ func TestPay_Pay(t *testing.T) {
 		Version:     "",
 		OrderPrefix: "1066",
 	}
-	pppp, err := NewPay(c, enum.PaymentProduct_JSAPI, enum.Payment_Wxpay)
+	pppp, err := NewJsApi(c, enum.PaymentProduct_JSAPI, enum.Payment_Wxpay)
 	assert.NoError(t, err)
 	assert.NotNil(t, pppp)
 	fmt.Println("-----------------------------------------------")
@@ -71,7 +71,7 @@ func TestPay_Query(t *testing.T) {
 		Version:     "",
 		OrderPrefix: "1066",
 	}
-	pppp, err := NewPay(c, enum.PaymentProduct_JSAPI, enum.Payment_Wxpay)
+	pppp, err := NewJsApi(c, enum.PaymentProduct_JSAPI, enum.Payment_Wxpay)
 	assert.NoError(t, err)
 	assert.NotNil(t, pppp)
 	fmt.Println(pppp)
@@ -94,7 +94,7 @@ func TestPay_Close(t *testing.T) {
 		Version:     "",
 		OrderPrefix: "1066",
 	}
-	pppp, err := NewPay(c, enum.PaymentProduct_JSAPI, enum.Payment_Wxpay)
+	pppp, err := NewJsApi(c, enum.PaymentProduct_JSAPI, enum.Payment_Wxpay)
 	assert.NoError(t, err)
 	assert.NotNil(t, pppp)
 	fmt.Println(pppp)
@@ -116,7 +116,7 @@ func TestPay_Query2(t *testing.T) {
 		Version:     "",
 		OrderPrefix: "1066",
 	}
-	pppp, err := NewPay(c, enum.PaymentProduct_JSAPI, enum.Payment_Wxpay)
+	pppp, err := NewJsApi(c, enum.PaymentProduct_JSAPI, enum.Payment_Wxpay)
 	assert.NoError(t, err)
 	assert.NotNil(t, pppp)
 	ctx := context.Background()

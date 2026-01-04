@@ -20,19 +20,19 @@ import (
 // 支付分先享模式
 
 type AfterPay struct {
-	*CallbackMethod
+	*Api
 	client payscore.ScoreApiService
 }
 
 func NewAfterPay(conf config.Config) (iface.Pay, error) {
-	api, err := NewCallback(conf)
+	api, err := NewApi(conf)
 	if err != nil {
 		return nil, err
 	}
 	svc := payscore.ScoreApiService{Client: api.Client}
 	return &AfterPay{
-		CallbackMethod: api,
-		client:         svc,
+		Api:    api,
+		client: svc,
 	}, nil
 }
 

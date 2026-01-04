@@ -21,18 +21,18 @@ import (
 )
 
 type App struct {
-	*CallbackMethod
+	*Api
 	client app.AppApiService
 }
 
 func NewApp(conf config.Config) (iface.Pay, error) {
-	api, err := NewCallback(conf)
+	api, err := NewApi(conf)
 	if err != nil {
 		return nil, err
 	}
 	return &App{
-		CallbackMethod: api,
-		client:         app.AppApiService{Client: api.Client},
+		Api:    api,
+		client: app.AppApiService{Client: api.Client},
 	}, nil
 }
 

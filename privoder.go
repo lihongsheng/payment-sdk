@@ -1,7 +1,6 @@
 package payment_sdk
 
 import (
-	"errors"
 	_ "github.com/lihongsheng/payment-sdk/adapter/alipay/driver"
 	_ "github.com/lihongsheng/payment-sdk/adapter/fuiou/driver"
 	_ "github.com/lihongsheng/payment-sdk/adapter/lakala/driver"
@@ -10,6 +9,7 @@ import (
 	"github.com/lihongsheng/payment-sdk/driver"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
 	"github.com/lihongsheng/payment-sdk/enum/payment"
+	errors2 "github.com/lihongsheng/payment-sdk/errors"
 )
 
 func Payment(channelName string, options ...config.Option) (iface.Pay, error) {
@@ -18,10 +18,10 @@ func Payment(channelName string, options ...config.Option) (iface.Pay, error) {
 		option(cf)
 	}
 	if channelName == "" {
-		return nil, errors.New("payment: unknown channel")
+		return nil, errors2.ErrorNoSupport("payment: unknown channel")
 	}
 	if cf.Payment == payment.Payment_Payment_UNKNOWN {
-		return nil, errors.New("payment: unknown payment")
+		return nil, errors2.ErrorNoSupport("payment: unknown payment method")
 	}
 	return driver.Payment(channelName, *cf)
 }
@@ -32,10 +32,10 @@ func Refund(channelName string, options ...config.Option) (iface.Refund, error) 
 		option(cf)
 	}
 	if channelName == "" {
-		return nil, errors.New("refund: unknown channel")
+		return nil, errors2.ErrorNoSupport("refund: unknown channel")
 	}
 	if cf.Payment == payment.Payment_Payment_UNKNOWN {
-		return nil, errors.New("payment: unknown payment")
+		return nil, errors2.ErrorNoSupport("refund: unknown payment method")
 	}
 	return driver.Refund(channelName, *cf)
 }

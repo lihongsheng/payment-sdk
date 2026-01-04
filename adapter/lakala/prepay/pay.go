@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	enum1 "github.com/lihongsheng/payment-sdk/enum"
 	"github.com/lihongsheng/payment-sdk/tools"
 	"net/http"
 
@@ -215,5 +216,6 @@ func (p *Pay) Callback(ctx context.Context, req *http.Request) (*dto.CallbackPay
 		Status:         status,
 		PaymentProduct: enum.PaymentProduct_JSAPI.String(),
 		OriginResponse: string(originBy),
+		EventAction:    enum1.Event_PAYMENT,
 	}, nil
 }

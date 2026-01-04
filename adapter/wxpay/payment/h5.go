@@ -21,18 +21,18 @@ import (
 )
 
 type H5 struct {
-	*CallbackMethod
+	*Api
 	client h5.H5ApiService
 }
 
 func NewH5(conf config.Config) (iface.Pay, error) {
-	api, err := NewCallback(conf)
+	api, err := NewApi(conf)
 	if err != nil {
 		return nil, err
 	}
 	return &H5{
-		CallbackMethod: api,
-		client:         h5.H5ApiService{Client: api.Client},
+		Api:    api,
+		client: h5.H5ApiService{Client: api.Client},
 	}, nil
 }
 

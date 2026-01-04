@@ -35,7 +35,7 @@ func (p Payment) Open(c config.Config) (iface.Pay, error) {
 	if cf.OrderPrefix == "" {
 		return nil, errors2.ErrorParamError("order_prefix is empty", nil)
 	}
-	return payment2.NewPay(cf, c.PaymentProduct, c.Payment)
+	return payment2.NewJsApi(cf, c.PaymentProduct, c.Payment)
 }
 
 func init() {

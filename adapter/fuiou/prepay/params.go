@@ -3,14 +3,15 @@ package prepay
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
 	"strings"
 
 	errors2 "github.com/lihongsheng/payment-sdk/errors"
 	"github.com/lihongsheng/payment-sdk/tools"
 )
 
-// PaymentRequest 富友支付请求参数结构体
-type PaymentRequest struct {
+// JsApiPaymentRequest 富友支付请求参数结构体
+type JsApiPaymentRequest struct {
 	Version      string `json:"version"`        // 版本号，长度8，必填
 	MchntCd      string `json:"mchnt_cd"`       // 商户号，长度15，必填
 	RandomStr    string `json:"random_str"`     // 随机字符串，长度32，必填
@@ -58,7 +59,7 @@ type PaymentRequest struct {
 	Sign string `json:"sign"`
 }
 
-func (p *PaymentRequest) Validate() error {
+func (p *JsApiPaymentRequest) Validate() error {
 	if p.MchntCd == "" {
 		return errors2.ErrorParamError("商户号不能为空")
 	}
@@ -74,7 +75,7 @@ func (p *PaymentRequest) Validate() error {
 	return nil
 }
 
-func (p *PaymentRequest) GenSign(apiKey string) {
+func (p *JsApiPaymentRequest) GenSign(apiKey string) {
 	signStrArr := []string{}
 	signStrArr = append(signStrArr, p.MchntCd)
 	signStrArr = append(signStrArr, p.TradeType)
@@ -105,8 +106,8 @@ func (d DeviceInfo) String() string {
 	return string(by)
 }
 
-// PaymentResponse 支付响应参数结构体（续）
-type PaymentResponse struct {
+// JsApiPaymentResponse 支付响应参数结构体（续）
+type JsApiPaymentResponse struct {
 	// 已有字段（承接上一部分）
 	ResultCode   string `json:"result_code"`
 	ResultMsg    string `json:"result_msg"`
@@ -139,8 +140,8 @@ type PaymentResponse struct {
 	Sign                   string `json:"sign"`
 }
 
-func (p PaymentResponse) IsSuccess() bool {
-	return p.ResultCode == "000000"
+func (p JsApiPaymentResponse) IsSuccess() bool {
+	return p.ResultCode == enum.SuccessCode
 }
 
 // OrderRequest 订单请求参数结构体
@@ -219,7 +220,7 @@ type OrderDetail struct {
 }
 
 func (o *OrderDetail) IsSuccess() bool {
-	return o.ResultCode == "000000"
+	return o.ResultCode == enum.SuccessCode
 }
 
 // CloseOrderRequest 关闭订单请求报文结构体
@@ -283,5 +284,118 @@ type CloseOrderResponse struct {
 }
 
 func (o CloseOrderResponse) IsSuccess() bool {
-	return o.ResultCode == "000000"
+	return o.ResultCode == enum.SuccessCode
+}
+
+type QrcodePaymentRequest struct {
+	Version   string `json:"version"`    // 版本号，长度8，必填
+	MchntCd   string `json:"mchnt_cd"`   // 商户号，长度15，必填
+	RandomStr string `json:"random_str"` // 随机字符串，长度32，必填
+	// 订单类型：
+	//ALIPAY
+	//WECHAT
+	//WXXS(微信线上)
+	//WXBX(微信保险类)）
+	//ALBX(支付宝保险类)
+	//UNIONPAY(银联二维码)
+	//DIGICCY(数字货币)
+	OrderType    string `json:"order_type"`
+	OrderAmt     int64  `json:"order_amt"`      // 订单总金额，长度16，以分为单位，必填
+	MchntOrderNo string `json:"mchnt_order_no"` // 商户订单号，长度30，必填
+	TxnBeginTs   string `json:"txn_begin_ts"`   // 交易起始时间，长度14，格式yyyyMMddHHmmss，必填
+	// 订单标题
+	GoodsDes    string `json:"goods_des"`    // 商品描述，长度128，必填
+	GoodsDetail string `json:"goods_detail"` // 商品详情，长度600，非必填
+	GoodsTag    string `json:"goods_tag"`    // 商品标记，长度32，非必填
+	TermId      string `json:"term_id"`      // 终端号，长度8，随机8字节数字字母组合，必填
+	// IP
+	TermIp  string `json:"term_ip"`  // 终端IP，长度16，必填
+	AddnInf string `json:"addn_inf"` // 附加数据，长度100，非必填
+	// 币种
+	CurrType         string `json:"curr_type"`                     // 货币种类，长度3，默认人民币:CNY，非必填
+	NotifyURL        string `json:"notify_url"`                    // 通知URL，长度256，接收富友异步通知回调地址，必填
+	ReservedLimitPay string `json:"reserved_limit_pay,omitempty"`  // 限制支付，长度32，非必填
+	ReservedFyTermId string `json:"reserved_fy_term_id,omitempty"` // 富友终端号，长度20，非必填
+	// 富友终端类型
+	//0：其他 默认
+	//1：富友终端
+	//2：POS机
+	//3：台卡
+	//4：PC软件
+	ReservedFyTermType string `json:"reserved_fy_term_type,omitempty"` // 富友终端类型
+	// 时间 分钟
+	ReservedExpireMinute int    `json:"reserved_expire_minute,omitempty"` // 交易关闭时间，长度8，非必填
+	ReservedDeviceInfo   string `json:"reserved_device_info"`
+	Sign                 string `json:"sign"`
+}
+
+func (p *QrcodePaymentRequest) Validate() error {
+	if p.MchntCd == "" {
+		return errors2.ErrorParamError("商户号不能为空")
+	}
+	if p.RandomStr == "" {
+		return errors2.ErrorParamError("随机字符串不能为空")
+	}
+	if p.OrderAmt <= 0 {
+		return errors2.ErrorParamError("订单金额不能小于0")
+	}
+	if p.OrderType == "" {
+		return errors2.ErrorParamError("交易类型不能为空")
+	}
+	return nil
+}
+
+// 拼接
+//
+// mchnt_cd+"|"
+// + order_type +"|"
+// +order_amt +"|"
+// + mchnt_order_no+"|"
+// + txn_begin_ts +"|"
+// + goods_des +"|"
+// + term_id + "|"
+// + term_ip + "|"
+// +notify_url+ "|"
+// +random_str +"|"
+// + version + "|"
+// + mchnt_key
+//
+// 并做md5摘要
+// 其中mchnt_key为商户密钥，系统分配
+func (p *QrcodePaymentRequest) GenSign(apiKey string) {
+	signStrArr := []string{}
+	signStrArr = append(signStrArr, p.MchntCd)
+	signStrArr = append(signStrArr, p.OrderType)
+	signStrArr = append(signStrArr, fmt.Sprintf("%d", p.OrderAmt))
+	signStrArr = append(signStrArr, p.MchntOrderNo)
+	signStrArr = append(signStrArr, p.TxnBeginTs)
+	signStrArr = append(signStrArr, p.GoodsDes)
+	signStrArr = append(signStrArr, p.TermId)
+	signStrArr = append(signStrArr, p.TermIp)
+	signStrArr = append(signStrArr, p.NotifyURL)
+	signStrArr = append(signStrArr, p.RandomStr)
+	signStrArr = append(signStrArr, p.Version)
+	signStrArr = append(signStrArr, apiKey)
+	p.Sign = tools.Md5(strings.Join(signStrArr, "|"))
+}
+
+// QrcodePaymentResponse 支付响应参数结构体（续）
+type QrcodePaymentResponse struct {
+	// 已有字段（承接上一部分）
+	ResultCode             string `json:"result_code"`
+	ResultMsg              string `json:"result_msg"`
+	MchntCd                string `json:"mchnt_cd"`
+	TermId                 string `json:"term_id,omitempty"`
+	RandomStr              string `json:"random_str"`
+	OrderType              string `json:"order_type"`
+	SessionId              string `json:"session_id,omitempty"`
+	QrCode                 string `json:"qr_code,omitempty"`
+	ReservedFyOrderNo      string `json:"reserved_fy_order_no,omitempty"`      // 富友生成的订单号，长度30，非必填
+	ReservedFyTraceNo      string `json:"reserved_fy_trace_no"`                // 追踪号，长度12，必填
+	ReservedChannelOrderId string `json:"reserved_channel_order_id,omitempty"` // 银行交易号，长度32，非必填
+	Sign                   string `json:"sign"`
+}
+
+func (p QrcodePaymentResponse) IsSuccess() bool {
+	return p.ResultCode == enum.SuccessCode
 }

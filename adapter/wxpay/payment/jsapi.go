@@ -22,7 +22,7 @@ import (
 )
 
 type Jsapi struct {
-	*CallbackMethod
+	*Api
 	client jsapi.JsapiApiService
 }
 
@@ -35,14 +35,14 @@ func NewJsApi(conf config.Config) (iface.Pay, error) {
 }
 
 func newJsApi(conf config.Config) (*Jsapi, error) {
-	api, err := NewCallback(conf)
+	api, err := NewApi(conf)
 	if err != nil {
 		return nil, err
 	}
 	svc := jsapi.JsapiApiService{Client: api.Client}
 	return &Jsapi{
-		CallbackMethod: api,
-		client:         svc,
+		Api:    api,
+		client: svc,
 	}, nil
 }
 

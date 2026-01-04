@@ -107,7 +107,7 @@ const (
 )
 
 const (
-	SuccessCode = "0000"
+	SuccessCode = "000000"
 )
 
 // 验证方式

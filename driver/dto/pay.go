@@ -88,6 +88,8 @@ type PayOrder struct {
 	SceneInfo      *SceneInfo          `json:"scene_info"`
 	RiskFund       *RiskFund           `json:"risk_fund"`
 	AlipayExtra    *AlipayPaymentExtra `json:"alipay_extra"`
+	// 扫码支付授权码
+	AuthCode string `json:"auth_code"`
 }
 
 type AlipayPaymentExtra struct {

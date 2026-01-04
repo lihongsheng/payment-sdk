@@ -22,18 +22,18 @@ import (
 )
 
 type Native struct {
-	*CallbackMethod
+	*Api
 	client native.NativeApiService
 }
 
 func NewNative(conf config.Config) (iface.Pay, error) {
-	api, err := NewCallback(conf)
+	api, err := NewApi(conf)
 	if err != nil {
 		return nil, err
 	}
 	return &Native{
-		CallbackMethod: api,
-		client:         native.NativeApiService{Client: api.Client},
+		Api:    api,
+		client: native.NativeApiService{Client: api.Client},
 	}, nil
 }
 
