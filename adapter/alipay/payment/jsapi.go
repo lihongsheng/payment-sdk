@@ -54,9 +54,7 @@ func (j *Jsapi) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, e
 	if response.AlipayTradeCreateResponse.Code == enum.RESPONSE_SUCCESS_CODE {
 		respTrue = true
 	}
-	if response.AlipayTradeCreateResponse.SubCode == "" && response.AlipayTradeCreateResponse.TradeNo != "" {
-		respTrue = true
-	}
+
 	if respTrue {
 		return &dto.PayResponse{
 			OrderNo: response.AlipayTradeCreateResponse.OutTradeNo,
@@ -94,7 +92,7 @@ func (j *Jsapi) buildPayParams(req *dto.PayOrder) model.JsApiPaymentRequest {
 		BuyerId:            req.Payer.UnionID,
 		BuyerOpenId:        req.Payer.OpenID,
 		TimeExpire:         "",
-		PassbackParams:     req.PassbackParams,
+		PassbackParams:     req.PassBackParams,
 		GoodsDetail:        nil,
 	}
 	if req.AlipayExtra != nil && req.AlipayExtra.ProductCode != "" {

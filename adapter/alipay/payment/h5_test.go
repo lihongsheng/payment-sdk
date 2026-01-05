@@ -41,7 +41,7 @@ package payment
 //		RedirectUrl:    "",
 //		TimeExpire:     0,
 //		NotifyUrl:      "https://api-cabinet.test.jianxindianzi.com//public/v1/callback/payment/20/Test11110001",
-//		PassbackParams: "",
+//		PassBackParams: "",
 //		SettleInfo:     nil,
 //		SceneInfo:      nil,
 //		RiskFund:       nil,

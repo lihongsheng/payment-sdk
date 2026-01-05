@@ -79,7 +79,7 @@ func (h *H5) buildPayParmams(req *dto.PayOrder) h5.PrepayRequest {
 		Mchid:       core.String(h.C.MchID),
 		OutTradeNo:  core.String(req.Order.OrderNo),
 		TimeExpire:  t,
-		Attach:      core.String(req.PassbackParams),
+		Attach:      core.String(req.PassBackParams),
 		NotifyUrl:   core.String(req.NotifyUrl),
 		Description: core.String(req.Order.Subject),
 		Amount:      amount,

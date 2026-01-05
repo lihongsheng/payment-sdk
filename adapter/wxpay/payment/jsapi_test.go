@@ -80,7 +80,7 @@ iQIDAQAB
 			Subject: "test pay",
 		},
 		NotifyUrl:      "https://api-cabinet.test.jianxindianzi.com/callback/v1/tenant/payment/5/175870989522000055545",
-		PassbackParams: "tpdp_id=5",
+		PassBackParams: "tpdp_id=5",
 		Payer: dto.Payer{
 			OpenID: "o7uyb2G1X2nRyhPCwGSt6TFd3sAs",
 		},

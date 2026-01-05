@@ -121,7 +121,7 @@ func (p *Jsapi) buildPayParams(req *dto.PayOrder) *JsApiPaymentRequest {
 		GoodsDes:             req.Order.Subject,
 		GoodsDetail:          "",
 		GoodsTag:             "",
-		AddnInf:              req.PassbackParams,
+		AddnInf:              req.PassBackParams,
 		CurrType:             req.Order.PayAmount.Currency,
 		NotifyURL:            req.NotifyUrl,
 		LimitPay:             "",

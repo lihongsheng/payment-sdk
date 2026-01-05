@@ -7,4 +7,5 @@ const (
 	APP_WAY       = "alipay.trade.app.pay"
 	// FACE_TO_FACE_PAYMENT
 	FACE_TO_FACE_PAYMENT = "FACE_TO_FACE_PAYMENT"
+	QR_CODE_OFFLINE      = "QR_CODE_OFFLINE"
 )

@@ -41,29 +41,29 @@ type H5PaymentExtendParam struct {
 //}
 
 type FacePaymentRequest struct {
-	OutTradeNo     string                  `json:"out_trade_no"`
-	TotalAmount    string                  `json:"total_amount"`
-	Subject        string                  `json:"subject"`
-	AuthCode       string                  `json:"auth_code"`
-	Scene          string                  `json:"scene"`
-	ProductCode    string                  `json:"product_code"`
-	SellerId       string                  `json:"seller_id"`
-	GoodsDetail    []*GoodDetails          `json:"goods_detail"`
-	ExtendParams   *FacePaymentExtendParam `json:"extend_params"`
-	BusinessParams *FaceBusinessParams     `json:"business_params"`
-	PromoParams    *FacePromoParams        `json:"promo_params"`
-	StoreId        string                  `json:"store_id"`
-	OperatorId     string                  `json:"operator_id"`
-	TerminalId     string                  `json:"terminal_id"`
-	QueryOptions   []string                `json:"query_options"`
+	OutTradeNo     string              `json:"out_trade_no"`
+	TotalAmount    string              `json:"total_amount"`
+	Subject        string              `json:"subject"`
+	AuthCode       string              `json:"auth_code"`
+	Scene          string              `json:"scene"`
+	ProductCode    string              `json:"product_code"`
+	SellerId       string              `json:"seller_id"`
+	GoodsDetail    []*GoodDetails      `json:"goods_detail"`
+	ExtendParams   *PaymentExtendParam `json:"extend_params"`
+	BusinessParams *BusinessParams     `json:"business_params"`
+	PromoParams    *FacePromoParams    `json:"promo_params"`
+	StoreId        string              `json:"store_id"`
+	OperatorId     string              `json:"operator_id"`
+	TerminalId     string              `json:"terminal_id"`
+	QueryOptions   []string            `json:"query_options"`
 }
 
-type FacePaymentExtendParam struct {
+type PaymentExtendParam struct {
 	SysServiceProviderId string `json:"sys_service_provider_id"`
 	CardType             string `json:"card_type"`
 }
 
-type FaceBusinessParams struct {
+type BusinessParams struct {
 	McCreateTradeIp string `json:"mc_create_trade_ip"`
 }
 
@@ -113,4 +113,18 @@ type VoucherDetailList struct {
 	PurchaseBuyerContribute    string `json:"purchase_buyer_contribute"`
 	PurchaseMerchantContribute string `json:"purchase_merchant_contribute"`
 	PurchaseAntContribute      string `json:"purchase_ant_contribute"`
+}
+
+type QrCodePaymentRequest struct {
+	OutTradeNo     string              `json:"out_trade_no"`
+	TotalAmount    string              `json:"total_amount"`
+	Subject        string              `json:"subject"`
+	ProductCode    string              `json:"product_code"`
+	SellerId       string              `json:"seller_id"`
+	GoodsDetail    []*GoodDetails      `json:"goods_detail"`
+	ExtendParams   *PaymentExtendParam `json:"extend_params"`
+	BusinessParams *BusinessParams     `json:"business_params"`
+	StoreId        string              `json:"store_id"`
+	OperatorId     string              `json:"operator_id"`
+	TerminalId     string              `json:"terminal_id"`
 }

@@ -101,7 +101,7 @@ kLDT+/STozvaNmXzBJh7J6KqxJBH
 		RedirectUrl:    "",
 		TimeExpire:     time.Now().Add(time.Hour).Unix(),
 		NotifyUrl:      "https://api.test.com/order",
-		PassbackParams: "",
+		PassBackParams: "",
 		SettleInfo:     nil,
 		SceneInfo: &dto.SceneInfo{
 			ClientIp: "127.0.0.1",

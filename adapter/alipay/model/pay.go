@@ -252,3 +252,16 @@ type TradeCloseResponse struct {
 	TradeNo    string `json:"trade_no"`
 	OutTradeNo string `json:"out_trade_no"`
 }
+
+type PreCreateResponse struct {
+	AlipayTradePreCreateResponse AlipayTradePreCreateResponse `json:"alipay_trade_precreate_response"`
+	ErrorResponse                *ErrorResponse               `json:"error_response"`
+	Sign                         string                       `json:"sign"`
+}
+
+type AlipayTradePreCreateResponse struct {
+	Code       string `json:"code"`
+	Msg        string `json:"msg"`
+	OutTradeNo string `json:"out_trade_no"`
+	QrCode     string `json:"qr_code"`
+}

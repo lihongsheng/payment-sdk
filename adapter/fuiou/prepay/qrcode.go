@@ -87,7 +87,7 @@ func (p *Qrcode) buildPayParams(req *dto.PayOrder) *QrcodePaymentRequest {
 		GoodsDes:             req.Order.Subject,
 		GoodsDetail:          "",
 		GoodsTag:             "",
-		AddnInf:              req.PassbackParams,
+		AddnInf:              req.PassBackParams,
 		CurrType:             req.Order.PayAmount.Currency,
 		NotifyURL:            req.NotifyUrl,
 		ReservedFyTermId:     "",

@@ -107,7 +107,7 @@ func (j *Jsapi) buildPayParams(req *dto.PayOrder) jsapi.PrepayRequest {
 		Mchid:       core.String(j.C.MchID),
 		OutTradeNo:  core.String(req.Order.OrderNo),
 		TimeExpire:  t,
-		Attach:      core.String(req.PassbackParams),
+		Attach:      core.String(req.PassBackParams),
 		NotifyUrl:   core.String(req.NotifyUrl),
 		Description: core.String(req.Order.Subject),
 		Amount:      amount,

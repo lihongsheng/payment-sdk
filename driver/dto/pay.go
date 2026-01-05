@@ -83,7 +83,7 @@ type PayOrder struct {
 	// 支付回调地址
 	NotifyUrl string `json:"notify_url"`
 	// 透传参数 如果请求时传递了该参数，异步通知时将该参数原样返回。
-	PassbackParams string              `json:"passback_params"`
+	PassBackParams string              `json:"pass_back_params"`
 	SettleInfo     *SettleInfo         `json:"settle_info"`
 	SceneInfo      *SceneInfo          `json:"scene_info"`
 	RiskFund       *RiskFund           `json:"risk_fund"`
@@ -96,8 +96,6 @@ type AlipayPaymentExtra struct {
 	// 产品码。
 	//商家和支付宝签约的产品码。
 	//当面付场景下，如果签约的是当面付快捷版，则传 OFFLINE_PAYMENT;
-	//其它支付宝当面付产品传 FACE_TO_FACE_PAYMENT；
-	//不传则默认使用FACE_TO_FACE_PAYMENT。
 	//【示例值】FACE_TO_FACE_PAYMENT
 	ProductCode string `json:"product_code,omitempty"`
 }
@@ -157,7 +155,8 @@ type PayDetail struct {
 	// H5 | JSAPI | NATIVE | APP | 扫码
 	PaymentProduct string `json:"payment_product"`
 	// 支付发卡行，不一定都有
-	BankType       string `json:"bank_type"`
+	BankType string `json:"bank_type"`
+	// 原始返回的内容
 	OriginResponse string `json:"origin_response"`
 }
 

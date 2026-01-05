@@ -2,6 +2,7 @@ package payment
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/config"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/model"
@@ -9,41 +10,53 @@ import (
 	"github.com/lihongsheng/payment-sdk/driver/iface"
 	"github.com/lihongsheng/payment-sdk/enum/action"
 	"github.com/lihongsheng/payment-sdk/enum/payment"
-	"time"
+	"github.com/lihongsheng/payment-sdk/errors"
 )
 
-type H5 struct {
+type Qrcode struct {
 	*Api
 }
 
-func NewH5(conf config.Config) (iface.Pay, error) {
+func NewQrcode(conf config.Config) (iface.Pay, error) {
 	api, err := NewApi(conf)
 	if err != nil {
 		return nil, err
 	}
-	return &H5{
+	return &Qrcode{
 		api,
 	}, nil
 }
 
-func (h *H5) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, error) {
+func (h *Qrcode) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, error) {
 	reqParam := h.buildPaymentRequest(req)
 	commonParam := h.Client.GetCommonRequestParams()
 	if req.NotifyUrl != "" {
 		commonParam[enum.COMMON_PARAM_NOTIFY_URL_NAME] = req.NotifyUrl
 	}
-	if req.RedirectUrl != "" {
-		commonParam[enum.COMMON_PARAM_RETURN_URL_NAME] = req.RedirectUrl
-	}
 	commonParam[enum.COMMON_PARAM_METHOD_NAME] = enum.ALIPAY_H5_TRADES_CREATE
-	resp, params, err := h.Client.PageExecute(commonParam, reqParam)
+	resp, err := h.Client.DoPost(ctx, commonParam, reqParam, nil)
 	if err != nil {
 		return nil, err
 	}
-
+	body := resp.Body()
+	var response model.PreCreateResponse
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return nil, errors.ErrorSystemError("json.Unmarshal error").WithCause(err)
+	}
+	if response.ErrorResponse != nil {
+		return nil, errors.ErrorSystemError(response.ErrorResponse.SubCode+":"+response.ErrorResponse.SubMsg, nil)
+	}
+	respTrue := false
+	if response.AlipayTradePreCreateResponse.Code == enum.RESPONSE_SUCCESS_CODE {
+		respTrue = true
+	}
+	if respTrue {
+		return nil, errors.ErrorSystemError("not return trade_no;"+string(body), nil)
+	}
 	re := &dto.PayResponse{
 		OrderNo: req.Order.OrderNo,
-		TradeNo: "",
+		TradeNo: response.AlipayTradePreCreateResponse.OutTradeNo,
 		PayAmount: dto.Amount{
 			Total:    req.Order.PayAmount.Total,
 			Currency: req.Order.PayAmount.Currency,
@@ -51,31 +64,27 @@ func (h *H5) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, erro
 		Status:         payment.Status_Pending,
 		PaymentProduct: payment.PaymentProduct_H5.String(),
 		Action: dto.Action{
-			Action:         action.Action_Redirect.String(),
-			Parameters:     params,
+			Action:         action.Action_Qrcode.String(),
+			Parameters:     map[string]string{},
 			Url:            resp.String(),
-			RedirectMethod: "POST",
+			RedirectMethod: response.AlipayTradePreCreateResponse.QrCode,
 		},
-		OriginResponse: "",
+		OriginResponse: string(body),
 	}
 	return re, nil
 }
 
-func (h *H5) buildPaymentRequest(req *dto.PayOrder) model.H5PaymentRequest {
-	result := model.H5PaymentRequest{
-		OutTradeNo:         req.Order.OrderNo,
-		ProductCode:        enum.QUICK_WAP_WAY,
-		TotalAmount:        req.Order.PayAmount.ToFloatString(),
-		ExtendParams:       nil,
-		DiscountableAmount: "",
-		Subject:            req.Order.Subject,
-		TimeExpire:         "",
-		PassbackParams:     req.PassBackParams,
-		GoodsDetail:        nil,
+func (h *Qrcode) buildPaymentRequest(req *dto.PayOrder) model.QrCodePaymentRequest {
+	result := model.QrCodePaymentRequest{
+		OutTradeNo:   req.Order.OrderNo,
+		ProductCode:  enum.QR_CODE_OFFLINE,
+		TotalAmount:  req.Order.PayAmount.ToFloatString(),
+		ExtendParams: nil,
+		Subject:      req.Order.Subject,
+		GoodsDetail:  nil,
 	}
-	if req.TimeExpire > 0 {
-		t := time.Unix(req.TimeExpire, 0)
-		result.TimeExpire = t.Format(time.DateTime)
+	if req.AlipayExtra != nil && req.AlipayExtra.ProductCode != "" {
+		result.ProductCode = req.AlipayExtra.ProductCode
 	}
 	if len(req.Order.Goods) > 0 {
 		result.GoodsDetail = make([]*model.GoodDetails, 0)
