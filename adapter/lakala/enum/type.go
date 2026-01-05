@@ -44,4 +44,5 @@ var PaymentMap = map[payment.Payment]string{
 var ProductMap = map[payment.PaymentProduct]string{
 	payment.PaymentProduct_JSAPI: "51",
 	payment.PaymentProduct_LITE:  "71",
+	payment.PaymentProduct_APP:   "61",
 }
