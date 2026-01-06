@@ -3,7 +3,7 @@ package transfer
 import (
 	"context"
 	"fmt"
-	"github.com/lihongsheng/payment-sdk/adapter/wxpay"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
@@ -19,13 +19,13 @@ import (
 // https://pay.weixin.qq.com/doc/v3/merchant/4012712115 新版
 
 type BatchTransfer struct {
-	*wxpay.Api
+	*client.Api
 	client transferbatch.TransferBatchApiService
 	detail transferbatch.TransferDetailApiService
 }
 
 func NewTransfer(conf config.Config) (*BatchTransfer, error) {
-	api, err := wxpay.InitClient(conf)
+	api, err := client.InitClient(conf)
 	if err != nil {
 		return nil, err
 	}

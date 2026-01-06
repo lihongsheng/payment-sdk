@@ -14,8 +14,8 @@ import (
 )
 
 func init() {
-	driver.PaymentRegister(channel.Channel_Wxpay.String(), Payment{})
-	driver.RefundRegister(channel.Channel_Wxpay.String(), Refund{})
+	driver.PaymentRegister(channel.Channel_Wxpay, Payment{})
+	driver.RefundRegister(channel.Channel_Wxpay, Refund{})
 }
 
 type Payment struct{}

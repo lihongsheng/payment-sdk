@@ -1,12 +1,10 @@
-package wxpay
+package client
 
 import (
 	"context"
 	"crypto/rsa"
 	"errors"
 	"fmt"
-	"github.com/lihongsheng/payment-sdk/driver/dto"
-	errors2 "github.com/lihongsheng/payment-sdk/errors"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/auth"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/auth/verifiers"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/downloader"
@@ -24,10 +22,6 @@ type Api struct {
 	PrivateKey *rsa.PrivateKey
 	Verifier   auth.Verifier
 	Client     *core.Client
-}
-
-func (a *Api) Complete(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, error) {
-	return nil, errors2.ErrorNoSupport("not support Complete")
 }
 
 func InitClient(c config.Config) (*Api, error) {

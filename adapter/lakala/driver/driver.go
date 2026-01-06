@@ -14,8 +14,8 @@ import (
 )
 
 func init() {
-	driver.PaymentRegister(channel.Channel_Lakala.String(), Payment{})
-	driver.RefundRegister(channel.Channel_Lakala.String(), Refund{})
+	driver.PaymentRegister(channel.Channel_Lakala, Payment{})
+	driver.RefundRegister(channel.Channel_Lakala, Refund{})
 }
 
 type Payment struct{}

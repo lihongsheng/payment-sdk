@@ -2,7 +2,7 @@ package unit_transfer
 
 import (
 	"context"
-	"github.com/lihongsheng/payment-sdk/adapter/wxpay"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client/mchtransfer"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
@@ -15,12 +15,12 @@ import (
 )
 
 type Transfer struct {
-	*wxpay.Api
+	*client.Api
 	client mchtransfer.TransferApiService
 }
 
 func NewTransfer(conf config.Config) (iface.UnitTransfer, error) {
-	api, err := wxpay.InitClient(conf)
+	api, err := client.InitClient(conf)
 	if err != nil {
 		return nil, err
 	}

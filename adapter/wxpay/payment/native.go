@@ -47,7 +47,7 @@ func (n *Native) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, 
 	}
 	qrCode, _ := tools.GenerateQRToBase64(*resp.CodeUrl, 256, qrcode.Medium)
 	return &dto.PayResponse{
-		PaymentProduct: enum.PaymentProduct_Native.String(),
+		PaymentProduct: enum.PaymentProduct_Qrcode.String(),
 		Action: dto.Action{
 			Action: action.Action_Qrcode.String(),
 			Parameters: map[string]string{
@@ -139,7 +139,7 @@ func (n *Native) Query(ctx context.Context, req dto.Query) (*dto.PayDetail, erro
 			Total:    tools2.Int64Point(resp.Amount.Total),
 		},
 		Status:         status,
-		PaymentProduct: enum.PaymentProduct_Native.String(),
+		PaymentProduct: enum.PaymentProduct_Qrcode.String(),
 		SuccessTime:    successTime.Unix(),
 		OriginResponse: string(originBy),
 	}, nil

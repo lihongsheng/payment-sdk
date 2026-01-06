@@ -3,12 +3,12 @@ package fund
 import (
 	"context"
 	"fmt"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client"
 	"io"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/lihongsheng/payment-sdk/adapter/wxpay"
 	"github.com/lihongsheng/payment-sdk/config"
 	"github.com/stretchr/testify/assert"
 )
@@ -62,7 +62,7 @@ iwIDAQAB
 		Proxy:  config.Proxy{},
 	}
 
-	api, err := wxpay.InitClient(cccc)
+	api, err := client.InitClient(cccc)
 	assert.NoError(t, err)
 	c := FundApiService{Client: api.Client}
 	ctx := context.Background()
@@ -129,7 +129,7 @@ iwIDAQAB
 		Proxy:  config.Proxy{},
 	}
 
-	api, err := wxpay.InitClient(cccc)
+	api, err := client.InitClient(cccc)
 	assert.NoError(t, err)
 	c := FundApiService{Client: api.Client}
 	ctx := context.Background()
@@ -196,7 +196,7 @@ iwIDAQAB
 		Proxy:  config.Proxy{},
 	}
 
-	api, err := wxpay.InitClient(cccc)
+	api, err := client.InitClient(cccc)
 	assert.NoError(t, err)
 	c := FundApiService{Client: api.Client}
 	ctx := context.Background()
@@ -264,7 +264,7 @@ iwIDAQAB
 		Proxy:  config.Proxy{},
 	}
 
-	api, err := wxpay.InitClient(cccc)
+	api, err := client.InitClient(cccc)
 	assert.NoError(t, err)
 	c := FundApiService{Client: api.Client}
 	ctx := context.Background()
@@ -334,7 +334,7 @@ iwIDAQAB
 		Proxy:  config.Proxy{},
 	}
 
-	api, err := wxpay.InitClient(cccc)
+	api, err := client.InitClient(cccc)
 	assert.NoError(t, err)
 	c := FundApiService{Client: api.Client}
 	ctx := context.Background()
@@ -405,7 +405,7 @@ iwIDAQAB
 		Proxy:  config.Proxy{},
 	}
 
-	api, err := wxpay.InitClient(cccc)
+	api, err := client.InitClient(cccc)
 	assert.NoError(t, err)
 	c := FundApiService{Client: api.Client}
 	ctx := context.Background()
@@ -507,7 +507,7 @@ iwIDAQAB
 		Proxy:  config.Proxy{},
 	}
 
-	api, err := wxpay.InitClient(cccc)
+	api, err := client.InitClient(cccc)
 	assert.NoError(t, err)
 	c := FundApiService{Client: api.Client}
 	ctx := context.Background()

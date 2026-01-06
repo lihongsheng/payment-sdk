@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/lihongsheng/payment-sdk/adapter/wxpay"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client"
 	"github.com/lihongsheng/payment-sdk/config"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -29,7 +29,7 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6gb565rrPWBa8b+pYNY/JkYQLdkIPN4h71Us
 		Proxy:  config.Proxy{},
 	}
 
-	api, err := wxpay.InitClient(cccc)
+	api, err := client.InitClient(cccc)
 	assert.NoError(t, err)
 	c := ComplaintApiService{Client: api.Client}
 	ctx := context.Background()
@@ -61,7 +61,7 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6gb565rrPWBa8b+pYNY/JkYQLdkIPN4h71Us
 		Proxy:  config.Proxy{},
 	}
 
-	api, err := wxpay.InitClient(cccc)
+	api, err := client.InitClient(cccc)
 	assert.NoError(t, err)
 	c := ComplaintApiService{Client: api.Client}
 	ctx := context.Background()
@@ -98,7 +98,7 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6gb565rrPWBa8b+pYNY/JkYQLdkIPN4h71Us
 		Proxy:  config.Proxy{},
 	}
 
-	api, err := wxpay.InitClient(cccc)
+	api, err := client.InitClient(cccc)
 	assert.NoError(t, err)
 	c := ComplaintApiService{Client: api.Client}
 	ctx := context.Background()
@@ -131,7 +131,7 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6gb565rrPWBa8b+pYNY/JkYQLdkIPN4h71Us
 		Proxy:  config.Proxy{},
 	}
 
-	api, err := wxpay.InitClient(cccc)
+	api, err := client.InitClient(cccc)
 	assert.NoError(t, err)
 	c := ComplaintApiService{Client: api.Client}
 	ctx := context.Background()
@@ -169,7 +169,7 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6gb565rrPWBa8b+pYNY/JkYQLdkIPN4h71Us
 		Proxy:  config.Proxy{},
 	}
 
-	api, err := wxpay.InitClient(cccc)
+	api, err := client.InitClient(cccc)
 	assert.NoError(t, err)
 	c := ComplaintApiService{Client: api.Client}
 	ctx := context.Background()
@@ -205,7 +205,7 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6gb565rrPWBa8b+pYNY/JkYQLdkIPN4h71Us
 		Proxy:  config.Proxy{},
 	}
 
-	api, err := wxpay.InitClient(cccc)
+	api, err := client.InitClient(cccc)
 	assert.NoError(t, err)
 	c := ComplaintApiService{Client: api.Client}
 	ctx := context.Background()
@@ -240,7 +240,7 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6gb565rrPWBa8b+pYNY/JkYQLdkIPN4h71Us
 		Proxy:  config.Proxy{},
 	}
 
-	api, err := wxpay.InitClient(cccc)
+	api, err := client.InitClient(cccc)
 	assert.NoError(t, err)
 	c := ComplaintApiService{Client: api.Client}
 	ctx := context.Background()
@@ -301,7 +301,7 @@ func TestQueryNoticeUrl2(t *testing.T) {
 		Proxy:  config.Proxy{},
 	}
 
-	api, err := wxpay.InitClient(cccc)
+	api, err := client.InitClient(cccc)
 	assert.NoError(t, err)
 	c := ComplaintApiService{Client: api.Client}
 	ctx := context.Background()
@@ -339,7 +339,7 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6gb565rrPWBa8b+pYNY/JkYQLdkIPN4h71Us
 		Proxy:  config.Proxy{},
 	}
 
-	api, err := wxpay.InitClient(cccc)
+	api, err := client.InitClient(cccc)
 	assert.NoError(t, err)
 	c := ComplaintApiService{Client: api.Client}
 	ctx := context.Background()
@@ -374,7 +374,7 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6gb565rrPWBa8b+pYNY/JkYQLdkIPN4h71Us
 		Proxy:  config.Proxy{},
 	}
 
-	api, err := wxpay.InitClient(cccc)
+	api, err := client.InitClient(cccc)
 	assert.NoError(t, err)
 	c := ComplaintApiService{Client: api.Client}
 	ctx := context.Background()

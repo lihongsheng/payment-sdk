@@ -14,8 +14,8 @@ import (
 )
 
 func init() {
-	driver.PaymentRegister(channel.Channel_Alipay.String(), Payment{})
-	driver.RefundRegister(channel.Channel_Alipay.String(), Refund{})
+	driver.PaymentRegister(channel.Channel_Alipay, Payment{})
+	driver.RefundRegister(channel.Channel_Alipay, Refund{})
 }
 
 type Payment struct{}

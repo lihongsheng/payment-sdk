@@ -15,7 +15,6 @@ import (
 
 func TestPayment_WxpayJSAPI(t *testing.T) {
 	opts := []config.Option{
-		config.WithChannel(channel.Channel_Wxpay),
 		config.WithPaymentProduct(payment.PaymentProduct_JSAPI),
 		config.WithWxConfig(&wxCf.Config{
 			AppID:     "wx6c663032961e5e4b",
@@ -56,7 +55,7 @@ tdnfEMZWEZvzWlXYE6j4DVXF
 		}),
 	}
 
-	pay, err := Payment(opts...)
+	pay, err := Payment(channel.Channel_Wxpay, opts...)
 	assert.NoError(t, err)
 	ctx := context.Background()
 	req := &dto.PayOrder{
@@ -86,7 +85,6 @@ tdnfEMZWEZvzWlXYE6j4DVXF
 
 func TestPayment_WxpayH5API(t *testing.T) {
 	opts := []config.Option{
-		config.WithChannel(channel.Channel_Wxpay),
 		config.WithPaymentProduct(payment.PaymentProduct_H5),
 		config.WithWxConfig(&wxCf.Config{
 			AppID:     "wx6c663032961e5e4b",
@@ -127,7 +125,7 @@ tdnfEMZWEZvzWlXYE6j4DVXF
 		}),
 	}
 
-	pay, err := Payment(opts...)
+	pay, err := Payment(channel.Channel_Wxpay, opts...)
 	assert.NoError(t, err)
 	ctx := context.Background()
 	req := &dto.PayOrder{

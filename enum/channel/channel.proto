@@ -12,10 +12,6 @@ enum Channel {
   Wxpay = 2;
   // 富有
   Fuiou = 3;
-  //  拉卡拉正常版
+  //  拉卡拉
   Lakala = 4;
-  // 拉卡拉-缴费易
-  Lakala_JFYUI = 5;
-  // 易云汇
-  YUNHUI = 6;
 }

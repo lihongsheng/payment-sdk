@@ -3,7 +3,7 @@ package payment
 import (
 	"context"
 	"encoding/json"
-	"github.com/lihongsheng/payment-sdk/adapter/wxpay"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
@@ -18,11 +18,11 @@ import (
 )
 
 type Api struct {
-	*wxpay.Api
+	*client.Api
 }
 
 func NewApi(conf config.Config) (*Api, error) {
-	api, err := wxpay.InitClient(conf)
+	api, err := client.InitClient(conf)
 	if err != nil {
 		return nil, err
 	}
@@ -31,6 +31,9 @@ func NewApi(conf config.Config) (*Api, error) {
 	}, nil
 }
 
+func (a *Api) Complete(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, error) {
+	return nil, errors2.ErrorNoSupport("not support Complete")
+}
 func (c *Api) Callback(ctx context.Context, req *http.Request) (*dto.CallbackPayDetail, error) {
 	no, err := notify.NewRSANotifyHandler(c.C.APISecret, c.Verifier)
 	if err != nil {
