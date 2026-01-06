@@ -14,10 +14,14 @@ type Config struct {
 type Cert struct {
 	// 私钥 rsa 格式
 	Private string `json:"private_key"`
-	// 私钥证书序列号
-	PrivateNumber string `json:"private_number"`
-	// 公钥证书序列号
-	PublicNumber string `json:"public_number"`
-	// 公钥 rsa 格式
+	// 支付宝证书序列号,转账场景需要
+	AppCertSN string `json:"private_number"`
+	// 支付宝公钥根证书序列号,转账场景需要
+	RootCertSN string `json:"public_number"`
+	// 支付宝证书公钥 rsa 格式,可以通过AppCrt提取
 	Public string `json:"public_key"`
+	// 支付宝根证书crt
+	RootCrt string `json:"root_crt"`
+	// app_crt 应用crt 文件
+	AppCrt string `json:"app_crt"`
 }

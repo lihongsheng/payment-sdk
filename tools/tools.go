@@ -148,7 +148,7 @@ func ParseCerToPublicKeyPEM(cerContent string) (string, error) {
 	var cert *x509.Certificate
 	block, _ := pem.Decode(cerBytes)
 	if block == nil || block.Type != "CERTIFICATE" {
-		return "", fmt.Errorf("无效的 PEM 证书")
+		return "", fmt.Errorf("无效的 crt 证书")
 	}
 	if block != nil && block.Type == "CERTIFICATE" {
 		// PEM 格式证书
@@ -193,7 +193,7 @@ func LoadPublicKey(input string) (*rsa.PublicKey, error) {
 	// 先尝试PEM格式证书
 	certBlock, _ := pem.Decode(inputBytes)
 	if certBlock == nil || certBlock.Type != "CERTIFICATE" {
-		return nil, fmt.Errorf("无效的 PEM 证书")
+		return nil, fmt.Errorf("无效的 crt 证书")
 	}
 	var err error
 	cert, err = x509.ParseCertificate(certBlock.Bytes)

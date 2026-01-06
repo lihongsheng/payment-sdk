@@ -8,6 +8,7 @@ import (
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/config"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/enum"
 	"github.com/lihongsheng/payment-sdk/errors"
+	"github.com/lihongsheng/payment-sdk/tools"
 	"net/url"
 	"strings"
 	"time"
@@ -29,6 +30,11 @@ type Client struct {
 }
 
 func NewClient(conf config.Config) (*Client, error) {
+	cf, err := initConfig(conf)
+	if err != nil {
+		return nil, err
+	}
+	conf = cf
 	client, err := providerClient(conf)
 	if err != nil {
 		return nil, err
@@ -42,6 +48,27 @@ func NewClient(conf config.Config) (*Client, error) {
 		Client: client,
 		Sign:   sign,
 	}, nil
+}
+
+func initConfig(conf config.Config) (config.Config, error) {
+	var err error
+	if conf.Cert.RootCrt != "" {
+		conf.Cert.RootCertSN, err = tools.GetCertInfo(conf.Cert.RootCrt)
+		if err != nil {
+			return config.Config{}, err
+		}
+		conf.Cert.Public, err = tools.ParseCerToPublicKeyPEM(conf.Cert.RootCrt)
+		if err != nil {
+			return config.Config{}, err
+		}
+	}
+	if conf.Cert.AppCrt != "" {
+		conf.Cert.AppCertSN, err = tools.GetCertInfo(conf.Cert.AppCrt)
+		if err != nil {
+			return config.Config{}, err
+		}
+	}
+	return conf, nil
 }
 
 func providerClient(c config.Config) (*resty.Client, error) {
