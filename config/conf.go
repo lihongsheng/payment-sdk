@@ -11,7 +11,7 @@ import (
 )
 
 type Config struct {
-	Proxy          proxy.Proxy
+	Proxy          *proxy.Proxy
 	Channel        channel.Channel        `json:"channel"`
 	Payment        payment.Payment        `json:"payment"`
 	PaymentProduct payment.PaymentProduct `json:"payment_product"`
@@ -61,7 +61,7 @@ func WithConfig(cf string) Option {
 	}
 }
 
-func WithProxy(cf proxy.Proxy) Option {
+func WithProxy(cf *proxy.Proxy) Option {
 	return func(c *Config) {
 		c.Proxy = cf
 	}
