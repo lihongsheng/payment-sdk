@@ -97,21 +97,24 @@ const (
 	PaymentProduct_AFTER_PAY PaymentProduct = 8
 	// 免押金付款使用
 	PaymentProduct_DEPOSIT_PAY PaymentProduct = 9
+	// PC, PC端
+	PaymentProduct_PC PaymentProduct = 10
 )
 
 // Enum value maps for PaymentProduct.
 var (
 	PaymentProduct_name = map[int32]string{
-		0: "PaymentMethod_UNKNOWN",
-		1: "H5",
-		2: "APP",
-		3: "JSAPI",
-		4: "Face",
-		5: "Qrcode",
-		6: "Scan",
-		7: "LITE",
-		8: "AFTER_PAY",
-		9: "DEPOSIT_PAY",
+		0:  "PaymentMethod_UNKNOWN",
+		1:  "H5",
+		2:  "APP",
+		3:  "JSAPI",
+		4:  "Face",
+		5:  "Qrcode",
+		6:  "Scan",
+		7:  "LITE",
+		8:  "AFTER_PAY",
+		9:  "DEPOSIT_PAY",
+		10: "PC",
 	}
 	PaymentProduct_value = map[string]int32{
 		"PaymentMethod_UNKNOWN": 0,
@@ -124,6 +127,7 @@ var (
 		"LITE":                  7,
 		"AFTER_PAY":             8,
 		"DEPOSIT_PAY":           9,
+		"PC":                    10,
 	}
 )
 
@@ -287,7 +291,7 @@ const file_enum_payment_payment_proto_rawDesc = "" +
 	"\x0fPayment_UNKNOWN\x10\x00\x12\n" +
 	"\n" +
 	"\x06Alipay\x10\x01\x12\t\n" +
-	"\x05Wxpay\x10\x02*\x91\x01\n" +
+	"\x05Wxpay\x10\x02*\x99\x01\n" +
 	"\x0ePaymentProduct\x12\x19\n" +
 	"\x15PaymentMethod_UNKNOWN\x10\x00\x12\x06\n" +
 	"\x02H5\x10\x01\x12\a\n" +
@@ -299,7 +303,9 @@ const file_enum_payment_payment_proto_rawDesc = "" +
 	"\x04Scan\x10\x06\x12\b\n" +
 	"\x04LITE\x10\a\x12\r\n" +
 	"\tAFTER_PAY\x10\b\x12\x0f\n" +
-	"\vDEPOSIT_PAY\x10\t*2\n" +
+	"\vDEPOSIT_PAY\x10\t\x12\x06\n" +
+	"\x02PC\x10\n" +
+	"*2\n" +
 	"\bCurrency\x12\x14\n" +
 	"\x10Currency_UNKNOWN\x10\x00\x12\a\n" +
 	"\x03CNY\x10\x01\x12\a\n" +

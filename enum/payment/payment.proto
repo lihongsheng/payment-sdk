@@ -34,6 +34,8 @@ enum PaymentProduct {
   AFTER_PAY = 8;
   // 免押金付款使用
   DEPOSIT_PAY = 9;
+  // PC, PC端
+  PC = 10;
 }
 
 enum Currency {
