@@ -9,6 +9,8 @@ type Config struct {
 	Cert Cert `json:"cert"`
 	// 代理
 	Proxy proxy.Proxy `json:"proxy"`
+	// app_auth_token
+	AppAuthToken string `json:"app_auth_token"`
 }
 
 type Cert struct {
