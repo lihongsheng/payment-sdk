@@ -3,10 +3,10 @@ package payment
 import (
 	"context"
 	"encoding/json"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
 
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client/payscore"
-	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
 
@@ -24,14 +24,14 @@ type AfterPay struct {
 	client payscore.ScoreApiService
 }
 
-func NewAfterPay(conf config.Config) (iface.Pay, error) {
-	api, err := NewApi(conf)
+func NewAfterPay(api *client.Api) (iface.Pay, error) {
+	api2, err := NewApi(api)
 	if err != nil {
 		return nil, err
 	}
 	svc := payscore.ScoreApiService{Client: api.Client}
 	return &AfterPay{
-		Api:    api,
+		Api:    api2,
 		client: svc,
 	}, nil
 }
