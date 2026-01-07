@@ -156,3 +156,7 @@ func (r *Refund) Query(ctx context.Context, req dto.RefundQuery) (*dto.RefundDet
 func (r *Refund) Callback(ctx context.Context, req *http.Request) (*dto.CallbackRefundDetail, error) {
 	return nil, errors.ErrorNoSupport("not support refund callback", nil)
 }
+
+func (r *Refund) IsSupportCallback() bool {
+	return true
+}

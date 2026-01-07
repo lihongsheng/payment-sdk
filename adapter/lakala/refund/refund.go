@@ -159,3 +159,7 @@ func (r *Refund) GetRefundStatus(status string) refund.Status {
 func (r *Refund) Callback(ctx context.Context, req *http.Request) (*dto.CallbackRefundDetail, error) {
 	return nil, errors2.ErrorNoSupport("not support refund callback", nil)
 }
+
+func (r *Refund) IsSupportCallback() bool {
+	return false
+}
