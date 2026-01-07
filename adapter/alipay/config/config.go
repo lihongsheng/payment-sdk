@@ -10,8 +10,7 @@ type Config struct {
 	// 代理
 	Proxy proxy.Proxy `json:"proxy"`
 	// app_auth_token
-	AppAuthToken string   `json:"app_auth_token"`
-	Value        []string `json:"value"`
+	AppAuthToken string `json:"app_auth_token"`
 }
 
 type Cert struct {

@@ -1,59 +1,64 @@
 package params
 
-//	{
-//	   "type": "object",
-//	   "properties": {
-//	       "param_type": {
-//	           "type": "string"
-//	       },
-//	       "param_object": {
-//	           "type": "object",
-//	           "properties": {
-//	               "param_type": {
-//	                   "type": "string"
-//	               },
-//	               "validate": {
-//	                   "type": "string"
-//	               }
-//	           },
-//	           "x-apifox-orders": [
-//	               "param_type",
-//	               "validate"
-//	           ],
-//	           "required": [
-//	               "param_type",
-//	               "validate"
-//	           ]
-//	       }
-//	   },
-//	   "x-apifox-orders": [
-//	       "param_type",
-//	       "param_object"
-//	   ],
-//	   "required": [
-//	       "param_type",
-//	       "param_object"
-//	   ]
-//	}
-type Param struct {
+type Type string
+
+const (
+	Object Type = "Object"
+	String Type = "String"
+	Int    Type = "Int"
+	Array  Type = "Array"
+	Bool   Type = "Bool"
+)
+
+type InputType string
+
+const (
+	InputSelect   InputType = "select"
+	InputRadio    InputType = "radio"
+	InputCheckbox InputType = "checkbox"
+	InputText     InputType = "text"
+	InputNumber   InputType = "number"
+	InputPassword InputType = "password"
+	InputTextarea InputType = "textarea"
+)
+
+type ValidateType string
+
+// String|Int|Email|Phone|Domain|Url|Reg
+const (
+	ValidateString     ValidateType = "String"
+	ValidateInt        ValidateType = "Int"
+	ValidateEmail      ValidateType = "Email"
+	ValidatePhone      ValidateType = "Phone"
+	ValidateDomain     ValidateType = "Domain"
+	ValidateUrl        ValidateType = "Url"
+	ValidateReg        ValidateType = "Reg"
+	ValidateRsaPublic  ValidateType = "RsaPublic"
+	ValidateRsaPrivate ValidateType = "RsaPrivate"
+	ValidateRsaCert    ValidateType = "RsaCert"
+)
+
+type Option struct {
 	// 变量在html 展示的标签名称
 	Label string `json:"label"`
 	// name:变量名称
 	Name string `json:"name"`
 	// 变量类型 String|Int|Array|Object|Bool
-	Type string `json:"type"`
+	Type Type `json:"type"`
 	// 验证格式
 	ValidateReg string `json:"validate_reg"`
 	// String|Int|Email|Phone|Domain|Url|Reg
-	ValidateType string `json:"validate_type"`
+	ValidateType ValidateType `json:"validate_type"`
 	// object 的子属性
-	Properties []Param `json:"object"`
+	Properties []Option `json:"object"`
 	// 默认值变量默认值：String|Int|Bool
 	Default string `json:"default"`
 	// Values 针对 String|Int|Bool 提供的可选性
 	Values []Value `json:"values"`
 	// InputType : select | radio | checkbox | text | number | password
-	InputType string `json:"input_type"`
+	InputType InputType `json:"input_type"`
+	// 是否必须
+	Require bool `json:"require"`
 }
 type Value struct {
 	// 值

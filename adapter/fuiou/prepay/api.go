@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/client"
-	"github.com/lihongsheng/payment-sdk/adapter/fuiou/config"
 	enum2 "github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/model"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/util"
@@ -18,7 +17,6 @@ import (
 	"github.com/zeromicro/go-zero/core/logc"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -28,18 +26,9 @@ type Api struct {
 	payment        enum.Payment
 }
 
-func NewApi(conf config.Config, product enum.PaymentProduct, payment enum.Payment) (*Api, error) {
-	api, err := client.NewClient(conf)
-	if err != nil {
-		return nil, err
-	}
+func NewApi(api *client.Client, product enum.PaymentProduct, payment enum.Payment) (*Api, error) {
 	if _, exists := enum2.WxPaymentProductMap[product]; !exists {
 		return nil, errors2.ErrorNoSupport("product [%s] is not exists", product.String())
-	}
-	if conf.ApiHost == "" {
-		conf.ApiHost = enum2.ApiHost
-	} else {
-		conf.ApiHost = strings.TrimRight(conf.ApiHost, "/")
 	}
 	return &Api{
 		Client:         api,

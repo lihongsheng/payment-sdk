@@ -3,15 +3,19 @@ package driver
 import (
 	"encoding/json"
 	"errors"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/client"
 	conf "github.com/lihongsheng/payment-sdk/adapter/fuiou/config"
+	enum2 "github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
 	payment2 "github.com/lihongsheng/payment-sdk/adapter/fuiou/prepay"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/refund"
 	"github.com/lihongsheng/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/config/params"
 	"github.com/lihongsheng/payment-sdk/driver"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
 	"github.com/lihongsheng/payment-sdk/enum/channel"
 	"github.com/lihongsheng/payment-sdk/enum/payment"
 	errors2 "github.com/lihongsheng/payment-sdk/errors"
+	"strings"
 )
 
 func init() {
@@ -29,10 +33,11 @@ func (p Payment) Open(c config.Config) (iface.Pay, error) {
 	if err != nil {
 		return nil, err
 	}
-	if cf.OrderPrefix == "" {
-		return nil, errors2.ErrorParamError("order_prefix is empty", nil)
-	}
-	return payment2.NewJsApi(*cf, c.PaymentProduct, c.Payment)
+	return payment2.NewJsApi(cf, c.PaymentProduct, c.Payment)
+}
+
+func (p Payment) GetConfigOptions() *params.Option {
+	return options
 }
 
 type Refund struct{}
@@ -42,10 +47,10 @@ func (p Refund) Open(c config.Config) (iface.Refund, error) {
 	if err != nil {
 		return nil, err
 	}
-	return refund.NewRefund(*cf, c.Payment)
+	return refund.NewRefund(cf, c.Payment)
 }
 
-func initConfig(c config.Config) (*conf.Config, error) {
+func initConfig(c config.Config) (*client.Client, error) {
 	var cf conf.Config
 	if c.LakalaConfig != nil {
 		cf = *c.FuiouConfig
@@ -58,8 +63,23 @@ func initConfig(c config.Config) (*conf.Config, error) {
 			return nil, err
 		}
 	}
+	if cf.OrderPrefix == "" {
+		return nil, errors2.ErrorParamError("order_prefix is empty", nil)
+	}
+	if cf.ApiHost == "" {
+		cf.ApiHost = enum2.ApiHost
+	} else {
+		cf.ApiHost = strings.TrimRight(cf.ApiHost, "/")
+	}
+	if cf.Version == "" {
+		cf.Version = enum2.Version
+	}
 	if c.Proxy != nil {
 		cf.Proxy = *c.Proxy
 	}
-	return &cf, nil
+	cl, err := client.NewClient(cf, c.Proxy)
+	if err != nil {
+		return nil, err
+	}
+	return cl, nil
 }

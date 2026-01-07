@@ -1,7 +1,5 @@
 package config
 
-import "github.com/lihongsheng/payment-sdk/config/proxy"
-
 type Config struct {
 	// 微信app id
 	AppID string `json:"app_id"`
@@ -13,8 +11,8 @@ type Config struct {
 	Cert Cert `json:"cert"`
 	// 转账相关
 	ScoreServiceID string `json:"score_service_id"`
-	// 代理
-	Proxy proxy.Proxy `json:"proxy"`
+	// app_secret 应用secret 用于微信用户登录等
+	AppSecret string `json:"app_secret"`
 }
 
 type Cert struct {

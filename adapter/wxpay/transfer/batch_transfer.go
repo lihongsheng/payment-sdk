@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client"
-	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/enum/transfer"
@@ -24,11 +23,7 @@ type BatchTransfer struct {
 	detail transferbatch.TransferDetailApiService
 }
 
-func NewTransfer(conf config.Config) (*BatchTransfer, error) {
-	api, err := client.InitClient(conf)
-	if err != nil {
-		return nil, err
-	}
+func NewTransfer(api *client.Api) (*BatchTransfer, error) {
 	svc := transferbatch.TransferBatchApiService{Client: api.Client}
 	detail := transferbatch.TransferDetailApiService{Client: api.Client}
 	return &BatchTransfer{

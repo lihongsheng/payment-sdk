@@ -25,7 +25,7 @@ func NewTransfer(conf config.Config) (iface.UnitTransfer, error) {
 	if err != nil {
 		return nil, err
 	}
-	if newClient.Conf.Cert.AppCertSN == "" || newClient.Conf.Cert.RootCertSN == "" {
+	if newClient.C.Cert.AppCertSN == "" || newClient.C.Cert.RootCertSN == "" {
 		return nil, errors.ErrorParamError("AppCertSN is not empty or RootCertSN is not allow empty", nil)
 	}
 	return &Transfer{

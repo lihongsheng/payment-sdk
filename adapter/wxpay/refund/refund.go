@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client"
-	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
@@ -22,11 +21,7 @@ type Refund struct {
 	client refunddomestic.RefundsApiService
 }
 
-func NewRefund(conf config.Config) (iface.Refund, error) {
-	api, err := client.InitClient(conf)
-	if err != nil {
-		return nil, err
-	}
+func NewRefund(api *client.Api) (iface.Refund, error) {
 	return &Refund{
 		Api:    api,
 		client: refunddomestic.RefundsApiService{Client: api.Client},

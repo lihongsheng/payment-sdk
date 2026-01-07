@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client"
-	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	enum1 "github.com/lihongsheng/payment-sdk/enum"
@@ -21,11 +20,7 @@ type Api struct {
 	*client.Api
 }
 
-func NewApi(conf config.Config) (*Api, error) {
-	api, err := client.InitClient(conf)
-	if err != nil {
-		return nil, err
-	}
+func NewApi(api *client.Api) (*Api, error) {
 	return &Api{
 		Api: api,
 	}, nil

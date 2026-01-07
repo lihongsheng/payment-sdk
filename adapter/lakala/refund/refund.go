@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/lihongsheng/payment-sdk/adapter/lakala/client"
-	"github.com/lihongsheng/payment-sdk/adapter/lakala/config"
+
 	"github.com/lihongsheng/payment-sdk/adapter/lakala/model"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
@@ -27,11 +27,7 @@ type Refund struct {
 	*client.Client
 }
 
-func NewRefund(conf config.Config) (iface.Refund, error) {
-	api, err := client.NewClient(conf)
-	if err != nil {
-		return nil, err
-	}
+func NewRefund(api *client.Client) (iface.Refund, error) {
 	return &Refund{
 		api,
 	}, nil

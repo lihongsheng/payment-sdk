@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/client"
-	"github.com/lihongsheng/payment-sdk/adapter/fuiou/config"
 	enum2 "github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
@@ -30,11 +29,7 @@ type Refund struct {
 	payment enum.Payment
 }
 
-func NewRefund(conf config.Config, payment enum.Payment) (iface.Refund, error) {
-	api, err := client.NewClient(conf)
-	if err != nil {
-		return nil, err
-	}
+func NewRefund(api *client.Client, payment enum.Payment) (iface.Refund, error) {
 	return &Refund{
 		Client:  api,
 		payment: payment,

@@ -5,6 +5,7 @@ import (
 	"github.com/lihongsheng/payment-sdk/config"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
 	"github.com/lihongsheng/payment-sdk/enum/channel"
+	errors2 "github.com/lihongsheng/payment-sdk/errors"
 	"sync"
 )
 
@@ -16,6 +17,7 @@ var paymentDrivers = make(map[channel.Channel]iface.PaymentDriver)
 // refundDrivers
 var refundDrivers = make(map[channel.Channel]iface.RefundDriver)
 
+//var paymentSupportProduct = make(map[channel.Channel]map[payment.PaymentProduct]enum.Device)
 // unitTransferDrivers
 // var unitTransferDrivers = make(map[string]iface.UnitTransfer)
 
@@ -43,6 +45,15 @@ func PaymentRegister(channelName channel.Channel, driver iface.PaymentDriver) {
 		panic("Payment: Register called twice for driver " + channelName.String())
 	}
 	paymentDrivers[channelName] = driver
+}
+
+func GetPaymentDriver(channelName channel.Channel) (iface.PaymentDriver, error) {
+	driversMu.Lock()
+	defer driversMu.Unlock()
+	if driver, dup := paymentDrivers[channelName]; dup {
+		return driver, nil
+	}
+	return nil, errors2.ErrorNotFound("not find dirve by [%s]", channelName.String())
 }
 
 func RefundRegister(channelName channel.Channel, driver iface.RefundDriver) {

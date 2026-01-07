@@ -1,7 +1,5 @@
 package config
 
-import "github.com/lihongsheng/payment-sdk/config/proxy"
-
 type Config struct {
 	//app id
 	AppID string `json:"app_id"`
@@ -11,11 +9,9 @@ type Config struct {
 	APISecret string `json:"api_secret"`
 	// 证书
 	Cert Cert `json:"cert"`
-	// 代理
-	Proxy proxy.Proxy `json:"proxy"`
 	// 终端号
 	TermNO string `json:"term_no"`
-	// api 地址 https://s2.lakala.com
+	// api 默认地址 https://s2.lakala.com
 	ApiHost string `json:"api_host"`
 }
 

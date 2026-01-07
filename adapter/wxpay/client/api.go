@@ -5,16 +5,16 @@ import (
 	"crypto/rsa"
 	"errors"
 	"fmt"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
+	pro "github.com/lihongsheng/payment-sdk/config/proxy"
+	"github.com/wechatpay-apiv3/wechatpay-go/core"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/auth"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/auth/verifiers"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/downloader"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/option"
+	"github.com/wechatpay-apiv3/wechatpay-go/utils"
 	"net/http"
 	"net/url"
-
-	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
-	"github.com/wechatpay-apiv3/wechatpay-go/core"
-	"github.com/wechatpay-apiv3/wechatpay-go/utils"
 )
 
 type Api struct {
@@ -24,7 +24,7 @@ type Api struct {
 	Client     *core.Client
 }
 
-func InitClient(c config.Config) (*Api, error) {
+func InitClient(c config.Config, proxyInfo *pro.Proxy) (*Api, error) {
 	w := &Api{C: c}
 	// 使用 utils 提供的函数从私钥字符串中加载商户私钥
 	mchPrivateKey, err := utils.LoadPrivateKey(c.Cert.Private)
@@ -50,8 +50,8 @@ func InitClient(c config.Config) (*Api, error) {
 		}
 		w.Verifier = visitor
 	}
-	if c.Proxy.Host != "" {
-		opts = append(opts, proxy(c))
+	if proxyInfo != nil && proxyInfo.Host != "" {
+		opts = append(opts, proxy(*proxyInfo))
 	}
 	client, err := core.NewClient(ctx, opts...)
 	if err != nil {
@@ -77,22 +77,22 @@ func autoVisitor(c config.Config, privateKey *rsa.PrivateKey) (auth.Verifier, er
 }
 
 type WithProxyOption struct {
-	C config.Config
+	Proxy pro.Proxy
 }
 
 func (w *WithProxyOption) Apply(settings *core.DialSettings) error {
 	settings.HTTPClient = &http.Client{
 		Transport: &http.Transport{
 			Proxy: func(req *http.Request) (u *url.URL, err error) {
-				u, err = url.Parse(fmt.Sprintf("http://%s:%d", w.C.Proxy.Host, w.C.Proxy.Port))
+				u, err = url.Parse(fmt.Sprintf("http://%s:%d", w.Proxy.Host, w.Proxy.Port))
 				if err != nil {
 					return nil, err
 				}
-				if w.C.Proxy.UserName != "" && w.C.Proxy.Password != "" {
-					u.User = url.UserPassword(w.C.Proxy.UserName, w.C.Proxy.Password)
+				if w.Proxy.UserName != "" && w.Proxy.Password != "" {
+					u.User = url.UserPassword(w.Proxy.UserName, w.Proxy.Password)
 				}
-				if w.C.Proxy.UserName != "" {
-					u.User = url.User(w.C.Proxy.UserName)
+				if w.Proxy.UserName != "" {
+					u.User = url.User(w.Proxy.UserName)
 				}
 				return u, nil
 			},
@@ -100,6 +100,6 @@ func (w *WithProxyOption) Apply(settings *core.DialSettings) error {
 	}
 	return nil
 }
-func proxy(c config.Config) core.ClientOption {
-	return &WithProxyOption{C: c}
+func proxy(proxy pro.Proxy) core.ClientOption {
+	return &WithProxyOption{Proxy: proxy}
 }

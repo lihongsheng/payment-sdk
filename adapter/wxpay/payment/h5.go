@@ -3,6 +3,7 @@ package payment
 import (
 	"context"
 	"encoding/json"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
 	"net/url"
@@ -14,7 +15,6 @@ import (
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments"
 	"github.com/zeromicro/go-zero/core/logc"
 
-	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/h5"
@@ -25,13 +25,13 @@ type H5 struct {
 	client h5.H5ApiService
 }
 
-func NewH5(conf config.Config) (iface.Pay, error) {
-	api, err := NewApi(conf)
+func NewH5(api *client.Api) (iface.Pay, error) {
+	api2, err := NewApi(api)
 	if err != nil {
 		return nil, err
 	}
 	return &H5{
-		Api:    api,
+		Api:    api2,
 		client: h5.H5ApiService{Client: api.Client},
 	}, nil
 }

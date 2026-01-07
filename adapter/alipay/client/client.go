@@ -7,6 +7,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/config"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/enum"
+	"github.com/lihongsheng/payment-sdk/config/proxy"
 	"github.com/lihongsheng/payment-sdk/errors"
 	"github.com/lihongsheng/payment-sdk/tools"
 	"net/url"
@@ -24,18 +25,18 @@ var skipQueryParams = map[string]struct{}{
 }
 
 type Client struct {
-	Conf   config.Config
+	C      config.Config
 	Client *resty.Client
 	Sign   *Sign
 }
 
-func NewClient(conf config.Config) (*Client, error) {
+func NewClient(conf config.Config, proxy *proxy.Proxy) (*Client, error) {
 	cf, err := initConfig(conf)
 	if err != nil {
 		return nil, err
 	}
 	conf = cf
-	client, err := providerClient(conf)
+	client, err := providerClient(proxy)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +45,7 @@ func NewClient(conf config.Config) (*Client, error) {
 		return nil, err
 	}
 	return &Client{
-		Conf:   conf,
+		C:      conf,
 		Client: client,
 		Sign:   sign,
 	}, nil
@@ -71,18 +72,18 @@ func initConfig(conf config.Config) (config.Config, error) {
 	return conf, nil
 }
 
-func providerClient(c config.Config) (*resty.Client, error) {
+func providerClient(proxy *proxy.Proxy) (*resty.Client, error) {
 	client := resty.New()
-	if c.Proxy.Host != "" {
-		u, err := url.Parse(fmt.Sprintf("http://%s:%d", c.Proxy.Host, c.Proxy.Port))
+	if proxy != nil && proxy.Host != "" {
+		u, err := url.Parse(fmt.Sprintf("http://%s:%d", proxy.Host, proxy.Port))
 		if err != nil {
 			return nil, err
 		}
-		if c.Proxy.UserName != "" && c.Proxy.Password != "" {
-			u.User = url.UserPassword(c.Proxy.UserName, c.Proxy.Password)
+		if proxy.UserName != "" && proxy.Password != "" {
+			u.User = url.UserPassword(proxy.UserName, proxy.Password)
 		}
-		if c.Proxy.UserName != "" {
-			u.User = url.User(c.Proxy.UserName)
+		if proxy.UserName != "" {
+			u.User = url.User(proxy.UserName)
 		}
 		client.SetProxy(u.String())
 	}
@@ -91,7 +92,7 @@ func providerClient(c config.Config) (*resty.Client, error) {
 
 func (c *Client) GetCommonRequestParams() map[string]string {
 	return map[string]string{
-		enum.COMMON_PARAM_APP_ID_NAME:    c.Conf.AppID,
+		enum.COMMON_PARAM_APP_ID_NAME:    c.C.AppID,
 		enum.COMMON_PARAM_FORMAT_NAME:    "json",
 		enum.COMMON_PARAM_CHARSET_NAME:   "UTF-8",
 		enum.COMMON_PARAM_SIGN_TYPE_NAME: "RSA2",

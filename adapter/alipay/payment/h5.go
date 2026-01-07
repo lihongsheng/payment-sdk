@@ -2,7 +2,7 @@ package payment
 
 import (
 	"context"
-	"github.com/lihongsheng/payment-sdk/adapter/alipay/config"
+	"github.com/lihongsheng/payment-sdk/adapter/alipay/client"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/model"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
@@ -16,13 +16,13 @@ type H5 struct {
 	*Api
 }
 
-func NewH5(conf config.Config) (iface.Pay, error) {
-	api, err := NewApi(conf)
+func NewH5(api *client.Client) (iface.Pay, error) {
+	api2, err := NewApi(api)
 	if err != nil {
 		return nil, err
 	}
 	return &H5{
-		api,
+		api2,
 	}, nil
 }
 

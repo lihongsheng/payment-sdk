@@ -20,14 +20,9 @@ type Refund struct {
 	conf   config.Config
 }
 
-func NewRefund(conf config.Config) (iface.Refund, error) {
-	newClient, err := client.NewClient(conf)
-	if err != nil {
-		return nil, err
-	}
+func NewRefund(api *client.Client) (iface.Refund, error) {
 	return &Refund{
-		Client: newClient,
-		conf:   conf,
+		Client: api,
 	}, nil
 }
 

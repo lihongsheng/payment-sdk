@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
@@ -25,13 +25,13 @@ type App struct {
 	client app.AppApiService
 }
 
-func NewApp(conf config.Config) (iface.Pay, error) {
-	api, err := NewApi(conf)
+func NewApp(api *client.Api) (iface.Pay, error) {
+	api2, err := NewApi(api)
 	if err != nil {
 		return nil, err
 	}
 	return &App{
-		Api:    api,
+		Api:    api2,
 		client: app.AppApiService{Client: api.Client},
 	}, nil
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/lihongsheng/payment-sdk/adapter/lakala/config"
 	"github.com/lihongsheng/payment-sdk/adapter/lakala/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/lakala/model"
+	"github.com/lihongsheng/payment-sdk/config/proxy"
 	"net/url"
 	"strings"
 )
@@ -18,7 +19,7 @@ type Client struct {
 	Sign   *Sign
 }
 
-func NewClient(conf config.Config) (*Client, error) {
+func NewClient(conf config.Config, proxy *proxy.Proxy) (*Client, error) {
 	conf.ApiHost = strings.TrimRight(conf.ApiHost, "/")
 	if conf.ApiHost == "" {
 		conf.ApiHost = enum.ApiHost
@@ -26,7 +27,7 @@ func NewClient(conf config.Config) (*Client, error) {
 	if conf.TermNO == "" {
 		return nil, errors.New("拉卡拉支付必须配置终端号")
 	}
-	client, err := providerClient(conf)
+	client, err := providerClient(proxy)
 	if err != nil {
 		return nil, err
 	}
@@ -41,18 +42,18 @@ func NewClient(conf config.Config) (*Client, error) {
 	}, nil
 }
 
-func providerClient(c config.Config) (*resty.Client, error) {
+func providerClient(proxy *proxy.Proxy) (*resty.Client, error) {
 	client := resty.New()
-	if c.Proxy.Host != "" {
-		u, err := url.Parse(fmt.Sprintf("http://%s:%d", c.Proxy.Host, c.Proxy.Port))
+	if proxy != nil && proxy.Host != "" {
+		u, err := url.Parse(fmt.Sprintf("http://%s:%d", proxy.Host, proxy.Port))
 		if err != nil {
 			return nil, err
 		}
-		if c.Proxy.UserName != "" && c.Proxy.Password != "" {
-			u.User = url.UserPassword(c.Proxy.UserName, c.Proxy.Password)
+		if proxy.UserName != "" && proxy.Password != "" {
+			u.User = url.UserPassword(proxy.UserName, proxy.Password)
 		}
-		if c.Proxy.UserName != "" {
-			u.User = url.User(c.Proxy.UserName)
+		if proxy.UserName != "" {
+			u.User = url.User(proxy.UserName)
 		}
 		client.SetProxy(u.String())
 	}

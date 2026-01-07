@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/lihongsheng/payment-sdk/adapter/fuiou/config"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/client"
 	enum2 "github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
@@ -32,13 +32,13 @@ type Jsapi struct {
 	*Api
 }
 
-func NewJsApi(conf config.Config, product enum.PaymentProduct, payment enum.Payment) (iface.Pay, error) {
-	api, err := NewApi(conf, product, payment)
+func NewJsApi(api *client.Client, product enum.PaymentProduct, payment enum.Payment) (iface.Pay, error) {
+	api2, err := NewApi(api, product, payment)
 	if err != nil {
 		return nil, err
 	}
 	return &Jsapi{
-		api,
+		api2,
 	}, nil
 }
 

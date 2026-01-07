@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
 	"github.com/lihongsheng/payment-sdk/enum/action"
 	"github.com/lihongsheng/payment-sdk/tools"
 	"time"
 
-	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	enum "github.com/lihongsheng/payment-sdk/enum/payment"
 	errors2 "github.com/lihongsheng/payment-sdk/errors"
@@ -26,22 +26,18 @@ type Jsapi struct {
 	client jsapi.JsapiApiService
 }
 
-func NewJsApi(conf config.Config) (iface.Pay, error) {
-	api, err := newJsApi(conf)
-	if err != nil {
-		return nil, err
-	}
-	return api, nil
+func NewJsApi(api *client.Api) (iface.Pay, error) {
+	return newJsApi(api)
 }
 
-func newJsApi(conf config.Config) (*Jsapi, error) {
-	api, err := NewApi(conf)
+func newJsApi(api *client.Api) (*Jsapi, error) {
+	api2, err := NewApi(api)
 	if err != nil {
 		return nil, err
 	}
 	svc := jsapi.JsapiApiService{Client: api.Client}
 	return &Jsapi{
-		Api:    api,
+		Api:    api2,
 		client: svc,
 	}, nil
 }

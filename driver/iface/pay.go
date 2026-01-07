@@ -2,6 +2,7 @@ package iface
 
 import (
 	"context"
+	"github.com/lihongsheng/payment-sdk/config/params"
 	"net/http"
 
 	"github.com/lihongsheng/payment-sdk/config"
@@ -9,7 +10,11 @@ import (
 )
 
 type PaymentDriver interface {
+	// Open 实例化支付接口
 	Open(c config.Config) (Pay, error)
+	// GetConfigOptions 获取支付配置项
+	GetConfigOptions() *params.Option
+	//SupportProduct(payment.PaymentProduct, enum.Device) bool
 }
 
 type Pay interface {

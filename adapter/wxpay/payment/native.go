@@ -3,6 +3,7 @@ package payment
 import (
 	"context"
 	"encoding/json"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client"
 	tools2 "github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
 	"time"
@@ -15,7 +16,6 @@ import (
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments"
 	"github.com/zeromicro/go-zero/core/logc"
 
-	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/native"
@@ -26,13 +26,13 @@ type Native struct {
 	client native.NativeApiService
 }
 
-func NewNative(conf config.Config) (iface.Pay, error) {
-	api, err := NewApi(conf)
+func NewNative(api *client.Api) (iface.Pay, error) {
+	api2, err := NewApi(api)
 	if err != nil {
 		return nil, err
 	}
 	return &Native{
-		Api:    api,
+		Api:    api2,
 		client: native.NativeApiService{Client: api.Client},
 	}, nil
 }

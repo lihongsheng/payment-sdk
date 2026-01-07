@@ -10,7 +10,6 @@ import (
 	"net/http"
 
 	"github.com/lihongsheng/payment-sdk/adapter/lakala/client"
-	"github.com/lihongsheng/payment-sdk/adapter/lakala/config"
 	enum2 "github.com/lihongsheng/payment-sdk/adapter/lakala/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/lakala/model"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
@@ -34,11 +33,7 @@ type Pay struct {
 	payment        enum.Payment
 }
 
-func NewPay(conf config.Config, product enum.PaymentProduct, payment enum.Payment) (iface.Pay, error) {
-	api, err := client.NewClient(conf)
-	if err != nil {
-		return nil, err
-	}
+func NewPay(api *client.Client, product enum.PaymentProduct, payment enum.Payment) (iface.Pay, error) {
 	return &Pay{
 		Client:         api,
 		paymentProduct: product,
