@@ -2,13 +2,14 @@ package client
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/lihongsheng/payment-sdk/adapter/lakala/config"
 	"github.com/lihongsheng/payment-sdk/adapter/lakala/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/lakala/model"
 	"github.com/lihongsheng/payment-sdk/config/proxy"
+	"github.com/lihongsheng/payment-sdk/errors"
+	"github.com/lihongsheng/payment-sdk/log"
 	"net/url"
 	"strings"
 )
@@ -25,7 +26,7 @@ func NewClient(conf config.Config, proxy *proxy.Proxy) (*Client, error) {
 		conf.ApiHost = enum.ApiHost
 	}
 	if conf.TermNO == "" {
-		return nil, errors.New("拉卡拉支付必须配置终端号")
+		return nil, errors.ErrorParamError("拉卡拉支付必须配置终端号")
 	}
 	client, err := providerClient(proxy)
 	if err != nil {
@@ -61,6 +62,12 @@ func providerClient(proxy *proxy.Proxy) (*resty.Client, error) {
 }
 
 func (c *Client) DoPost(ctx context.Context, body interface{}, path string, header map[string]string) (*resty.Response, error) {
+	log.Info(ctx, "lakala request start",
+		log.F(log.FieldKeyChannel, "lakala"),
+		log.F(log.FieldKeyMethod, path),
+		log.F(log.FieldKeyRequest, body),
+	)
+
 	req := c.Client.R()
 	if header != nil {
 		req.SetHeaders(header)
@@ -75,10 +82,31 @@ func (c *Client) DoPost(ctx context.Context, body interface{}, path string, head
 	reqParam := model.BuildCommonReq(body)
 	sign, err := c.Sign.Gen(reqParam)
 	if err != nil {
+		log.Error(ctx, "lakala request sign failed",
+			log.F(log.FieldKeyChannel, "lakala"),
+			log.F(log.FieldKeyMethod, path),
+			log.F(log.FieldKeyError, err.Error()),
+		)
 		return nil, err
 	}
 	req.SetHeader("Authorization", sign)
-	return req.SetContext(ctx).SetBody(reqParam).Post(path)
+
+	resp, err := req.SetContext(ctx).SetBody(reqParam).Post(path)
+	if err != nil {
+		log.Error(ctx, "lakala request failed",
+			log.F(log.FieldKeyChannel, "lakala"),
+			log.F(log.FieldKeyMethod, path),
+			log.F(log.FieldKeyError, err.Error()),
+		)
+		return nil, err
+	}
+
+	log.Info(ctx, "lakala request end",
+		log.F(log.FieldKeyChannel, "lakala"),
+		log.F(log.FieldKeyMethod, path),
+		log.F(log.FieldKeyResponse, string(resp.Body())),
+	)
+	return resp, nil
 }
 
 func (c *Client) DoPostV2(ctx context.Context, body interface{}, path string, header map[string]string) (*resty.Response, error) {

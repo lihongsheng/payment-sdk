@@ -96,7 +96,7 @@ func (r *Refund) buildRefundRequest(req *dto.RefundRequest) *RefundRequest {
 		Sign:               "",
 	}
 
-	if r.payment == enum.Payment_Wxpay {
+	if r.payment == enum.Payment_Wechat {
 		result.OrderType = enum2.OrderTypeWECHAT
 	}
 	if r.payment == enum.Payment_Alipay {

@@ -3,11 +3,18 @@ package params
 type Type string
 
 const (
-	Object Type = "Object"
 	String Type = "String"
 	Int    Type = "Int"
 	Array  Type = "Array"
 	Bool   Type = "Bool"
+)
+
+type ValueType string
+
+const (
+	ValueString ValueType = "String"
+	ValueInt    ValueType = "Int"
+	ValueBool   ValueType = "Bool"
 )
 
 type InputType string
@@ -49,8 +56,6 @@ type Option struct {
 	ValidateReg string `json:"validate_reg"`
 	// String|Int|Email|Phone|Domain|Url|Reg
 	ValidateType ValidateType `json:"validate_type"`
-	// object 的子属性
-	Properties []Option `json:"object"`
 	// 默认值变量默认值：String|Int|Bool
 	Default string `json:"default"`
 	// Values 针对 String|Int|Bool 提供的可选性
@@ -65,4 +70,6 @@ type Value struct {
 	Value string `json:"value"`
 	// 描述
 	Label string `json:"label"`
+	// 变量类型 String|Int|Bool
+	Type ValueType `json:"type"`
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/client"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/config"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/model"
+	"github.com/lihongsheng/payment-sdk/config/proxy"
 	"github.com/lihongsheng/payment-sdk/errors"
 )
 
@@ -23,8 +24,8 @@ type User struct {
 	*client.Client
 }
 
-func NewUser(conf config.Config) (*User, error) {
-	api, err := client.NewClient(conf)
+func NewUser(conf config.Config, proxy *proxy.Proxy) (*User, error) {
+	api, err := client.NewClient(conf, proxy)
 	if err != nil {
 		return nil, err
 	}

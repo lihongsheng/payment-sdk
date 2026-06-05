@@ -11,7 +11,7 @@ enum Payment {
   // 支付宝
   Alipay = 1;
   // 微信
-  Wxpay = 2;
+  Wechat = 2;
 }
 
 enum PaymentProduct {
@@ -46,20 +46,26 @@ enum Currency {
 
 enum Status {
   Status_UNKNOWN = 0;
+  // 初始化
+  Created = 1;
   // 预支付,创建支付订单后的状态，等待用户完成支付
-  Pending = 1;
+  Pending = 2;
   // 成功
-  Success = 2;
+  Success = 3;
   // 失败
-  Failed = 3;
+  Failed = 4;
   // 取消, 付款码用户取消支付，或者其他主动取消支付
-  Cancel = 4;
+  Cancel = 5;
   // 关闭，超时关闭等其他关闭
-  Close = 5;
+  Close = 6;
   // 退款
-  Refund = 6;
+  Refund = 7;
   // WAIT_CONFIRM
-  WaitConfirm = 7;
+  WaitConfirm = 8;
   // WAIT_PAY
-  WaitPay = 8;
+  WaitPay = 9;
+  // TIME OUT 支付超时
+  TimeOut = 10;
+  // 临时失败可以重试
+  TempFailed = 11;
 }

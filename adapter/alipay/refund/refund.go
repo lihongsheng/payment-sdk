@@ -13,6 +13,7 @@ import (
 	"github.com/lihongsheng/payment-sdk/enum/refund"
 	"github.com/lihongsheng/payment-sdk/errors"
 	"net/http"
+	"net/url"
 )
 
 type Refund struct {
@@ -149,9 +150,68 @@ func (r *Refund) Query(ctx context.Context, req dto.RefundQuery) (*dto.RefundDet
 }
 
 func (r *Refund) Callback(ctx context.Context, req *http.Request) (*dto.CallbackRefundDetail, error) {
-	return nil, errors.ErrorNoSupport("not support refund callback", nil)
+	values, bodyBytes, err := r.Client.VerifyCallback(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	resp := buildCallbackParams(values)
+	re := &dto.CallbackRefundDetail{
+		RefundNo:      resp.OutBizNo,
+		OrderNo:       resp.OutTradeNo,
+		TradeRefundNo: resp.TradeNo,
+		TradeNo:       resp.TradeNo,
+		Amount: dto.Amount{
+			Currency: "CNY",
+			Total:    resp.GetRefundFee(),
+		},
+		UserReceivedAccount: "",
+		OriginResponse:      string(bodyBytes),
+		Response:            "",
+	}
+	if resp.IsRefund() {
+		re.Status = refund.Status_Success
+	} else {
+		re.Status = refund.Status_Status_UNKNOWN
+	}
+	return re, nil
 }
 
 func (r *Refund) IsSupportCallback() bool {
 	return true
+}
+
+func buildCallbackParams(values url.Values) model.AlipayNotifyBody {
+	return model.AlipayNotifyBody{
+		NotifyTime:        values.Get("notify_time"),
+		NotifyType:        values.Get("notify_type"),
+		NotifyId:          values.Get("notify_id"),
+		SignType:          values.Get("sign_type"),
+		Sign:              values.Get("sign"),
+		TradeNo:           values.Get("trade_no"),
+		AppId:             values.Get("app_id"),
+		AuthAppId:         values.Get("auth_app_id"),
+		OutTradeNo:        values.Get("out_trade_no"),
+		OutBizNo:          values.Get("out_biz_no"),
+		BuyerId:           values.Get("buyer_id"),
+		BuyerLogonId:      values.Get("buyer_logon_id"),
+		SellerId:          values.Get("seller_id"),
+		SellerEmail:       values.Get("seller_email"),
+		TradeStatus:       values.Get("trade_status"),
+		TotalAmount:       values.Get("total_amount"),
+		ReceiptAmount:     values.Get("receipt_amount"),
+		InvoiceAmount:     values.Get("invoice_amount"),
+		BuyerPayAmount:    values.Get("buyer_pay_amount"),
+		PointAmount:       values.Get("point_amount"),
+		RefundFee:         values.Get("refund_fee"),
+		SendBackFee:       values.Get("send_back_fee"),
+		Subject:           values.Get("subject"),
+		Body:              values.Get("body"),
+		GmtCreate:         values.Get("gmt_create"),
+		GmtPayment:        values.Get("gmt_payment"),
+		GmtRefund:         values.Get("gmt_refund"),
+		GmtClose:          values.Get("gmt_close"),
+		FundBillList:      values.Get("fund_bill_list"),
+		VoucherDetailList: values.Get("voucher_detail_list"),
+		BizSettleMode:     values.Get("biz_settle_mode"),
+	}
 }

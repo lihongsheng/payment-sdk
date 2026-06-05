@@ -105,7 +105,7 @@ func (p *Qrcode) buildPayParams(req *dto.PayOrder) *QrcodePaymentRequest {
 		result.TxnBeginTs = req.Order.CreateAt.Format("20060102150405")
 	}
 
-	if p.payment == enum.Payment_Wxpay {
+	if p.payment == enum.Payment_Wechat {
 		result.OrderType = enum2.OrderTypeALIPAY
 	}
 	if p.payment == enum.Payment_Alipay {

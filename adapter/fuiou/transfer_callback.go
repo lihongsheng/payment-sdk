@@ -7,10 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/client"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/config"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/model"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/util"
-	"github.com/lihongsheng/payment-sdk/config"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/enum/transfer"
 	"io"
@@ -60,7 +60,7 @@ func (c *TransferCallback) decryptResponse(req *http.Request) (*model.CommonEncr
 		}
 	}
 	encryptResponse.OriginBody = string(bodyBytes)
-	messageGbk, err := c.Sign.DecryptByKey(encryptResponse.Message, []byte(c.C.Cert.CertPrivateKey))
+	messageGbk, err := c.Sign.DecryptByKey(encryptResponse.Message, []byte(c.C.RsaPrivate))
 	if err != nil {
 		return nil, err
 	}

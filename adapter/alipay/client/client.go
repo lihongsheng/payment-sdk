@@ -9,7 +9,9 @@ import (
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/enum"
 	"github.com/lihongsheng/payment-sdk/config/proxy"
 	"github.com/lihongsheng/payment-sdk/errors"
+	"github.com/lihongsheng/payment-sdk/log"
 	"github.com/lihongsheng/payment-sdk/tools"
+	"html"
 	"net/url"
 	"strings"
 	"time"
@@ -53,18 +55,18 @@ func NewClient(conf config.Config, proxy *proxy.Proxy) (*Client, error) {
 
 func initConfig(conf config.Config) (config.Config, error) {
 	var err error
-	if conf.Cert.RootCrt != "" {
-		conf.Cert.RootCertSN, err = tools.GetCertInfo(conf.Cert.RootCrt)
+	if conf.RsaRootCrt != "" {
+		conf.RsaRootCertSN, err = tools.GetCertInfo(conf.RsaRootCrt)
 		if err != nil {
 			return config.Config{}, err
 		}
-		conf.Cert.Public, err = tools.ParseCerToPublicKeyPEM(conf.Cert.RootCrt)
+		conf.RsaPublic, err = tools.ParseCerToPublicKeyPEM(conf.RsaRootCrt)
 		if err != nil {
 			return config.Config{}, err
 		}
 	}
-	if conf.Cert.AppCrt != "" {
-		conf.Cert.AppCertSN, err = tools.GetCertInfo(conf.Cert.AppCrt)
+	if conf.RsaAppCrt != "" {
+		conf.RsaAppCertSN, err = tools.GetCertInfo(conf.RsaAppCrt)
 		if err != nil {
 			return config.Config{}, err
 		}
@@ -102,8 +104,20 @@ func (c *Client) GetCommonRequestParams() map[string]string {
 }
 
 func (c *Client) DoPost(ctx context.Context, commonParams map[string]string, body any, header map[string]string) (*resty.Response, error) {
+	method := commonParams[enum.COMMON_PARAM_METHOD_NAME]
+	log.Info(ctx, "alipay request start",
+		log.F(log.FieldKeyChannel, "alipay"),
+		log.F(log.FieldKeyMethod, method),
+		log.F(log.FieldKeyRequest, body),
+	)
+
 	reqUrl, bodyParams, err := c.PageExecute(commonParams, body)
 	if err != nil {
+		log.Error(ctx, "alipay request sign failed",
+			log.F(log.FieldKeyChannel, "alipay"),
+			log.F(log.FieldKeyMethod, method),
+			log.F(log.FieldKeyError, err.Error()),
+		)
 		return nil, err
 	}
 	req := c.Client.R()
@@ -118,10 +132,114 @@ func (c *Client) DoPost(ctx context.Context, commonParams map[string]string, bod
 	}
 	req.SetQueryParamsFromValues(reqUrl.Query())
 	req.SetFormData(bodyParams)
-	return req.SetContext(ctx).Post(HostName)
+
+	resp, err := req.SetContext(ctx).Post(HostName)
+	if err != nil {
+		log.Error(ctx, "alipay request failed",
+			log.F(log.FieldKeyChannel, "alipay"),
+			log.F(log.FieldKeyMethod, method),
+			log.F(log.FieldKeyError, err.Error()),
+		)
+		return nil, err
+	}
+
+	log.Info(ctx, "alipay request end",
+		log.F(log.FieldKeyChannel, "alipay"),
+		log.F(log.FieldKeyMethod, method),
+		log.F(log.FieldKeyResponse, string(resp.Body())),
+	)
+	return resp, nil
 }
 
 func (c *Client) PageExecute(commonParams map[string]string, body any) (u *url.URL, bodyParams map[string]string, err error) {
+	req, err := url.Parse(HostName)
+	if err != nil {
+		return nil, nil, err
+	}
+	switch body.(type) {
+	case map[string]string:
+		bodyParams = body.(map[string]string)
+	default:
+		by, err := json.Marshal(body)
+		if err != nil {
+			return nil, nil, err
+		}
+		byStr := string(by)
+		bodyParams[enum.COMMON_PARAM_Biz_NAME] = byStr
+	}
+	sign, err := c.Sign.Sign(commonParams, bodyParams)
+	if err != nil {
+		return nil, nil, err
+	}
+	queryParams := url.Values{}
+	queryParams.Add(enum.COMMON_PARAM_SING_NAME, sign)
+	for k, v := range commonParams {
+		if _, ok := skipQueryParams[k]; ok {
+			continue
+		}
+		queryParams.Add(k, v)
+	}
+	req.RawQuery = queryParams.Encode()
+	if commonParams[enum.COMMON_PARAM_APP_AUTH_TOKEN_NAME] != "" {
+		bodyParams[enum.COMMON_PARAM_APP_AUTH_TOKEN_NAME] = commonParams[enum.COMMON_PARAM_APP_AUTH_TOKEN_NAME]
+	}
+	if commonParams[enum.COMMON_PARAM_NOTIFY_URL_NAME] != "" {
+		bodyParams[enum.COMMON_PARAM_NOTIFY_URL_NAME] = commonParams[enum.COMMON_PARAM_NOTIFY_URL_NAME]
+	}
+	if commonParams[enum.COMMON_PARAM_RETURN_URL_NAME] != "" {
+		bodyParams[enum.COMMON_PARAM_RETURN_URL_NAME] = commonParams[enum.COMMON_PARAM_RETURN_URL_NAME]
+	}
+	return req, bodyParams, nil
+}
+
+// BuildRequestForm 生成支付宝自动提交表单（和你PHP逻辑完全一致）
+func (c *Client) BuildRequestForm(paraMap map[string]string) string {
+	var sHtml strings.Builder
+
+	// 1. 拼接 form 开头
+	sHtml.WriteString(fmt.Sprintf(
+		"<form id='alipaysubmit' name='alipaysubmit' action='%s?charset=%s' method='POST'>",
+		HostName,
+		"utf-8",
+	))
+
+	// 2. 遍历参数，生成 hidden input
+	for key, val := range paraMap {
+		// 跳过空值
+		if c.checkEmpty(val) {
+			continue
+		}
+
+		// 转义单引号 ' → &apos;（和PHP逻辑一样）
+		val = strings.ReplaceAll(val, "'", "&apos;")
+
+		// HTML 安全转义（Go推荐，防止XSS，不影响支付宝）
+		keyEscaped := html.EscapeString(key)
+		valEscaped := html.EscapeString(val)
+
+		// 拼接 input
+		sHtml.WriteString(fmt.Sprintf(
+			"<input type='hidden' name='%s' value='%s'/>",
+			keyEscaped,
+			valEscaped,
+		))
+	}
+
+	// 3. 提交按钮（隐藏）
+	sHtml.WriteString("<input type='submit' value='ok' style='display:none;'></form>")
+
+	// 4. JS 自动提交
+	sHtml.WriteString("<script>document.forms['alipaysubmit'].submit();</script>")
+
+	return sHtml.String()
+}
+
+// checkEmpty 判断是否为空（对应PHP checkEmpty）
+func (c *Client) checkEmpty(val string) bool {
+	return val == "" || val == " " || len(val) == 0
+}
+
+func (c *Client) GetPageExecute(commonParams map[string]string, body any) (u *url.URL, bodyParams map[string]string, err error) {
 	req, err := url.Parse(HostName)
 	if err != nil {
 		return nil, nil, err

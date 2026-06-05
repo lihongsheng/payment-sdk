@@ -9,6 +9,7 @@ import (
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/config"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/model"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/util"
+	"github.com/lihongsheng/payment-sdk/config/proxy"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/enum/transfer"
 	"github.com/lihongsheng/payment-sdk/errors"
@@ -24,8 +25,8 @@ type Transfer struct {
 	*client.Client
 }
 
-func NewTransfer(conf config.Config) (*Transfer, error) {
-	api, err := client.NewClient(conf)
+func NewTransfer(conf config.Config, proxy *proxy.Proxy) (*Transfer, error) {
+	api, err := client.NewClient(conf, proxy)
 	if err != nil {
 		return nil, err
 	}

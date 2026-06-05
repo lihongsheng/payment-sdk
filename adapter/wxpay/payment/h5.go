@@ -6,6 +6,7 @@ import (
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
+	enum1 "github.com/lihongsheng/payment-sdk/enum"
 	"net/url"
 	"time"
 
@@ -94,11 +95,15 @@ func (h *H5) buildPayParmams(req *dto.PayOrder) h5.PrepayRequest {
 			PayerClientIp: core.String(req.SceneInfo.ClientIp),
 			// DeviceId:      core.String(req.SceneInfo.DeviceID),
 			H5Info: &h5.H5Info{
-				Type: core.String(req.SceneInfo.H5Info.Type),
-				//AppName: core.String(req.SceneInfo.H5Info.AppName),
-				//AppUrl:  core.String(req.SceneInfo.H5Info.Url),
+				Type: core.String(""),
+				//AppName: core.String(req.SceneInfo.ApplicationInfo.AppName),
+				//AppUrl:  core.String(req.SceneInfo.ApplicationInfo.Url),
 			},
 		}
+		if req.SceneInfo.Device == enum1.Device_H5 {
+			resp.SceneInfo.H5Info.Type = core.String("Wap")
+		}
+
 		if req.SceneInfo.Store.Id != "" {
 			resp.SceneInfo.StoreInfo = &h5.StoreInfo{
 				Id: core.String(req.SceneInfo.Store.Id),
@@ -134,7 +139,7 @@ func (h *H5) Query(ctx context.Context, req dto.Query) (*dto.PayDetail, error) {
 		return nil, until.ErrorHandler(ctx, result, err, "status is unknown")
 	}
 	var successTime time.Time
-	if resp.SuccessTime == nil && *resp.SuccessTime != "" {
+	if resp.SuccessTime != nil && *resp.SuccessTime != "" {
 		successTime, _ = time.Parse(time.RFC3339, *resp.SuccessTime)
 	}
 	originBy, _ := json.Marshal(resp)

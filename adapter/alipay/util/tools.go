@@ -6,6 +6,7 @@ import (
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/enum"
 	"github.com/lihongsheng/payment-sdk/enum/payment"
 	"github.com/lihongsheng/payment-sdk/enum/transfer"
+	"github.com/lihongsheng/payment-sdk/errors"
 	"io/ioutil"
 	"net/http"
 	"regexp"
@@ -26,7 +27,7 @@ func AmountToCents(amountStr string) (int, error) {
 	// 2. 验证输入是否为合法金额格式
 	re := regexp.MustCompile(`^\d+(\.\d{1,2})?$`)
 	if !re.MatchString(cleaned) {
-		return 0, fmt.Errorf("无效的金额格式: %s", amountStr)
+		return 0, errors.ErrorParamError("无效的金额格式: %s", amountStr)
 	}
 
 	// 3. 处理小数点，确保保留两位小数
@@ -121,7 +122,7 @@ func GetUnitTransferStatus(status string) transfer.UnitTransferStatus {
 func GetRequestBody(request *http.Request) ([]byte, error) {
 	body, err := ioutil.ReadAll(request.Body)
 	if err != nil {
-		return nil, fmt.Errorf("read request body err: %v", err)
+		return nil, errors.ErrorParamError("read request body err: %v", err)
 	}
 
 	_ = request.Body.Close()

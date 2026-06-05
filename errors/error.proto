@@ -33,4 +33,10 @@ enum ErrorReason {
   TIME_OUT = 13 [(errors.code) = 500];
   // 重试
   RETRY_SYSTEM_ERROR = 14 [(errors.code) = 500];
+  // 用户被限制
+  USER_LIMITED = 15 [(errors.code) = 429];
+  // 支付被限制
+  PAYMENT_LIMITED = 16 [(errors.code) = 429];
+  // IP 被限制
+  IP_LIMITED = 17 [(errors.code) = 429];
 }

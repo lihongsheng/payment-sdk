@@ -160,6 +160,7 @@ func (r *Refund) Callback(ctx context.Context, req *http.Request) (*dto.Callback
 		},
 		UserReceivedAccount: resp.UserReceivedAccount,
 		OriginResponse:      string(originBy),
+		Response:            "",
 	}
 
 	if resp.RefundStatus != "" {

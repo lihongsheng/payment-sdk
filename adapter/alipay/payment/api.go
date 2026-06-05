@@ -1,7 +1,6 @@
 package payment
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/client"
@@ -12,7 +11,6 @@ import (
 	enum1 "github.com/lihongsheng/payment-sdk/enum"
 	"github.com/lihongsheng/payment-sdk/enum/payment"
 	"github.com/lihongsheng/payment-sdk/errors"
-	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -109,24 +107,9 @@ func (a *Api) Close(ctx context.Context, req dto.CloseQuery) error {
 }
 
 func (c *Api) Callback(ctx context.Context, req *http.Request) (*dto.CallbackPayDetail, error) {
-	bodyBytes, err := util.GetRequestBody(req)
+	values, bodyBytes, err := c.Client.VerifyCallback(ctx, req)
 	if err != nil {
 		return nil, err
-	}
-	values, err := url.ParseQuery(string(bodyBytes))
-	if err != nil {
-		return nil, err
-	}
-	sign, signValue, err := c.Client.Sign.GenerateSignString(values)
-	if err != nil {
-		return nil, err
-	}
-	verifg, err := c.Client.Sign.RsaVerify(sign, signValue)
-	if err != nil {
-		return nil, err
-	}
-	if !verifg {
-		return nil, errors.ErrorSignError("签名验证失败："+string(bodyBytes), nil)
 	}
 	resp := buildCallbackParams(values)
 	re := &dto.CallbackPayDetail{
@@ -136,8 +119,7 @@ func (c *Api) Callback(ctx context.Context, req *http.Request) (*dto.CallbackPay
 			Currency: payment.Currency_CNY.String(),
 			Total:    resp.GetTotalAmount(),
 		},
-		Status: util.PaymentStatus(resp.TradeStatus),
-		//  PaymentProduct: payment.PaymentProduct_JSAPI.String(),
+		Status:         util.PaymentStatus(resp.TradeStatus),
 		SuccessTime:    resp.GetGmtPayment().Unix(),
 		OriginResponse: string(bodyBytes),
 		EventAction:    enum1.Event_PAYMENT,
@@ -149,7 +131,6 @@ func (c *Api) Callback(ctx context.Context, req *http.Request) (*dto.CallbackPay
 			OrderNo:  resp.OutTradeNo,
 		}
 	}
-	req.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 	return re, nil
 }
 

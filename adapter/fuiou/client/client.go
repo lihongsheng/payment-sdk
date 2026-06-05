@@ -11,6 +11,7 @@ import (
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/util"
 	enum2 "github.com/lihongsheng/payment-sdk/adapter/lakala/enum"
 	"github.com/lihongsheng/payment-sdk/config/proxy"
+	"github.com/lihongsheng/payment-sdk/log"
 	"net/url"
 	"strings"
 )
@@ -76,6 +77,11 @@ func providerClient(c config.Config, proxy *proxy.Proxy) (*resty.Client, error) 
 
 // 非加密post
 func (c *Client) PostReqFrom(ctx context.Context, path string, req Req, header map[string]string) (*resty.Response, error) {
+	log.Info(ctx, "fuiou request start",
+		log.F(log.FieldKeyChannel, "fuiou"),
+		log.F(log.FieldKeyMethod, path),
+	)
+
 	r := c.Client.R().SetContext(ctx)
 	r.SetHeader("Content-Type", "application/x-www-form-urlencoded; charset=GBK")
 	if header != nil {
@@ -84,6 +90,11 @@ func (c *Client) PostReqFrom(ctx context.Context, path string, req Req, header m
 	origSign := req.GenerateSign()
 	sign, err := c.Sign.Sign(origSign, skipQueryParams)
 	if err != nil {
+		log.Error(ctx, "fuiou request sign failed",
+			log.F(log.FieldKeyChannel, "fuiou"),
+			log.F(log.FieldKeyMethod, path),
+			log.F(log.FieldKeyError, err.Error()),
+		)
 		return nil, err
 	}
 	req.Sign(sign)
@@ -96,12 +107,22 @@ func (c *Client) PostReqFrom(ctx context.Context, path string, req Req, header m
 	values.Add(enum.POST_COMMON_PARAM, xmlGbk)
 	resp, err := r.SetFormDataFromValues(values).Post(c.C.ApiHost + path)
 	if err != nil {
+		log.Error(ctx, "fuiou request failed",
+			log.F(log.FieldKeyChannel, "fuiou"),
+			log.F(log.FieldKeyMethod, path),
+			log.F(log.FieldKeyError, err.Error()),
+		)
 		return nil, err
 	}
 	body := resp.Body()
 	if len(body) > 0 {
 		utf8Body, _ := util.URLDecodeGBK(string(body))
 		resp.SetBody([]byte(utf8Body))
+		log.Info(ctx, "fuiou request end",
+			log.F(log.FieldKeyChannel, "fuiou"),
+			log.F(log.FieldKeyMethod, path),
+			log.F(log.FieldKeyResponse, string(utf8Body)),
+		)
 	}
 	return resp, nil
 }
@@ -124,7 +145,7 @@ func (c *Client) PostEncryptFrom(ctx context.Context, path string, req Req, head
 	req.Sign(sign)
 	xmlStr, err := req.Xml()
 	xmlGbk, _ := util.Utf8ToGbk(xmlStr)
-	encryptStr, err := c.Sign.EncryptByPublicKey([]byte(xmlGbk), []byte(c.C.Cert.Public))
+	encryptStr, err := c.Sign.EncryptByPublicKey([]byte(xmlGbk), []byte(c.C.RsaPublic))
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +166,7 @@ func (c *Client) PostEncryptFrom(ctx context.Context, path string, req Req, head
 		}
 	}
 	encryptResponse.OriginBody = string(body)
-	messageGbk, err := c.Sign.DecryptByKey(encryptResponse.Message, []byte(c.C.Cert.Private))
+	messageGbk, err := c.Sign.DecryptByKey(encryptResponse.Message, []byte(c.C.RsaPrivate))
 	if err != nil {
 		return nil, err
 	}

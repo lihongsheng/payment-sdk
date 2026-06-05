@@ -9,6 +9,7 @@ import (
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/model"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/util"
+	"github.com/lihongsheng/payment-sdk/config/proxy"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
 	"github.com/lihongsheng/payment-sdk/errors"
@@ -20,13 +21,13 @@ type Transfer struct {
 	conf   config.Config
 }
 
-func NewTransfer(conf config.Config) (iface.UnitTransfer, error) {
-	newClient, err := client.NewClient(conf)
+func NewTransfer(conf config.Config, proxy *proxy.Proxy) (iface.UnitTransfer, error) {
+	newClient, err := client.NewClient(conf, proxy)
 	if err != nil {
 		return nil, err
 	}
-	if newClient.C.Cert.AppCertSN == "" || newClient.C.Cert.RootCertSN == "" {
-		return nil, errors.ErrorParamError("AppCertSN is not empty or RootCertSN is not allow empty", nil)
+	if newClient.C.RsaAppCertSN == "" || newClient.C.RsaRootCertSN == "" {
+		return nil, errors.ErrorParamError("AppCertSN is not empty or RootCertSN is not allow empty")
 	}
 	return &Transfer{
 		Client: newClient,
@@ -64,8 +65,8 @@ func (t *Transfer) Transfer(ctx context.Context, req *dto.UintTransferRequest) (
 	}
 	commonParam := t.Client.GetCommonRequestParams()
 	commonParam[enum.COMMON_PARAM_METHOD_NAME] = enum.ALIPAY_FUND_TRANS_UNI_TRANSFER
-	commonParam["app_cert_sn"] = t.conf.Cert.AppCertSN
-	commonParam["alipay_root_cert_sn"] = t.conf.Cert.RootCertSN
+	commonParam["app_cert_sn"] = t.conf.RsaAppCertSN
+	commonParam["alipay_root_cert_sn"] = t.conf.RsaRootCertSN
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Println("panic", err)

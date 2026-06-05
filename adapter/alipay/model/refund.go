@@ -19,10 +19,10 @@ type RefundRequest struct {
 
 func (r RefundRequest) Validate() error {
 	if r.OutTradeNo == "" && r.TradeNo == "" {
-		return errors.ErrorParamError("out_trade_no or trade_no must not empty", nil)
+		return errors.ErrorParamError("out_trade_no or trade_no must not empty")
 	}
 	if r.RefundAmount == "" {
-		return errors.ErrorParamError("refund_amount must not empty", nil)
+		return errors.ErrorParamError("refund_amount must not empty")
 	}
 	return nil
 }

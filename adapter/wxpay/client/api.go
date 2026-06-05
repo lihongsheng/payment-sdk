@@ -3,10 +3,10 @@ package client
 import (
 	"context"
 	"crypto/rsa"
-	"errors"
 	"fmt"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 	pro "github.com/lihongsheng/payment-sdk/config/proxy"
+	"github.com/lihongsheng/payment-sdk/errors"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/auth"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/auth/verifiers"
@@ -27,23 +27,23 @@ type Api struct {
 func InitClient(c config.Config, proxyInfo *pro.Proxy) (*Api, error) {
 	w := &Api{C: c}
 	// 使用 utils 提供的函数从私钥字符串中加载商户私钥
-	mchPrivateKey, err := utils.LoadPrivateKey(c.Cert.Private)
+	mchPrivateKey, err := utils.LoadPrivateKey(c.RsaPrivate)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("wxpay load merchant private key errors;%s", err.Error()))
+		return nil, errors.ErrorParamError("wxpay load merchant private key errors;%s", err.Error())
 	}
 	w.PrivateKey = mchPrivateKey
 	ctx := context.Background()
 	opts := []core.ClientOption{}
 	// 使用商户私钥等初始化 client，并使它具有自动定时获取微信支付平台证书的能力
-	if c.Cert.Public != "" && c.Cert.PublicNumber != "" {
-		publicKey, err := utils.LoadPublicKey(c.Cert.Public)
+	if c.RsaPublic != "" && c.RsaPublicNumber != "" {
+		publicKey, err := utils.LoadPublicKey(c.RsaPublic)
 		if err != nil {
-			return nil, errors.New(fmt.Sprintf("wxpay load merchant Public key errors;%s", err.Error()))
+			return nil, errors.ErrorParamError("wxpay load merchant Public key errors;%s", err.Error())
 		}
-		w.Verifier = verifiers.NewSHA256WithRSAPubkeyVerifier(c.Cert.PublicNumber, *publicKey)
-		opts = append(opts, option.WithWechatPayPublicKeyAuthCipher(c.MchID, c.Cert.PrivateNumber, mchPrivateKey, c.Cert.PublicNumber, publicKey))
+		w.Verifier = verifiers.NewSHA256WithRSAPubkeyVerifier(c.RsaPublicNumber, *publicKey)
+		opts = append(opts, option.WithWechatPayPublicKeyAuthCipher(c.MchID, c.RsaPrivateNumber, mchPrivateKey, c.RsaPublicNumber, publicKey))
 	} else {
-		opts = append(opts, option.WithWechatPayAutoAuthCipher(c.MchID, c.Cert.PrivateNumber, mchPrivateKey, c.APISecret))
+		opts = append(opts, option.WithWechatPayAutoAuthCipher(c.MchID, c.RsaPrivateNumber, mchPrivateKey, c.APISecret))
 		visitor, err := autoVisitor(c, w.PrivateKey)
 		if err != nil {
 			return nil, err
@@ -55,7 +55,7 @@ func InitClient(c config.Config, proxyInfo *pro.Proxy) (*Api, error) {
 	}
 	client, err := core.NewClient(ctx, opts...)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("new wechat pay client err:%s", err.Error()))
+		return nil, errors.ErrorSystemError("new wechat pay client err:%s", err.Error())
 	}
 	w.Client = client
 	return w, nil
@@ -66,7 +66,7 @@ func autoVisitor(c config.Config, privateKey *rsa.PrivateKey) (auth.Verifier, er
 	// 1. 使用 `RegisterDownloaderWithPrivateKey` 注册下载器
 	mgr := downloader.MgrInstance()
 	if !mgr.HasDownloader(context.Background(), c.MchID) {
-		err := downloader.MgrInstance().RegisterDownloaderWithPrivateKey(ctx, privateKey, c.Cert.PrivateNumber, c.MchID, c.APISecret)
+		err := downloader.MgrInstance().RegisterDownloaderWithPrivateKey(ctx, privateKey, c.RsaPrivateNumber, c.MchID, c.APISecret)
 		if err != nil {
 			return nil, err
 		}

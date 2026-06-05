@@ -36,7 +36,7 @@ func (h *H5) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, erro
 		commonParam[enum.COMMON_PARAM_RETURN_URL_NAME] = req.RedirectUrl
 	}
 	commonParam[enum.COMMON_PARAM_METHOD_NAME] = enum.ALIPAY_H5_TRADES_CREATE
-	resp, params, err := h.Client.PageExecute(commonParam, reqParam)
+	resp, _, err := h.Client.GetPageExecute(commonParam, reqParam)
 	if err != nil {
 		return nil, err
 	}
@@ -52,9 +52,9 @@ func (h *H5) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, erro
 		PaymentProduct: payment.PaymentProduct_H5.String(),
 		Action: dto.Action{
 			Action:         action.Action_Redirect.String(),
-			Parameters:     params,
+			Parameters:     nil,
 			Url:            resp.String(),
-			RedirectMethod: "POST",
+			RedirectMethod: "GET",
 		},
 		OriginResponse: "",
 	}

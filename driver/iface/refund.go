@@ -9,6 +9,7 @@ import (
 
 type RefundDriver interface {
 	Open(c config.Config) (Refund, error)
+	CallbackResponse() string
 }
 
 type Refund interface {

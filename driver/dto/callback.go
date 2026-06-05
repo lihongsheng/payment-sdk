@@ -57,5 +57,6 @@ type CallbackRefundDetail struct {
 	Status              refund.Status        `json:"status"`
 	FundsAccount        string               `json:"funds_account"`
 	Amount              Amount               `json:"amount"`
-	OriginResponse      string
+	OriginResponse      string               `json:"origin_response"`
+	Response            string               `json:"response"`
 }

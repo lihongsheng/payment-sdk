@@ -69,7 +69,7 @@ func WithProxy(cf *proxy.Proxy) Option {
 
 func NewPayment() *Config {
 	return &Config{
-		Payment:        payment.Payment_Wxpay,
+		Payment:        payment.Payment_Wechat,
 		PaymentProduct: payment.PaymentProduct_JSAPI,
 		Config:         "",
 	}
@@ -77,7 +77,7 @@ func NewPayment() *Config {
 
 func NewRefund() *Config {
 	return &Config{
-		Payment:        payment.Payment_Wxpay,
+		Payment:        payment.Payment_Wechat,
 		PaymentProduct: payment.PaymentProduct_JSAPI,
 		Config:         "",
 	}

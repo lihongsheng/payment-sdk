@@ -34,7 +34,7 @@ const (
 
 func GetOrderType(payment enum.Payment, product enum.PaymentProduct) string {
 	switch payment {
-	case enum.Payment_Wxpay:
+	case enum.Payment_Wechat:
 		switch product {
 		case enum.PaymentProduct_JSAPI, enum.PaymentProduct_LITE:
 			return OrderTypeWECHAT

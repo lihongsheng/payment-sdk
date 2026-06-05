@@ -9,6 +9,7 @@ import (
 	enum2 "github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
+	enum3 "github.com/lihongsheng/payment-sdk/enum"
 	"github.com/lihongsheng/payment-sdk/enum/action"
 	enum "github.com/lihongsheng/payment-sdk/enum/payment"
 	"net/url"
@@ -89,7 +90,7 @@ func (p *Jsapi) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, e
 			},
 		}
 	case enum2.JSAPI, enum2.LETPAY:
-		if p.payment == enum.Payment_Wxpay {
+		if p.payment == enum.Payment_Wechat {
 			var actionParams = map[string]string{}
 			actionParams["appId"] = resp.SdkAppid
 			actionParams["timeStamp"] = resp.SdkTimestamp
@@ -140,17 +141,27 @@ func (p *Jsapi) buildPayParams(req *dto.PayOrder) *JsApiPaymentRequest {
 		if req.SceneInfo.DeviceID == "" {
 			result.TermId = tools.GenerateRandomDigits(4)
 		}
-		if req.SceneInfo.H5Info.Type != "" {
+		if req.SceneInfo.ApplicationInfo.AppName != "" {
 			deviceInfo := DeviceInfo{
-				Type:    req.SceneInfo.H5Info.Type,
-				AppName: req.SceneInfo.H5Info.AppName,
-				AppUrl:  req.SceneInfo.H5Info.Url,
+				Type:    string(req.SceneInfo.Device),
+				AppName: req.SceneInfo.ApplicationInfo.AppName,
+				AppUrl:  req.SceneInfo.ApplicationInfo.Url,
 			}
-			if req.SceneInfo.H5Info.IOSPackage != "" {
-				deviceInfo.AppUrl = req.SceneInfo.H5Info.IOSPackage
+			if req.SceneInfo.Device == enum3.Device_H5 {
+				deviceInfo.Type = string(enum3.Device_H5)
 			}
-			if req.SceneInfo.H5Info.AndroidPackage != "" {
-				deviceInfo.AppUrl = req.SceneInfo.H5Info.AndroidPackage
+			if req.SceneInfo.System == enum3.Android {
+				deviceInfo.Type = string(enum3.Android)
+			} else if req.SceneInfo.System == enum3.IOS {
+				deviceInfo.Type = "IOS"
+			}
+
+			if req.SceneInfo.ApplicationInfo.AppPackage != "" {
+				deviceInfo.Type = "IOS"
+				deviceInfo.AppUrl = req.SceneInfo.ApplicationInfo.AppPackage
+				if req.SceneInfo.System == enum3.Android {
+					deviceInfo.Type = string(enum3.Android)
+				}
 			}
 			result.ReservedDeviceInfo = deviceInfo.String()
 		}
@@ -162,7 +173,7 @@ func (p *Jsapi) buildPayParams(req *dto.PayOrder) *JsApiPaymentRequest {
 		result.TxnBeginTs = req.Order.CreateAt.Format("20060102150405")
 	}
 
-	if p.payment == enum.Payment_Wxpay {
+	if p.payment == enum.Payment_Wechat {
 		result.TradeType = enum2.WxPaymentProductMap[p.paymentProduct]
 	}
 	if p.payment == enum.Payment_Alipay {

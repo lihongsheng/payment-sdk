@@ -30,11 +30,11 @@ type Sign struct {
 }
 
 func NewSign(conf config.Config) (*Sign, error) {
-	publicKey, err := tools.LoadPublicKey(conf.Cert.Public)
+	publicKey, err := tools.LoadPublicKey(conf.RsaPublic)
 	if err != nil {
 		return nil, err
 	}
-	privateKey, err := tools.LoadPrivateKey(conf.Cert.Private)
+	privateKey, err := tools.LoadPrivateKey(conf.RsaPrivate)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func NewSign(conf config.Config) (*Sign, error) {
 func (s *Sign) Gen(body interface{}) (string, error) {
 	singParam := SignParams{
 		AppID:     s.conf.AppID,
-		SerialNO:  s.conf.Cert.PrivateNumber,
+		SerialNO:  s.conf.RsaPrivateNumber,
 		Timestamp: fmt.Sprintf("%d", time.Now().Unix()),
 		NonceStr:  tools.GenerateRandomDigits(12),
 	}

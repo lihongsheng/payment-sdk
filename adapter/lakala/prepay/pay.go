@@ -99,7 +99,7 @@ func (p *Pay) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, err
 	return re, nil
 }
 
-// 目前只支持微信
+// buildPayParams 目前只支持微信 JSAPI/小程序支付
 func (p *Pay) buildPayParams(req *dto.PayOrder) *model.PaymentRequest {
 	r := &model.PaymentRequest{
 		MerchantNo:  p.C.MchID,

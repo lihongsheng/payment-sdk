@@ -20,4 +20,6 @@ const (
 	ALIPAY_FUND_TRANS_UNI_TRANSFER = "alipay.fund.trans.uni.transfer"
 	// alipay.fund.trans.common.query
 	ALIPAY_FUND_TRANS_COMMON_QUERY = "alipay.fund.trans.common.query"
+	// alipay.trade.page.pay
+	ALIPAY_TRADES_PAGE_PAY = "alipay.trade.page.pay"
 )

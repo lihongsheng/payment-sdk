@@ -68,6 +68,15 @@ func RefundRegister(channelName channel.Channel, driver iface.RefundDriver) {
 	refundDrivers[channelName] = driver
 }
 
+func GetRefundDriver(channelName channel.Channel) (iface.RefundDriver, error) {
+	driversMu.Lock()
+	defer driversMu.Unlock()
+	if driver, dup := refundDrivers[channelName]; dup {
+		return driver, nil
+	}
+	return nil, errors2.ErrorNotFound("not find dirve by [%s]", channelName.String())
+}
+
 func Payment(channelName channel.Channel, cf config.Config) (iface.Pay, error) {
 	driversMu.RLock()
 	driver, ok := paymentDrivers[channelName]

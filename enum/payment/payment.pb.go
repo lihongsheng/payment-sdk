@@ -31,7 +31,7 @@ const (
 	// 支付宝
 	Payment_Alipay Payment = 1
 	// 微信
-	Payment_Wxpay Payment = 2
+	Payment_Wechat Payment = 2
 )
 
 // Enum value maps for Payment.
@@ -39,12 +39,12 @@ var (
 	Payment_name = map[int32]string{
 		0: "Payment_UNKNOWN",
 		1: "Alipay",
-		2: "Wxpay",
+		2: "Wechat",
 	}
 	Payment_value = map[string]int32{
 		"Payment_UNKNOWN": 0,
 		"Alipay":          1,
-		"Wxpay":           2,
+		"Wechat":          2,
 	}
 )
 
@@ -211,47 +211,59 @@ type Status int32
 
 const (
 	Status_Status_UNKNOWN Status = 0
+	// 初始化
+	Status_Created Status = 1
 	// 预支付,创建支付订单后的状态，等待用户完成支付
-	Status_Pending Status = 1
+	Status_Pending Status = 2
 	// 成功
-	Status_Success Status = 2
+	Status_Success Status = 3
 	// 失败
-	Status_Failed Status = 3
+	Status_Failed Status = 4
 	// 取消, 付款码用户取消支付，或者其他主动取消支付
-	Status_Cancel Status = 4
+	Status_Cancel Status = 5
 	// 关闭，超时关闭等其他关闭
-	Status_Close Status = 5
+	Status_Close Status = 6
 	// 退款
-	Status_Refund Status = 6
+	Status_Refund Status = 7
 	// WAIT_CONFIRM
-	Status_WaitConfirm Status = 7
+	Status_WaitConfirm Status = 8
 	// WAIT_PAY
-	Status_WaitPay Status = 8
+	Status_WaitPay Status = 9
+	// TIME OUT 支付超时
+	Status_TimeOut Status = 10
+	// 临时失败可以重试
+	Status_TempFailed Status = 11
 )
 
 // Enum value maps for Status.
 var (
 	Status_name = map[int32]string{
-		0: "Status_UNKNOWN",
-		1: "Pending",
-		2: "Success",
-		3: "Failed",
-		4: "Cancel",
-		5: "Close",
-		6: "Refund",
-		7: "WaitConfirm",
-		8: "WaitPay",
+		0:  "Status_UNKNOWN",
+		1:  "Created",
+		2:  "Pending",
+		3:  "Success",
+		4:  "Failed",
+		5:  "Cancel",
+		6:  "Close",
+		7:  "Refund",
+		8:  "WaitConfirm",
+		9:  "WaitPay",
+		10: "TimeOut",
+		11: "TempFailed",
 	}
 	Status_value = map[string]int32{
 		"Status_UNKNOWN": 0,
-		"Pending":        1,
-		"Success":        2,
-		"Failed":         3,
-		"Cancel":         4,
-		"Close":          5,
-		"Refund":         6,
-		"WaitConfirm":    7,
-		"WaitPay":        8,
+		"Created":        1,
+		"Pending":        2,
+		"Success":        3,
+		"Failed":         4,
+		"Cancel":         5,
+		"Close":          6,
+		"Refund":         7,
+		"WaitConfirm":    8,
+		"WaitPay":        9,
+		"TimeOut":        10,
+		"TempFailed":     11,
 	}
 )
 
@@ -286,12 +298,13 @@ var File_enum_payment_payment_proto protoreflect.FileDescriptor
 
 const file_enum_payment_payment_proto_rawDesc = "" +
 	"\n" +
-	"\x1aenum/payment/payment.proto\x12\apayment*5\n" +
+	"\x1aenum/payment/payment.proto\x12\apayment*6\n" +
 	"\aPayment\x12\x13\n" +
 	"\x0fPayment_UNKNOWN\x10\x00\x12\n" +
 	"\n" +
-	"\x06Alipay\x10\x01\x12\t\n" +
-	"\x05Wxpay\x10\x02*\x99\x01\n" +
+	"\x06Alipay\x10\x01\x12\n" +
+	"\n" +
+	"\x06Wechat\x10\x02*\x99\x01\n" +
 	"\x0ePaymentProduct\x12\x19\n" +
 	"\x15PaymentMethod_UNKNOWN\x10\x00\x12\x06\n" +
 	"\x02H5\x10\x01\x12\a\n" +
@@ -309,20 +322,25 @@ const file_enum_payment_payment_proto_rawDesc = "" +
 	"\bCurrency\x12\x14\n" +
 	"\x10Currency_UNKNOWN\x10\x00\x12\a\n" +
 	"\x03CNY\x10\x01\x12\a\n" +
-	"\x03USD\x10\x02*\x83\x01\n" +
+	"\x03USD\x10\x02*\xad\x01\n" +
 	"\x06Status\x12\x12\n" +
 	"\x0eStatus_UNKNOWN\x10\x00\x12\v\n" +
-	"\aPending\x10\x01\x12\v\n" +
-	"\aSuccess\x10\x02\x12\n" +
+	"\aCreated\x10\x01\x12\v\n" +
+	"\aPending\x10\x02\x12\v\n" +
+	"\aSuccess\x10\x03\x12\n" +
 	"\n" +
-	"\x06Failed\x10\x03\x12\n" +
+	"\x06Failed\x10\x04\x12\n" +
 	"\n" +
-	"\x06Cancel\x10\x04\x12\t\n" +
-	"\x05Close\x10\x05\x12\n" +
+	"\x06Cancel\x10\x05\x12\t\n" +
+	"\x05Close\x10\x06\x12\n" +
 	"\n" +
-	"\x06Refund\x10\x06\x12\x0f\n" +
-	"\vWaitConfirm\x10\a\x12\v\n" +
-	"\aWaitPay\x10\bB\x10Z\x0e./enum/paymentb\x06proto3"
+	"\x06Refund\x10\a\x12\x0f\n" +
+	"\vWaitConfirm\x10\b\x12\v\n" +
+	"\aWaitPay\x10\t\x12\v\n" +
+	"\aTimeOut\x10\n" +
+	"\x12\x0e\n" +
+	"\n" +
+	"TempFailed\x10\vB\x10Z\x0e./enum/paymentb\x06proto3"
 
 var (
 	file_enum_payment_payment_proto_rawDescOnce sync.Once

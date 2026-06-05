@@ -152,7 +152,7 @@ func (j *Jsapi) Query(ctx context.Context, req dto.Query) (*dto.PayDetail, error
 		return nil, until.ErrorHandler(ctx, result, err, "status is unknown")
 	}
 	var successTime time.Time
-	if resp.SuccessTime == nil && *resp.SuccessTime != "" {
+	if resp.SuccessTime != nil && *resp.SuccessTime != "" {
 		successTime, _ = time.Parse(time.RFC3339, *resp.SuccessTime)
 	}
 	originBy, _ := json.Marshal(resp)
