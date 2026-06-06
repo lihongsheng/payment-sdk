@@ -23,9 +23,9 @@ type PaymentProduct struct {
 }
 
 type ChannelOption struct {
-	Channel string `json:"channel"`
-	Label   string `json:"label"`
-	Options []params.Option
+	Channel string         `json:"channel"`
+	Label   string         `json:"label"`
+	Schema  *params.Schema `json:"schema,omitempty"`
 }
 type PaymentDriver interface {
 	// Open 实例化支付接口

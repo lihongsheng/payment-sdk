@@ -18,15 +18,18 @@ func TestPayment_WxpayJSAPI(t *testing.T) {
 	opts := []config.Option{
 		config.WithPaymentProduct(payment.PaymentProduct_JSAPI),
 		config.WithWxConfig(&wxCf.Config{
-			AppID:     "wx6666",
-			MchID:     "17*****",
-			APISecret: "***",
-			AppSecret: "***",
-			RsaPrivate: `-----BEGIN PRIVATE KEY-----
+			Merchant: wxCf.Merchant{
+				AppID:     "wx6666",
+				MchID:     "17*****",
+				AppSecret: "***",
+			},
+			Cert: wxCf.Cert{
+				APISecret: "***",
+				RsaPrivate: `-----BEGIN PRIVATE KEY-----
 ***
 -----END PRIVATE KEY-----`,
-			RsaPrivateNumber: "***",
-			ScoreServiceID:   "",
+				RsaPrivateNumber: "***",
+			},
 		}),
 	}
 
@@ -62,15 +65,18 @@ func TestPayment_WxpayH5API(t *testing.T) {
 	opts := []config.Option{
 		config.WithPaymentProduct(payment.PaymentProduct_H5),
 		config.WithWxConfig(&wxCf.Config{
-			AppID:     "wx6c663032961e5e4b",
-			MchID:     "1730424164",
-			APISecret: "***",
-			AppSecret: "***",
-			RsaPrivate: `-----BEGIN PRIVATE KEY-----
+			Merchant: wxCf.Merchant{
+				AppID:     "wx6c663032961e5e4b",
+				MchID:     "1730424164",
+				AppSecret: "***",
+			},
+			Cert: wxCf.Cert{
+				APISecret: "***",
+				RsaPrivate: `-----BEGIN PRIVATE KEY-----
 ***
 -----END PRIVATE KEY-----`,
-			RsaPrivateNumber: "***",
-			ScoreServiceID:   "",
+				RsaPrivateNumber: "***",
+			},
 		}),
 	}
 

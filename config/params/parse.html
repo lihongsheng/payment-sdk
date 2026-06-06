@@ -1,664 +1,618 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>动态渲染 EL-UI 表单</title>
-  <!-- 引入 Element UI 样式 -->
-  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
-  <!-- 引入 Vue 和 Element UI 脚本 -->
-  <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
-  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Config Schema Parser</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+  <style>
+    body { margin: 0; background: #f5f7fa; color: #303133; }
+    #app { padding: 20px; }
+    .page { max-width: 1440px; margin: 0 auto; }
+    .toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+    .layout { display: grid; grid-template-columns: 460px 1fr 420px; gap: 16px; align-items: start; }
+    .panel { min-height: 120px; }
+    .json-input textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    .schema-object { margin-bottom: 16px; }
+    .schema-object .el-card__header { padding: 10px 14px; font-weight: 600; }
+    .schema-form { padding-top: 8px; }
+    .schema-array-item { border: 1px dashed #dcdfe6; padding: 8px 12px; border-radius: 4px; margin-bottom: 8px; }
+    .schema-array-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .output { white-space: pre-wrap; word-break: break-all; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; background: #1f2937; color: #d1d5db; padding: 12px; border-radius: 4px; min-height: 240px; }
+    .hint { color: #909399; font-size: 12px; margin-top: 4px; }
+    .error { color: #f56c6c; font-size: 12px; margin-top: 4px; }
+    .full-width { width: 100%; }
+    /* 带示例的字段：浅黄底，示例文案为斜体橙 */
+    .has-example .el-input__wrapper,
+    .has-example .el-textarea__inner { background-color: #fffbe6 !important; transition: background-color .2s; }
+    .has-example .el-input__wrapper.is-focus,
+    .has-example .el-textarea__inner:focus { background-color: #fff !important; }
+    .has-example .el-input__inner::placeholder,
+    .has-example .el-textarea__inner::placeholder { color: #c89b1f; font-style: italic; }
+    @media (max-width: 1200px) { .layout { grid-template-columns: 1fr; } }
+  </style>
 </head>
 <body>
-<div id="app" style="padding: 20px; max-width: 1000px; margin: 0 auto;">
-  <el-card title="应用配置表单" shadow="hover">
-    <el-form
-      ref="configForm"
-      :model="formData"
-      :rules="formRules"
-      label-width="140px"
-      style="margin-top: 20px;"
-    >
-      <!-- 递归渲染表单项组件 -->
-      <form-item-renderer
-        :params="formMetadata"
-        :form-data="formData"
-        :prefix="''"
-      />
+<div id="app">
+  <div class="page">
+    <h2>支付通道配置 JSON Schema 测试页</h2>
+    <div class="toolbar">
+      <el-button type="primary" @click="loadTreeExample">加载 tree schema 示例</el-button>
+      <el-button type="success" @click="loadInput">加载输入 JSON</el-button>
+      <el-button @click="resetForm">重置表单</el-button>
+      <el-button type="warning" @click="validateAndOutput">校验并生成配置</el-button>
+    </div>
 
-      <el-form-item style="margin-top: 30px;">
-        <el-button type="primary" @click="submitForm" size="medium">提交配置</el-button>
-        <el-button @click="resetForm" size="medium" style="margin-left: 10px;">重置表单</el-button>
-      </el-form-item>
-    </el-form>
+    <div class="layout">
+      <el-card class="panel">
+        <template #header>channel_option JSON</template>
+        <el-input class="json-input" v-model="rawJson" type="textarea" :rows="28" spellcheck="false" />
+      </el-card>
 
-    <!-- 提交结果展示 -->
-    <el-divider content-position="left">提交的JSON数据</el-divider>
-    <el-input
-      type="textarea"
-      v-model="submitJson"
-      readonly
-      rows="10"
-      placeholder="提交后展示JSON数据..."
-      style="margin-top: 10px;"
-    >
-    </el-input>
-  </el-card>
+      <el-card class="panel">
+        <template #header>{{ schema?.title || '配置表单' }}</template>
+        <el-alert v-if="parseError" :title="parseError" type="error" show-icon :closable="false" style="margin-bottom: 12px"></el-alert>
+        <el-form v-if="schema" label-width="150px" class="schema-form">
+          <schema-node
+                  :schema="schema"
+                  :path="[]"
+                  :root="formData"
+                  :errors="errors"
+                  :on-update="updateField"
+          ></schema-node>
+        </el-form>
+      </el-card>
+
+      <el-card class="panel">
+        <template #header>channel_config 输出</template>
+        <pre class="output">{{ outputJson }}</pre>
+      </el-card>
+    </div>
+  </div>
 </div>
 
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="https://unpkg.com/element-plus/dist/index.full.min.js"></script>
 <script>
-  // 1. 定义递归渲染表单项的组件
-  Vue.component('FormItemRenderer', {
-    props: {
-      params: { type: Array, required: true }, // 表单元数据
-      formData: { type: Object, required: true }, // 表单数据对象
-      prefix: { type: String, default: '' } // 嵌套字段前缀（如 cert.private_key）
-    },
-    render(h) {
-      const items = [];
-      this.params.forEach(param => {
-        // 生成字段名（处理嵌套：如 cert.private_key）
-        const fieldName = this.prefix ? `${this.prefix}.${param.name}` : param.name;
-        // 表单标签
-        const label = param.label || param.name;
-
-        // 生成el-form-item
-        const formItem = h('el-form-item', {
-          props: {
-            label: label,
-            prop: fieldName,
-            // 隐藏无name的根节点（如果有）
-            vShow: param.name !== ''
+  const treeExample = {
+    channel: 'Wechat',
+    label: '微信支付',
+    schema: {
+      type: 'object',
+      title: '微信支付配置',
+      required: ['merchant', 'cert'],
+      'x-order': ['merchant', 'cert', 'notify', 'sub_merchants'],
+      properties: {
+        merchant: {
+          type: 'object',
+          title: '商户信息',
+          required: ['mch_id', 'app_id'],
+          'x-order': ['mch_id', 'app_id', 'api_secret'],
+          properties: {
+            mch_id: { type: 'string', title: '微信商户ID', pattern: '^[0-9]{10,15}$', examples: ['1900000109'], 'x-ui': { input_type: 'text', validate_type: 'Reg' } },
+            app_id: { type: 'string', title: '微信AppID', pattern: '^wx[0-9a-zA-Z]{16,32}$', examples: ['wx8888888888888888'], 'x-ui': { input_type: 'text', validate_type: 'Reg' } },
+            api_secret: { type: 'string', title: '微信API V3秘钥', examples: ['32位英文数字混合字符串'], 'x-ui': { input_type: 'password' } }
           }
-        }, [this.renderWidget(h, param, fieldName)]);
-
-        items.push(formItem);
-      });
-      return h('div', items);
-    },
-    methods: {
-      // 渲染具体的表单组件（input/select/textarea/checkbox等）
-      renderWidget(h, param, fieldName) {
-        // 获取当前字段值
-        const value = this.getNestedValue(this.formData, fieldName);
-        // 组件通用属性
-        const baseProps = {
-          on: {
-            input: (val) => {
-              this.setNestedValue(this.formData, fieldName, val, param.type);
+        },
+        cert: {
+          type: 'object',
+          title: '证书配置',
+          required: ['rsa_private'],
+          'x-order': ['rsa_private', 'rsa_public'],
+          properties: {
+            rsa_private: { type: 'string', title: '应用私钥', examples: ['-----BEGIN PRIVATE KEY-----\nMIIE...\n-----END PRIVATE KEY-----'], 'x-ui': { input_type: 'textarea', validate_type: 'RsaPrivate', rows: 6 } },
+            rsa_public: { type: 'string', title: '微信公钥', examples: ['-----BEGIN PUBLIC KEY-----\nMIIB...\n-----END PUBLIC KEY-----'], 'x-ui': { input_type: 'textarea', validate_type: 'RsaPublic', rows: 6 } }
+          }
+        },
+        notify: {
+          type: 'object',
+          title: '回调配置',
+          'x-order': ['api_host', 'enabled'],
+          properties: {
+            api_host: { type: 'string', title: 'API地址', format: 'url', default: 'https://api.example.com', examples: ['https://api.mch.weixin.qq.com'], 'x-ui': { input_type: 'text', validate_type: 'Url' } },
+            enabled: { type: 'boolean', title: '启用回调', default: true, 'x-ui': { input_type: 'switch' } }
+          }
+        },
+        sub_merchants: {
+          type: 'array',
+          title: '子商户列表',
+          items: {
+            type: 'object',
+            title: '子商户',
+            required: ['sub_mch_id'],
+            'x-order': ['sub_mch_id', 'sub_app_id'],
+            properties: {
+              sub_mch_id: { type: 'string', title: '子商户号', examples: ['1900000110'], 'x-ui': { input_type: 'text' } },
+              sub_app_id: { type: 'string', title: '子AppID', examples: ['wx9999999999999999'], 'x-ui': { input_type: 'text' } }
             }
           }
-        };
-
-        // 根据类型渲染不同组件
-        switch (param.input_type) {
-          // 下拉选择框
-          case 'select':
-            return h('el-select', {
-              ...baseProps,
-              props: {
-                value: value,
-                clearable: true,
-                placeholder: `请选择${param.label}`,
-                style: 'width: 100%;'
-              }
-            }, param.values.map(v =>
-              h('el-option', {
-                props: { label: v.label, value: v.value }
-              })
-            ));
-
-          // 单选框
-          case 'radio':
-            return h('el-radio-group', {
-              ...baseProps,
-              props: { value: value }
-            }, param.values.map(v =>
-              h('el-radio', {
-                props: { label: v.value }
-              }, v.label)
-            ));
-
-          // 复选框（数组类型）
-          case 'checkbox':
-            return h('el-checkbox-group', {
-              ...baseProps,
-              props: { value: value || [] }
-            }, param.values.map(v =>
-              h('el-checkbox', {
-                props: { label: v.value }
-              }, v.label)
-            ));
-
-          // 密码框
-          case 'password':
-            return h('el-input', {
-              ...baseProps,
-              props: {
-                value: value,
-                type: 'password',
-                placeholder: `请输入${param.label}`,
-                style: 'width: 100%;'
-              }
-            });
-
-          // 数字输入框
-          case 'number':
-            return h('el-input-number', {
-              ...baseProps,
-              props: {
-                value: value || 0,
-                placeholder: `请输入${param.label}`,
-                style: 'width: 100%;',
-                precision: param.type === 'Int' ? 0 : 2, // 整数无小数位
-                min: 1, // 端口最小1
-                max: 65535 // 端口最大65535
-              }
-            });
-
-          // 多行文本
-          case 'textarea':
-            return h('el-input', {
-              ...baseProps,
-              props: {
-                value: value,
-                type: 'textarea',
-                placeholder: `请输入${param.label}`,
-                rows: 6,
-                style: 'width: 100%;'
-              }
-            });
-
-          // Object类型（递归渲染子属性）
-          case '':
-            if (param.type === 'Object' && param.object && param.object.length) {
-              return h('form-item-renderer', {
-                props: {
-                  params: param.object,
-                  formData: this.formData,
-                  prefix: fieldName
-                }
-              });
-            }
-
-          // 默认文本输入框
-          default:
-            return h('el-input', {
-              ...baseProps,
-              props: {
-                value: value,
-                type: 'text',
-                placeholder: `请输入${param.label}`,
-                style: 'width: 100%;'
-              }
-            });
         }
-      },
-      // 工具方法：获取嵌套对象的值（如 formData.cert.private_key）
-      getNestedValue(obj, path) {
-        if (!path || path === '') return '';
-        return path.split('.').reduce((acc, key) => {
-          return acc && acc[key] !== undefined ? acc[key] : '';
-        }, obj);
-      },
-      // 工具方法：设置嵌套对象的值（自动类型转换）
-      setNestedValue(obj, path, value, type) {
-        if (!path || path === '') return;
-        const keys = path.split('.');
-        const lastKey = keys.pop();
-        const target = keys.reduce((acc, key) => {
-          if (!acc[key]) acc[key] = {};
-          return acc[key];
-        }, obj);
-
-        // 根据类型转换值
-        switch (type) {
-          case 'Int':
-            target[lastKey] = Number(value) || 0;
-            break;
-          case 'Bool':
-            target[lastKey] = value === 'true' || value === true;
-            break;
-          case 'Array':
-            target[lastKey] = value || [];
-            break;
-          default:
-            target[lastKey] = value;
-            break;
-        }
-      }
-    }
-  });
-
-  // 2. 定义校验规则方法
-  const validateRules = {
-    // 邮箱校验
-    validateEmail: (rule, value, callback) => {
-      const reg = /^[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-      if (!value) {
-        callback(new Error(`请输入${rule.fieldName}`));
-      } else if (!reg.test(value)) {
-        callback(new Error(`${rule.fieldName}格式不正确`));
-      } else {
-        callback();
-      }
-    },
-    // 手机号校验
-    validatePhone: (rule, value, callback) => {
-      const reg = /^1[3-9]\d{9}$/;
-      if (!value) {
-        callback(new Error(`请输入${rule.fieldName}`));
-      } else if (!reg.test(value)) {
-        callback(new Error(`${rule.fieldName}格式不正确`));
-      } else {
-        callback();
-      }
-    },
-    // 域名校验
-    validateDomain: (rule, value, callback) => {
-      const reg = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$/;
-      if (!value) {
-        callback(new Error(`请输入${rule.fieldName}`));
-      } else if (!reg.test(value)) {
-        callback(new Error(`${rule.fieldName}格式不正确`));
-      } else {
-        callback();
-      }
-    },
-    // URL校验
-    validateUrl: (rule, value, callback) => {
-      const reg = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w.-]*)*\/?$/;
-      if (!value) {
-        callback(new Error(`请输入${rule.fieldName}`));
-      } else if (!reg.test(value)) {
-        callback(new Error(`${rule.fieldName}格式不正确`));
-      } else {
-        callback();
-      }
-    },
-    // 自定义正则校验
-    validateReg: (rule, value, callback) => {
-      if (!value) {
-        callback(new Error(`请输入${rule.fieldName}`));
-      } else if (rule.reg && !rule.reg.test(value)) {
-        callback(new Error(`${rule.fieldName}格式不正确`));
-      } else {
-        callback();
       }
     }
   };
 
-  // 3. Vue 主实例
-  new Vue({
-    el: '#app',
-    data() {
+  const { createApp, reactive, ref, computed } = Vue;
+
+  function legacyOptionsToSchema(options) {
+    const schema = { type: 'object', title: '支付配置', properties: {}, required: [], 'x-order': [] };
+    for (const option of options || []) {
+      if (!option.name) continue;
+      schema['x-order'].push(option.name);
+      if (option.require) schema.required.push(option.name);
+      schema.properties[option.name] = legacyOptionToNode(option);
+    }
+    return schema;
+  }
+
+  function legacyOptionToNode(option) {
+    // 树形：支持 children（对象）/ item_options（数组元素的字段集）
+    if (Array.isArray(option.children) && option.children.length > 0) {
       return {
-        // 表单数据（最终提交的JSON结构）
-        formData: {},
-        // 表单校验规则
-        formRules: {},
-        // 提交的JSON字符串展示
-        submitJson: '',
-        // 动态表单元数据（替换为你的Param JSON）
-        formMetadata: [
-          {
-            "label": "配置项",
-            "name": "",
-            "type": "Object",
-            "validate_reg": "",
-            "validate_type": "",
-            "object": [
-              {
-                "label": "应用ID",
-                "name": "app_id",
-                "type": "String",
-                "validate_reg": "",
-                "validate_type": "String",
-                "object": [],
-                "default": "",
-                "values": [],
-                "input_type": "text"
-              },
-              {
-                "label": "证书信息",
-                "name": "cert",
-                "type": "Object",
-                "validate_reg": "",
-                "validate_type": "",
-                "object": [
-                  {
-                    "label": "私钥（RSA格式）",
-                    "name": "private_key",
-                    "type": "String",
-                    "validate_reg": "",
-                    "validate_type": "String",
-                    "object": [],
-                    "default": "",
-                    "values": [],
-                    "input_type": "textarea"
-                  },
-                  {
-                    "label": "支付宝证书序列号",
-                    "name": "private_number",
-                    "type": "String",
-                    "validate_reg": "",
-                    "validate_type": "String",
-                    "object": [],
-                    "default": "",
-                    "values": [],
-                    "input_type": "text"
-                  },
-                  {
-                    "label": "支付宝公钥根证书序列号",
-                    "name": "public_number",
-                    "type": "String",
-                    "validate_reg": "",
-                    "validate_type": "String",
-                    "object": [],
-                    "default": "",
-                    "values": [],
-                    "input_type": "text"
-                  },
-                  {
-                    "label": "支付宝证书公钥（RSA格式）",
-                    "name": "public_key",
-                    "type": "String",
-                    "validate_reg": "",
-                    "validate_type": "String",
-                    "object": [],
-                    "default": "",
-                    "values": [],
-                    "input_type": "textarea"
-                  },
-                  {
-                    "label": "支付宝根证书CRT",
-                    "name": "root_crt",
-                    "type": "String",
-                    "validate_reg": "",
-                    "validate_type": "String",
-                    "object": [],
-                    "default": "",
-                    "values": [],
-                    "input_type": "textarea"
-                  },
-                  {
-                    "label": "应用CRT文件",
-                    "name": "app_crt",
-                    "type": "String",
-                    "validate_reg": "",
-                    "validate_type": "String",
-                    "object": [],
-                    "default": "",
-                    "values": [],
-                    "input_type": "textarea"
-                  }
-                ],
-                "default": "",
-                "values": [],
-                "input_type": ""
-              },
-              {
-                "label": "代理配置",
-                "name": "proxy",
-                "type": "Object",
-                "validate_reg": "",
-                "validate_type": "",
-                "object": [
-                  {
-                    "label": "代理地址",
-                    "name": "addr",
-                    "type": "String",
-                    "validate_reg": "^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]\\.[a-zA-Z]{2,}$",
-                    "validate_type": "Domain",
-                    "object": [],
-                    "default": "",
-                    "values": [],
-                    "input_type": "text"
-                  },
-                  {
-                    "label": "代理端口",
-                    "name": "port",
-                    "type": "Int",
-                    "validate_reg": "^[1-9]\\d{0,4}$",
-                    "validate_type": "Int",
-                    "object": [],
-                    "default": "8080",
-                    "values": [],
-                    "input_type": "number"
-                  },
-                  {
-                    "label": "代理协议",
-                    "name": "protocol",
-                    "type": "String",
-                    "validate_reg": "",
-                    "validate_type": "String",
-                    "object": [],
-                    "default": "http",
-                    "values": [
-                      { "value": "http", "label": "HTTP" },
-                      { "value": "https", "label": "HTTPS" },
-                      { "value": "socks5", "label": "SOCKS5" }
-                    ],
-                    "input_type": "select"
-                  }
-                ],
-                "default": "",
-                "values": [],
-                "input_type": ""
-              },
-              {
-                "label": "AppAuthToken",
-                "name": "app_auth_token",
-                "type": "String",
-                "validate_reg": "",
-                "validate_type": "String",
-                "object": [],
-                "default": "",
-                "values": [],
-                "input_type": "text"
-              },
-              {
-                "label": "自定义值",
-                "name": "value",
-                "type": "Array",
-                "validate_reg": "",
-                "validate_type": "",
-                "object": [],
-                "default": "",
-                "values": [
-                  { "value": "value1", "label": "选项1" },
-                  { "value": "value2", "label": "选项2" },
-                  { "value": "value3", "label": "选项3" }
-                ],
-                "input_type": "checkbox"
-              }
-            ],
-            "default": "",
-            "values": [],
-            "input_type": ""
-          }
-        ]
+        type: 'object',
+        title: option.label,
+        description: option.description || undefined,
+        ...buildObjectFromOptions(option.children)
       };
-    },
-    created() {
-      // 初始化表单默认值
-      this.initDefaultValues(this.formMetadata);
-      // 初始化表单校验规则
-      this.initFormRules(this.formMetadata);
+    }
+    if (option.type === 'Array' && Array.isArray(option.item_options) && option.item_options.length > 0) {
+      return {
+        type: 'array',
+        title: option.label,
+        description: option.description || undefined,
+        items: { type: 'object', title: option.item_label || `${option.label}项`, ...buildObjectFromOptions(option.item_options) }
+      };
+    }
+    const node = {
+      type: legacyType(option.type),
+      title: option.label,
+      description: option.description || undefined,
+      pattern: option.validate_reg || undefined,
+      default: castDefault(option.type, option.default),
+      'x-ui': { input_type: option.input_type, validate_type: option.validate_type }
+    };
+    if (option.example !== undefined && option.example !== null && option.example !== '') {
+      node.examples = [castValue(option.type, option.example)];
+    }
+    if (Array.isArray(option.values) && option.values.length > 0) {
+      node.oneOf = option.values.map(item => ({ const: castValue(item.type, item.value), title: item.label }));
+    }
+    if (node.type === 'array') node.items = { type: 'string' };
+    return node;
+  }
+
+  function buildObjectFromOptions(options) {
+    const props = {}, required = [], order = [];
+    for (const o of options) {
+      if (!o.name) continue;
+      order.push(o.name);
+      if (o.require) required.push(o.name);
+      props[o.name] = legacyOptionToNode(o);
+    }
+    return { properties: props, required, 'x-order': order };
+  }
+
+  function legacyType(type) {
+    if (type === 'Int') return 'integer';
+    if (type === 'Bool') return 'boolean';
+    if (type === 'Array') return 'array';
+    if (type === 'Object') return 'object';
+    return 'string';
+  }
+
+  function castDefault(type, value) {
+    if (value === undefined || value === null || value === '') return undefined;
+    if (type === 'Int') return Number(value);
+    if (type === 'Bool') return value === true || value === 'true';
+    if (type === 'Array') return Array.isArray(value) ? value : [];
+    return value;
+  }
+
+  function castValue(type, value) {
+    if (type === 'Int') return Number(value);
+    if (type === 'Bool') return value === true || value === 'true';
+    return value;
+  }
+
+  function orderedEntries(schema) {
+    const properties = schema?.properties || {};
+    const order = schema?.['x-order'] || Object.keys(properties);
+    const names = [...order, ...Object.keys(properties).filter(key => !order.includes(key))];
+    return names.filter(name => properties[name]).map(name => ({ key: name, schema: properties[name] }));
+  }
+
+  function getByPath(root, path) {
+    return path.reduce((obj, key) => (obj == null ? obj : obj[key]), root);
+  }
+
+  function setByPath(root, path, value) {
+    let obj = root;
+    for (let i = 0; i < path.length - 1; i++) {
+      const key = path[i];
+      if (obj[key] === undefined || obj[key] === null || typeof obj[key] !== 'object') {
+        // 下一段是数字索引 -> 新建数组
+        const nextKey = path[i + 1];
+        obj[key] = (typeof nextKey === 'number') ? [] : {};
+      }
+      obj = obj[key];
+    }
+    obj[path[path.length - 1]] = value;
+  }
+
+  function defaultValueFor(schema) {
+    if (!schema) return '';
+    if (schema.default !== undefined) return JSON.parse(JSON.stringify(schema.default));
+    if (schema.type === 'object') return {};
+    if (schema.type === 'array') return [];
+    if (schema.type === 'boolean') return false;
+    if (schema.type === 'integer' || schema.type === 'number') return undefined;
+    return '';
+  }
+
+  // formatExample: 把示例值格式化为 placeholder 文案
+  function formatExample(v) {
+    if (typeof v === 'string') {
+      const first = v.split('\n')[0];
+      if (first.length > 60) return first.slice(0, 57) + '...';
+      if (v.includes('\n')) return first + '...';
+      return first;
+    }
+    if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+    try {
+      const s = JSON.stringify(v);
+      return s.length > 60 ? s.slice(0, 57) + '...' : s;
+    } catch { return String(v); }
+  }
+
+  function schemaPlaceholder(schema, prefix) {
+    const ui = schema['x-ui']?.placeholder;
+    if (ui) return ui;
+    const ex = Array.isArray(schema.examples) ? schema.examples[0] : undefined;
+    if (ex !== undefined && ex !== null && ex !== '') return `示例：${formatExample(ex)}`;
+    return prefix + (schema.title || '');
+  }
+
+  function initDefaults(schema, root, path = []) {
+    if (!schema) return;
+    if (schema.type === 'object') {
+      if (path.length > 0) {
+        const cur = getByPath(root, path);
+        if (cur === undefined || cur === null || typeof cur !== 'object' || Array.isArray(cur)) setByPath(root, path, {});
+      }
+      for (const item of orderedEntries(schema)) initDefaults(item.schema, root, [...path, item.key]);
+      return;
+    }
+    if (schema.type === 'array') {
+      const cur = getByPath(root, path);
+      if (!Array.isArray(cur)) setByPath(root, path, Array.isArray(schema.default) ? [...schema.default] : []);
+      return;
+    }
+    setByPath(root, path, defaultValueFor(schema));
+  }
+
+  function flattenErrors(errors, prefix = '') {
+    return Object.entries(errors).flatMap(([key, value]) => {
+      const path = prefix ? `${prefix}.${key}` : key;
+      if (typeof value === 'string') return [[path, value]];
+      if (value && typeof value === 'object') return flattenErrors(value, path);
+      return [];
+    });
+  }
+
+  function clearObject(obj) {
+    Object.keys(obj).forEach(key => delete obj[key]);
+  }
+
+  function validateSchema(schema, root, path = [], parentRequired = []) {
+    const name = path[path.length - 1];
+    const value = path.length === 0 ? root : getByPath(root, path);
+    const required = parentRequired.includes(name);
+
+    if (schema.type === 'object') {
+      const errors = {};
+      for (const item of orderedEntries(schema)) {
+        const childErrors = validateSchema(item.schema, root, [...path, item.key], schema.required || []);
+        if (childErrors && (typeof childErrors === 'string' || Object.keys(childErrors).length > 0)) {
+          errors[item.key] = childErrors;
+        }
+      }
+      return errors;
+    }
+
+    if (schema.type === 'array') {
+      const errors = {};
+      const arr = Array.isArray(value) ? value : [];
+      if (required && arr.length === 0) return `${schema.title || name}至少要有一项`;
+      if (schema.items) {
+        arr.forEach((_, idx) => {
+          const childErrors = validateSchema(schema.items, root, [...path, idx], []);
+          if (childErrors && (typeof childErrors === 'string' || Object.keys(childErrors).length > 0)) {
+            errors[idx] = childErrors;
+          }
+        });
+      }
+      return errors;
+    }
+
+    const label = schema.title || name;
+    if (required && (value === undefined || value === null || value === '')) {
+      return `${label}是必填项`;
+    }
+    if (value === undefined || value === null || value === '') return {};
+
+    if (schema.type === 'integer' && !Number.isInteger(Number(value))) return `${label}必须是整数`;
+    if (schema.type === 'number' && Number.isNaN(Number(value))) return `${label}必须是数字`;
+    if (schema.pattern && !(new RegExp(schema.pattern)).test(String(value))) return `${label}格式不正确`;
+
+    const validateType = schema['x-ui']?.validate_type || schema.format;
+    if (validateType === 'Email' && !/^\S+@\S+\.\S+$/.test(String(value))) return `${label}格式不正确`;
+    if (validateType === 'Phone' && !/^1[3-9]\d{9}$/.test(String(value))) return `${label}必须是11位手机号码`;
+    if (validateType === 'Domain' && !/^(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/.test(String(value))) return `${label}格式不正确`;
+    if ((validateType === 'Url' || schema.format === 'url') && !/^https?:\/\/.+/.test(String(value))) return `${label}格式不正确`;
+    if (validateType === 'RsaPrivate' && (!String(value).includes('-----BEGIN') || !String(value).includes('PRIVATE KEY-----'))) return `${label}格式不正确，必须是有效的RSA私钥`;
+    if (validateType === 'RsaPublic' && (!String(value).includes('-----BEGIN') || !String(value).includes('PUBLIC KEY-----'))) return `${label}格式不正确，必须是有效的RSA公钥`;
+    if (validateType === 'RsaCert' && (!String(value).includes('-----BEGIN CERTIFICATE-----') || !String(value).includes('-----END CERTIFICATE-----'))) return `${label}格式不正确，必须是有效的证书`;
+
+    return {};
+  }
+
+  const SchemaNode = {
+    name: 'SchemaNode',
+    props: ['schema', 'path', 'root', 'errors', 'onUpdate'],
+    computed: {
+      entries() { return orderedEntries(this.schema); },
+      title() { return this.schema?.title || (this.path.length ? this.path[this.path.length - 1] : '配置'); },
+      arrayValue() {
+        const v = getByPath(this.root, this.path);
+        return Array.isArray(v) ? v : [];
+      }
     },
     methods: {
-      // 初始化表单默认值
-      initDefaultValues(params, prefix = '') {
-        params.forEach(param => {
-          const fieldName = prefix ? `${prefix}.${param.name}` : param.name;
-          if (param.name && param.default !== undefined) {
-            // 类型转换后设置默认值
-            let defaultValue = param.default;
-            switch (param.type) {
-              case 'Int':
-                defaultValue = Number(param.default) || 0;
-                break;
-              case 'Bool':
-                defaultValue = param.default === 'true';
-                break;
-              case 'Array':
-                defaultValue = param.default ? param.default.split(',') : [];
-                break;
-              default:
-                defaultValue = param.default;
-                break;
-            }
-            this.setNestedValue(this.formData, fieldName, defaultValue, param.type);
-          }
-          // 递归初始化Object子属性
-          if (param.type === 'Object' && param.object && param.object.length) {
-            this.initDefaultValues(param.object, fieldName);
-          }
-        });
+      childPath(key) { return [...this.path, key]; },
+      pathKey(path) { return path.join('.'); },
+      childError(key) {
+        if (!this.errors || typeof this.errors !== 'object') return {};
+        return this.errors[key] || {};
       },
-      // 初始化表单校验规则
-      initFormRules(params, prefix = '') {
-        params.forEach(param => {
-          if (!param.name) return; // 跳过无name的根节点
-          const fieldName = prefix ? `${prefix}.${param.name}` : param.name;
-          const rules = [];
-          const fieldLabel = param.label || param.name;
-
-          // 必输校验
-          rules.push({
-            required: true,
-            message: `请输入/选择${fieldLabel}`,
-            trigger: ['blur', 'change']
-          });
-
-          // 内置校验规则
-          if (param.validate_type) {
-            switch (param.validate_type) {
-              case 'Email':
-                rules.push({
-                  validator: (rule, value, callback) => {
-                    rule.fieldName = fieldLabel;
-                    validateRules.validateEmail(rule, value, callback);
-                  },
-                  trigger: 'blur'
-                });
-                break;
-              case 'Phone':
-                rules.push({
-                  validator: (rule, value, callback) => {
-                    rule.fieldName = fieldLabel;
-                    validateRules.validatePhone(rule, value, callback);
-                  },
-                  trigger: 'blur'
-                });
-                break;
-              case 'Domain':
-                rules.push({
-                  validator: (rule, value, callback) => {
-                    rule.fieldName = fieldLabel;
-                    validateRules.validateDomain(rule, value, callback);
-                  },
-                  trigger: 'blur'
-                });
-                break;
-              case 'Url':
-                rules.push({
-                  validator: (rule, value, callback) => {
-                    rule.fieldName = fieldLabel;
-                    validateRules.validateUrl(rule, value, callback);
-                  },
-                  trigger: 'blur'
-                });
-                break;
-              case 'Int':
-                if (param.validate_reg) {
-                  rules.push({
-                    validator: (rule, value, callback) => {
-                      rule.fieldName = fieldLabel;
-                      rule.reg = new RegExp(param.validate_reg);
-                      validateRules.validateReg(rule, value, callback);
-                    },
-                    trigger: 'blur'
-                  });
-                }
-                break;
-            }
-          }
-
-          // 自定义正则校验
-          if (param.validate_reg && !['Email', 'Phone', 'Domain', 'Url'].includes(param.validate_type)) {
-            rules.push({
-              validator: (rule, value, callback) => {
-                rule.fieldName = fieldLabel;
-                rule.reg = new RegExp(param.validate_reg);
-                validateRules.validateReg(rule, value, callback);
-              },
-              trigger: 'blur'
-            });
-          }
-
-          // 设置校验规则
-          this.$set(this.formRules, fieldName, rules);
-
-          // 递归初始化Object子属性规则
-          if (param.type === 'Object' && param.object && param.object.length) {
-            this.initFormRules(param.object, fieldName);
-          }
-        });
-      },
-      // 设置嵌套对象值（复用组件方法）
-      setNestedValue(obj, path, value, type) {
-        if (!path) return;
-        const keys = path.split('.');
-        const lastKey = keys.pop();
-        const target = keys.reduce((acc, key) => {
-          if (!acc[key]) acc[key] = {};
-          return acc[key];
-        }, obj);
-
-        switch (type) {
-          case 'Int':
-            target[lastKey] = Number(value) || 0;
-            break;
-          case 'Bool':
-            target[lastKey] = value === 'true' || value === true;
-            break;
-          case 'Array':
-            target[lastKey] = value || [];
-            break;
-          default:
-            target[lastKey] = value;
-            break;
+      fieldError(path) {
+        let error = this.errors;
+        for (const key of path.slice(this.path.length)) {
+          if (error == null) return '';
+          error = error[key];
         }
+        return typeof error === 'string' ? error : '';
       },
-      // 提交表单
-      submitForm() {
-        this.$refs.configForm.validate((valid) => {
-          if (valid) {
-            // 深拷贝表单数据，避免引用问题
-            const submitData = JSON.parse(JSON.stringify(this.formData));
-            // 格式化JSON展示
-            this.submitJson = JSON.stringify(submitData, null, 2);
-            // 此处可替换为真实接口请求
-            this.$message.success('表单提交成功！');
-            console.log('提交的配置数据：', submitData);
-          } else {
-            this.$message.error('表单校验失败，请检查输入！');
-            return false;
-          }
-        });
+      value(path) { return getByPath(this.root, path); },
+      update(path, val) { this.onUpdate(path, val); },
+      inputType(node) {
+        if (node.oneOf?.length || node.enum?.length) return node['x-ui']?.input_type || 'select';
+        if (node.type === 'boolean') return node['x-ui']?.input_type || 'switch';
+        if (node.type === 'integer' || node.type === 'number') return 'number';
+        return node['x-ui']?.input_type || 'text';
       },
-      // 重置表单
-      resetForm() {
-        this.$refs.configForm.resetFields();
-        // 重置为默认值
-        this.formData = {};
-        this.initDefaultValues(this.formMetadata);
-        this.submitJson = '';
+      choices(node) {
+        if (node.oneOf?.length) return node.oneOf.map(item => ({ value: item.const, label: item.title || item.const }));
+        if (node.enum?.length) return node.enum.map(item => ({ value: item, label: String(item) }));
+        return [];
+      },
+      placeholderOf(node, prefix) { return schemaPlaceholder(node, prefix); },
+      hasExample(node) { return Array.isArray(node?.examples) && node.examples.length > 0; },
+      addArrayItem() {
+        const arr = [...this.arrayValue];
+        arr.push(defaultValueFor(this.schema.items));
+        // 对象项初始化子默认值
+        if (this.schema.items?.type === 'object') {
+          const idx = arr.length - 1;
+          arr[idx] = arr[idx] && typeof arr[idx] === 'object' ? arr[idx] : {};
+        }
+        this.update(this.path, arr);
+      },
+      removeArrayItem(idx) {
+        const arr = [...this.arrayValue];
+        arr.splice(idx, 1);
+        this.update(this.path, arr);
       }
+    },
+    template: `
+    <div>
+      <!-- 对象 -->
+      <el-card v-if="schema.type === 'object'" class="schema-object" shadow="never">
+        <template #header v-if="path.length > 0">{{ title }}</template>
+        <div class="schema-form">
+          <schema-node
+            v-for="item in entries"
+            :key="pathKey(childPath(item.key))"
+            :schema="item.schema"
+            :path="childPath(item.key)"
+            :root="root"
+            :errors="childError(item.key)"
+            :on-update="onUpdate"
+          ></schema-node>
+        </div>
+      </el-card>
+
+      <!-- 数组 -->
+      <el-form-item v-else-if="schema.type === 'array' && schema.items?.type === 'object'" :label="title">
+        <div style="width: 100%;">
+          <div v-for="(item, idx) in arrayValue" :key="idx" class="schema-array-item">
+            <div class="schema-array-item-header">
+              <span>{{ schema.items.title || '项' }} #{{ idx + 1 }}</span>
+              <el-button type="danger" size="small" link @click="removeArrayItem(idx)">删除</el-button>
+            </div>
+            <schema-node
+              :schema="schema.items"
+              :path="[...path, idx]"
+              :root="root"
+              :errors="childError(idx)"
+              :on-update="onUpdate"
+            ></schema-node>
+          </div>
+          <el-button type="primary" plain size="small" @click="addArrayItem">+ 新增{{ schema.items.title || '项' }}</el-button>
+        </div>
+      </el-form-item>
+
+      <!-- 基本数组 (string/number) -->
+      <el-form-item v-else-if="schema.type === 'array'" :label="title" :error="fieldError(path)">
+        <div style="width: 100%;">
+          <div v-for="(item, idx) in arrayValue" :key="idx" style="display:flex;gap:8px;margin-bottom:6px;">
+            <el-input
+              class="full-width"
+              :model-value="arrayValue[idx]"
+              @update:model-value="val => { const arr = [...arrayValue]; arr[idx] = val; update(path, arr); }"
+            ></el-input>
+            <el-button type="danger" size="small" link @click="removeArrayItem(idx)">删除</el-button>
+          </div>
+          <el-button type="primary" plain size="small" @click="addArrayItem">+ 新增</el-button>
+        </div>
+      </el-form-item>
+
+      <!-- 叶子字段 -->
+      <el-form-item v-else :label="title" :error="fieldError(path)" :class="{ 'has-example': hasExample(schema) }">
+        <el-input
+          v-if="inputType(schema) === 'text'"
+          class="full-width"
+          :model-value="value(path)"
+          :placeholder="placeholderOf(schema, '请输入')"
+          clearable
+          @update:model-value="val => update(path, val)"
+        ></el-input>
+        <el-input
+          v-else-if="inputType(schema) === 'password'"
+          class="full-width"
+          type="password"
+          show-password
+          :model-value="value(path)"
+          :placeholder="placeholderOf(schema, '请输入')"
+          clearable
+          @update:model-value="val => update(path, val)"
+        ></el-input>
+        <el-input
+          v-else-if="inputType(schema) === 'textarea'"
+          class="full-width"
+          type="textarea"
+          :rows="schema['x-ui']?.rows || 6"
+          :model-value="value(path)"
+          :placeholder="placeholderOf(schema, '请输入')"
+          @update:model-value="val => update(path, val)"
+        ></el-input>
+        <el-input-number
+          v-else-if="inputType(schema) === 'number'"
+          :model-value="value(path)"
+          @update:model-value="val => update(path, val)"
+        ></el-input-number>
+        <el-select
+          v-else-if="inputType(schema) === 'select'"
+          class="full-width"
+          :model-value="value(path)"
+          clearable
+          :placeholder="placeholderOf(schema, '请选择')"
+          @update:model-value="val => update(path, val)"
+        >
+          <el-option v-for="item in choices(schema)" :key="String(item.value)" :label="item.label" :value="item.value"></el-option>
+        </el-select>
+        <el-radio-group
+          v-else-if="inputType(schema) === 'radio'"
+          :model-value="value(path)"
+          @update:model-value="val => update(path, val)"
+        >
+          <el-radio v-for="item in choices(schema)" :key="String(item.value)" :label="item.value">{{ item.label }}</el-radio>
+        </el-radio-group>
+        <el-checkbox-group
+          v-else-if="inputType(schema) === 'checkbox'"
+          :model-value="value(path) || []"
+          @update:model-value="val => update(path, val)"
+        >
+          <el-checkbox v-for="item in choices(schema)" :key="String(item.value)" :label="item.value">{{ item.label }}</el-checkbox>
+        </el-checkbox-group>
+        <el-switch
+          v-else-if="inputType(schema) === 'switch'"
+          :model-value="Boolean(value(path))"
+          @update:model-value="val => update(path, val)"
+        ></el-switch>
+        <el-input
+          v-else
+          class="full-width"
+          :model-value="value(path)"
+          clearable
+          @update:model-value="val => update(path, val)"
+        ></el-input>
+        <div v-if="schema.description" class="hint">{{ schema.description }}</div>
+      </el-form-item>
+    </div>
+  `
+  };
+
+  createApp({
+    components: { SchemaNode },
+    setup() {
+      const rawJson = ref(JSON.stringify(treeExample, null, 2));
+      const schema = ref(null);
+      const parseError = ref('');
+      const formData = reactive({});
+      const errors = reactive({});
+      const outputJson = computed(() => JSON.stringify(formData, null, 2));
+
+      function applyChannelOption(option) {
+        const nextSchema = option.schema || legacyOptionsToSchema(option.Options || option.options || []);
+        clearObject(formData);
+        clearObject(errors);
+        schema.value = nextSchema;
+        initDefaults(nextSchema, formData);
+      }
+
+      function loadInput() {
+        try {
+          parseError.value = '';
+          applyChannelOption(JSON.parse(rawJson.value));
+        } catch (error) {
+          parseError.value = `JSON解析失败：${error.message}`;
+        }
+      }
+
+      function loadTreeExample() {
+        rawJson.value = JSON.stringify(treeExample, null, 2);
+        loadInput();
+      }
+
+      function resetForm() {
+        clearObject(formData);
+        clearObject(errors);
+        if (schema.value) initDefaults(schema.value, formData);
+      }
+
+      function updateField(path, value) {
+        // 顶层（数组/对象覆写）需要触发 reactive 更新
+        if (path.length === 0) {
+          clearObject(formData);
+          if (value && typeof value === 'object') Object.assign(formData, value);
+          return;
+        }
+        if (path.length === 1) {
+          formData[path[0]] = value;
+          return;
+        }
+        // 中间路径走 setByPath，根 reactivity 已建立则深层赋值同样响应
+        setByPath(formData, path, value);
+        // 触发顶层依赖刷新
+        formData[path[0]] = formData[path[0]];
+      }
+
+      function validateAndOutput() {
+        clearObject(errors);
+        const nextErrors = validateSchema(schema.value, formData);
+        if (nextErrors && typeof nextErrors === 'object') Object.assign(errors, nextErrors);
+        const flat = flattenErrors(errors);
+        if (flat.length > 0) {
+          ElementPlus.ElMessage.error(flat[0][1]);
+          return;
+        }
+        ElementPlus.ElMessage.success('校验通过');
+      }
+
+      loadInput();
+
+      return { rawJson, schema, parseError, formData, errors, outputJson, loadInput, loadTreeExample, resetForm, validateAndOutput, updateField };
     }
-  });
+  }).use(ElementPlus).mount('#app');
 </script>
 </body>
 </html>
