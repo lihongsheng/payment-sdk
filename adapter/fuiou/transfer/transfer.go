@@ -65,7 +65,7 @@ func (t *Transfer) Transfer(ctx context.Context, req *dto.BatchTransferRequest) 
 
 func (t *Transfer) buildTransferParams(req *dto.BatchTransferRequest) *model.TransferRequest {
 	r := &model.TransferRequest{
-		MchntCd:       t.C.MchID,
+		MchntCd:       t.C.Merchant.MchID,
 		TraceNo:       req.TransferNO,
 		AccountIn:     req.SubAccountIn,
 		AccountInList: make([]model.TransferAccountInListItem, 0, len(req.Details)),
@@ -91,7 +91,7 @@ func (t *Transfer) Query(ctx context.Context, req *dto.BatchTransferQueryRequest
 	}
 	request := &model.TransferQueryRequest{
 		TraceNo:             fmt.Sprintf("%d", time.Now().UnixMilli()),
-		MchntCd:             t.C.MchID,
+		MchntCd:             t.C.Merchant.MchID,
 		TradeType:           "10",
 		BatchNo:             req.ThirdTransferNO,
 		SrcFasSsn:           "",

@@ -39,7 +39,7 @@ func (p Payment) GetConfigOptions() *iface.ChannelOption {
 	return &iface.ChannelOption{
 		Channel: channel.Channel_Fuiou.String(),
 		Label:   "富友支付",
-		Options: options,
+		Schema:  schema,
 	}
 }
 
@@ -119,16 +119,16 @@ func initConfig(c config.Config) (*client.Client, error) {
 			return nil, errors.ErrorParamError("parse config err: %v", err)
 		}
 	}
-	if cf.OrderPrefix == "" {
+	if cf.Merchant.OrderPrefix == "" {
 		return nil, errors.ErrorParamError("order_prefix is empty")
 	}
-	if cf.ApiHost == "" {
-		cf.ApiHost = enum2.ApiHost
+	if cf.API.ApiHost == "" {
+		cf.API.ApiHost = enum2.ApiHost
 	} else {
-		cf.ApiHost = strings.TrimRight(cf.ApiHost, "/")
+		cf.API.ApiHost = strings.TrimRight(cf.API.ApiHost, "/")
 	}
-	if cf.Version == "" {
-		cf.Version = enum2.Version
+	if cf.API.Version == "" {
+		cf.API.Version = enum2.Version
 	}
 	cl, err := client.NewClient(cf, c.Proxy)
 	if err != nil {

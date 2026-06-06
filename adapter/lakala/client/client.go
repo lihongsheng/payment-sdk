@@ -21,11 +21,11 @@ type Client struct {
 }
 
 func NewClient(conf config.Config, proxy *proxy.Proxy) (*Client, error) {
-	conf.ApiHost = strings.TrimRight(conf.ApiHost, "/")
-	if conf.ApiHost == "" {
-		conf.ApiHost = enum.ApiHost
+	conf.API.ApiHost = strings.TrimRight(conf.API.ApiHost, "/")
+	if conf.API.ApiHost == "" {
+		conf.API.ApiHost = enum.ApiHost
 	}
-	if conf.TermNO == "" {
+	if conf.Merchant.TermNO == "" {
 		return nil, errors.ErrorParamError("拉卡拉支付必须配置终端号")
 	}
 	client, err := providerClient(proxy)

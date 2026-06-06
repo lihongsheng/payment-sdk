@@ -26,7 +26,7 @@ func NewTransfer(conf config.Config, proxy *proxy.Proxy) (iface.UnitTransfer, er
 	if err != nil {
 		return nil, err
 	}
-	if newClient.C.RsaAppCertSN == "" || newClient.C.RsaRootCertSN == "" {
+	if newClient.C.Cert.RsaAppCertSN == "" || newClient.C.Cert.RsaRootCertSN == "" {
 		return nil, errors.ErrorParamError("AppCertSN is not empty or RootCertSN is not allow empty")
 	}
 	return &Transfer{
@@ -65,8 +65,8 @@ func (t *Transfer) Transfer(ctx context.Context, req *dto.UintTransferRequest) (
 	}
 	commonParam := t.Client.GetCommonRequestParams()
 	commonParam[enum.COMMON_PARAM_METHOD_NAME] = enum.ALIPAY_FUND_TRANS_UNI_TRANSFER
-	commonParam["app_cert_sn"] = t.conf.RsaAppCertSN
-	commonParam["alipay_root_cert_sn"] = t.conf.RsaRootCertSN
+	commonParam["app_cert_sn"] = t.conf.Cert.RsaAppCertSN
+	commonParam["alipay_root_cert_sn"] = t.conf.Cert.RsaRootCertSN
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Println("panic", err)

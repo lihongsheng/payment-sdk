@@ -49,7 +49,7 @@ func (p Payment) GetConfigOptions() *iface.ChannelOption {
 	return &iface.ChannelOption{
 		Channel: channel.Channel_Wechat.String(),
 		Label:   "微信支付",
-		Options: options,
+		Schema:  schema,
 	}
 }
 

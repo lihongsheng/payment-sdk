@@ -30,14 +30,14 @@ func (a *Api) Complete(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse
 	return nil, errors2.ErrorNoSupport("not support Complete")
 }
 func (c *Api) Callback(ctx context.Context, req *http.Request) (*dto.CallbackPayDetail, error) {
-	no, err := notify.NewRSANotifyHandler(c.C.APISecret, c.Verifier)
+	no, err := notify.NewRSANotifyHandler(c.C.Cert.APISecret, c.Verifier)
 	if err != nil {
 		return nil, errors2.ErrorSystemError("wxpay new RSA NotifyHandler errors").WithCause(err)
 	}
 	var resp = &payments.Transaction{}
 	_, err = no.ParseNotifyRequest(ctx, req, resp)
 	if err != nil {
-		_, proErr := until.ProcessBody(c.C.APISecret, req, resp)
+		_, proErr := until.ProcessBody(c.C.Cert.APISecret, req, resp)
 		if proErr != nil {
 			return nil, err
 		}

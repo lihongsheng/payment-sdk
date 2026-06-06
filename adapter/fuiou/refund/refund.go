@@ -42,7 +42,7 @@ func (r *Refund) Refund(ctx context.Context, req *dto.RefundRequest) (*dto.Refun
 		return nil, err
 	}
 	client := r.Client.Client.R().SetHeader("Content-Type", "application/json")
-	result, err := client.SetContext(ctx).SetBody(reqParam).Post(r.C.ApiHost + refundPath)
+	result, err := client.SetContext(ctx).SetBody(reqParam).Post(r.C.API.ApiHost + refundPath)
 	if err != nil && errors.Is(context.DeadlineExceeded, err) {
 		return nil, errors2.ErrorTimeOut("pay timeout").WithCause(err)
 	}
@@ -81,11 +81,11 @@ func (r *Refund) Refund(ctx context.Context, req *dto.RefundRequest) (*dto.Refun
 
 func (r *Refund) buildRefundRequest(req *dto.RefundRequest) *RefundRequest {
 	result := &RefundRequest{
-		Version:            r.C.Version,
-		MchntCd:            r.C.MchID,
+		Version:            r.C.API.Version,
+		MchntCd:            r.C.Merchant.MchID,
 		RandomStr:          tools.GenerateRandomDigits(4),
-		MchntOrderNo:       enum2.GenOrder(r.C.OrderPrefix, req.OrderNo),
-		RefundOrderNo:      enum2.GenOrder(r.C.OrderPrefix, req.RefundNo),
+		MchntOrderNo:       enum2.GenOrder(r.C.Merchant.OrderPrefix, req.OrderNo),
+		RefundOrderNo:      enum2.GenOrder(r.C.Merchant.OrderPrefix, req.RefundNo),
 		TermId:             tools.GenerateRandomDigits(4),
 		TermIp:             "",
 		OrderType:          "",
@@ -102,14 +102,14 @@ func (r *Refund) buildRefundRequest(req *dto.RefundRequest) *RefundRequest {
 	if r.payment == enum.Payment_Alipay {
 		result.OrderType = enum2.OrderTypeALIPAY
 	}
-	result.GenSign(r.C.APISecret)
+	result.GenSign(r.C.Merchant.APISecret)
 	return result
 }
 
 func (r *Refund) Query(ctx context.Context, req dto.RefundQuery) (*dto.RefundDetail, error) {
 	reqParam := r.buildRefundQueryRequest(req)
 	client := r.Client.Client.R().SetHeader("Content-Type", "application/json")
-	result, err := client.SetContext(ctx).SetBody(reqParam).Post(r.C.ApiHost + refundQuery)
+	result, err := client.SetContext(ctx).SetBody(reqParam).Post(r.C.API.ApiHost + refundQuery)
 	if err != nil && errors.Is(context.DeadlineExceeded, err) {
 		return nil, errors2.ErrorTimeOut("Query timeout").WithCause(err)
 	}
@@ -126,7 +126,7 @@ func (r *Refund) Query(ctx context.Context, req dto.RefundQuery) (*dto.RefundDet
 	reservedRefundAmt, _ := strconv.Atoi(resp.ReservedRefundAmt)
 	re := &dto.RefundDetail{
 		RefundNo:      req.RefundNo,
-		OrderNo:       enum2.ParseOrder(r.C.OrderPrefix, resp.MchntOrderNo),
+		OrderNo:       enum2.ParseOrder(r.C.Merchant.OrderPrefix, resp.MchntOrderNo),
 		TradeRefundNo: resp.RefundId,
 		TradeNo:       resp.TransactionId,
 		Amount: dto.Amount{
@@ -142,15 +142,15 @@ func (r *Refund) Query(ctx context.Context, req dto.RefundQuery) (*dto.RefundDet
 
 func (r *Refund) buildRefundQueryRequest(req dto.RefundQuery) *RefundQueryRequest {
 	result := &RefundQueryRequest{
-		Version:       r.C.Version,
-		MchntCd:       r.C.MchID,
+		Version:       r.C.API.Version,
+		MchntCd:       r.C.Merchant.MchID,
 		RandomStr:     tools.GenerateRandomDigits(4),
-		RefundOrderNo: enum2.GenOrder(r.C.OrderPrefix, req.RefundNo),
+		RefundOrderNo: enum2.GenOrder(r.C.Merchant.OrderPrefix, req.RefundNo),
 		TermId:        tools.GenerateRandomDigits(4),
 		Sign:          "",
 	}
 
-	result.GenSign(r.C.APISecret)
+	result.GenSign(r.C.Merchant.APISecret)
 	return result
 }
 

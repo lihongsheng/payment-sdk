@@ -43,7 +43,7 @@ func NewPay(api *client.Client, product enum.PaymentProduct, payment enum.Paymen
 
 func (p *Pay) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, error) {
 	reqParam := p.buildPayParams(req)
-	result, err := p.Client.DoPost(ctx, reqParam, p.C.ApiHost+PayMethod, nil)
+	result, err := p.Client.DoPost(ctx, reqParam, p.C.API.ApiHost+PayMethod, nil)
 	if err != nil && errors.Is(context.DeadlineExceeded, err) {
 		return nil, errors2.ErrorTimeOut("pay timeout").WithCause(err)
 	}
@@ -102,8 +102,8 @@ func (p *Pay) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, err
 // buildPayParams 目前只支持微信 JSAPI/小程序支付
 func (p *Pay) buildPayParams(req *dto.PayOrder) *model.PaymentRequest {
 	r := &model.PaymentRequest{
-		MerchantNo:  p.C.MchID,
-		TermNo:      p.C.TermNO,
+		MerchantNo:  p.C.Merchant.MchID,
+		TermNo:      p.C.Merchant.TermNO,
 		OutTradeNo:  req.Order.OrderNo,
 		AccountType: enum2.PaymentMap[p.payment],
 		TransType:   enum2.ProductMap[p.paymentProduct],
@@ -127,12 +127,12 @@ func (p *Pay) buildPayParams(req *dto.PayOrder) *model.PaymentRequest {
 
 func (p *Pay) Query(ctx context.Context, req dto.Query) (*dto.PayDetail, error) {
 	reqParam := model.PaymentQueryRequest{
-		MerchantNo: p.C.MchID,
-		TermNo:     p.C.TermNO,
+		MerchantNo: p.C.Merchant.MchID,
+		TermNo:     p.C.Merchant.TermNO,
 		OutTradeNo: req.OrderNo,
 		TradeNo:    req.TradeNo,
 	}
-	result, err := p.Client.DoPost(ctx, reqParam, p.C.ApiHost+QueryMethod, nil)
+	result, err := p.Client.DoPost(ctx, reqParam, p.C.API.ApiHost+QueryMethod, nil)
 	if err != nil && errors.Is(context.DeadlineExceeded, err) {
 		return nil, errors2.ErrorTimeOut("pay timeout").WithCause(err)
 	}

@@ -99,7 +99,7 @@ func (t *BatchTransfer) validateTransferParams(req *dto.BatchTransferRequest) er
 
 func (t *BatchTransfer) buildTransferParams(req *dto.BatchTransferRequest) transferbatch.InitiateBatchTransferRequest {
 	result := transferbatch.InitiateBatchTransferRequest{
-		Appid:              core.String(t.C.AppID),
+		Appid:              core.String(t.C.Merchant.AppID),
 		OutBatchNo:         core.String(req.TransferNO),
 		BatchName:          core.String(req.Subject),
 		BatchRemark:        core.String(req.Remark),

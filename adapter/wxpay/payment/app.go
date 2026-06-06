@@ -45,8 +45,8 @@ func (h *App) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, err
 		return nil, until.ErrorHandler(ctx, result, err, "not return H5Url")
 	}
 	var actionParams = map[string]string{}
-	actionParams["appId"] = h.C.AppID
-	actionParams["partnerId"] = h.C.MchID
+	actionParams["appId"] = h.C.Merchant.AppID
+	actionParams["partnerId"] = h.C.Merchant.MchID
 	actionParams["prepayId"] = until.StringPoint(resp.PrepayId)
 	actionParams["timeStamp"] = fmt.Sprintf("%d", time.Now().Unix())
 	actionParams["nonceStr"] = tools.GenerateRandomDigits(10)
@@ -79,8 +79,8 @@ func (h *App) buildPayParams(req *dto.PayOrder) app.PrepayRequest {
 		amount.Currency = core.String(req.Order.PayAmount.Currency)
 	}
 	resp := app.PrepayRequest{
-		Appid:       core.String(h.C.AppID),
-		Mchid:       core.String(h.C.MchID),
+		Appid:       core.String(h.C.Merchant.AppID),
+		Mchid:       core.String(h.C.Merchant.MchID),
 		OutTradeNo:  core.String(req.Order.OrderNo),
 		TimeExpire:  t,
 		Attach:      core.String(req.PassBackParams),
@@ -115,9 +115,9 @@ func (h *App) Query(ctx context.Context, req dto.Query) (*dto.PayDetail, error) 
 	var result *core.APIResult
 	var err error
 	if req.OrderNo != "" {
-		resp, result, err = h.client.QueryOrderByOutTradeNo(ctx, app.QueryOrderByOutTradeNoRequest{OutTradeNo: core.String(req.OrderNo), Mchid: core.String(h.C.MchID)})
+		resp, result, err = h.client.QueryOrderByOutTradeNo(ctx, app.QueryOrderByOutTradeNoRequest{OutTradeNo: core.String(req.OrderNo), Mchid: core.String(h.C.Merchant.MchID)})
 	} else if req.TradeNo != "" {
-		resp, result, err = h.client.QueryOrderById(ctx, app.QueryOrderByIdRequest{TransactionId: core.String(req.TradeNo), Mchid: core.String(h.C.MchID)})
+		resp, result, err = h.client.QueryOrderById(ctx, app.QueryOrderByIdRequest{TransactionId: core.String(req.TradeNo), Mchid: core.String(h.C.Merchant.MchID)})
 	} else {
 		return nil, errors2.ErrorParamError("order_no or trade_no is required")
 	}
@@ -156,7 +156,7 @@ func (h *App) Close(ctx context.Context, req dto.CloseQuery) error {
 		return errors2.ErrorParamError("order_no is required")
 	}
 	result, err := h.client.CloseOrder(ctx, app.CloseOrderRequest{
-		Mchid:      core.String(h.C.MchID),
+		Mchid:      core.String(h.C.Merchant.MchID),
 		OutTradeNo: core.String(req.OrderNo),
 	})
 	if err != nil {

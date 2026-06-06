@@ -76,8 +76,8 @@ func (h *H5) buildPayParmams(req *dto.PayOrder) h5.PrepayRequest {
 		amount.Currency = core.String(req.Order.PayAmount.Currency)
 	}
 	resp := h5.PrepayRequest{
-		Appid:       core.String(h.C.AppID),
-		Mchid:       core.String(h.C.MchID),
+		Appid:       core.String(h.C.Merchant.AppID),
+		Mchid:       core.String(h.C.Merchant.MchID),
 		OutTradeNo:  core.String(req.Order.OrderNo),
 		TimeExpire:  t,
 		Attach:      core.String(req.PassBackParams),
@@ -121,9 +121,9 @@ func (h *H5) Query(ctx context.Context, req dto.Query) (*dto.PayDetail, error) {
 	var result *core.APIResult
 	var err error
 	if req.OrderNo != "" {
-		resp, result, err = h.client.QueryOrderByOutTradeNo(ctx, h5.QueryOrderByOutTradeNoRequest{OutTradeNo: core.String(req.OrderNo), Mchid: core.String(h.C.MchID)})
+		resp, result, err = h.client.QueryOrderByOutTradeNo(ctx, h5.QueryOrderByOutTradeNoRequest{OutTradeNo: core.String(req.OrderNo), Mchid: core.String(h.C.Merchant.MchID)})
 	} else if req.TradeNo != "" {
-		resp, result, err = h.client.QueryOrderById(ctx, h5.QueryOrderByIdRequest{TransactionId: core.String(req.TradeNo), Mchid: core.String(h.C.MchID)})
+		resp, result, err = h.client.QueryOrderById(ctx, h5.QueryOrderByIdRequest{TransactionId: core.String(req.TradeNo), Mchid: core.String(h.C.Merchant.MchID)})
 	} else {
 		return nil, errors2.ErrorParamError("order_no or trade_no is required")
 	}
@@ -162,7 +162,7 @@ func (h *H5) Close(ctx context.Context, req dto.CloseQuery) error {
 		return errors2.ErrorParamError("order_no is required")
 	}
 	result, err := h.client.CloseOrder(ctx, h5.CloseOrderRequest{
-		Mchid:      core.String(h.C.MchID),
+		Mchid:      core.String(h.C.Merchant.MchID),
 		OutTradeNo: core.String(req.OrderNo),
 	})
 	if err != nil {

@@ -49,7 +49,7 @@ func (p *Jsapi) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, e
 		return nil, err
 	}
 	r := p.Client.Client.R().SetHeader("Content-Type", "application/json")
-	result, err := r.SetContext(ctx).SetBody(reqParam).Post(p.C.ApiHost + payMethodPath)
+	result, err := r.SetContext(ctx).SetBody(reqParam).Post(p.C.API.ApiHost + payMethodPath)
 	if err != nil && errors.Is(context.DeadlineExceeded, err) {
 		return nil, errors2.ErrorTimeOut("pay timeout").WithCause(err)
 	}
@@ -68,7 +68,7 @@ func (p *Jsapi) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, e
 		return nil, errors2.ErrorSystemError("pay is error;err:%s", resp.ResultMsg).WithCause(errors.New(fmt.Sprintf("code:%s;Msg:%s", resp.ResultCode, resp.ResultMsg)))
 	}
 	re := &dto.PayResponse{
-		OrderNo: p.C.OrderPrefix + req.Order.OrderNo,
+		OrderNo: p.C.Merchant.OrderPrefix + req.Order.OrderNo,
 		TradeNo: resp.ReservedFyOrderNo,
 		PayAmount: dto.Amount{
 			Currency: req.Order.PayAmount.Currency,
@@ -113,10 +113,10 @@ func (p *Jsapi) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, e
 }
 func (p *Jsapi) buildPayParams(req *dto.PayOrder) *JsApiPaymentRequest {
 	result := &JsApiPaymentRequest{
-		MchntCd:              p.C.MchID,
+		MchntCd:              p.C.Merchant.MchID,
 		RandomStr:            tools.GenerateRandomDigits(4),
 		OrderAmt:             req.Order.PayAmount.Total,
-		MchntOrderNo:         enum2.GenOrder(p.C.OrderPrefix, req.Order.OrderNo),
+		MchntOrderNo:         enum2.GenOrder(p.C.Merchant.OrderPrefix, req.Order.OrderNo),
 		ProductId:            "",
 		TermId:               tools.GenerateRandomDigits(4),
 		GoodsDes:             req.Order.Subject,
@@ -134,7 +134,7 @@ func (p *Jsapi) buildPayParams(req *dto.PayOrder) *JsApiPaymentRequest {
 		ReservedExpireMinute: 0,
 		//ReservedDeviceInfo:   DeviceInfo{},
 		Sign:    "",
-		Version: p.C.Version,
+		Version: p.C.API.Version,
 	}
 	if req.SceneInfo != nil {
 		result.TermIp = req.SceneInfo.ClientIp
@@ -179,6 +179,6 @@ func (p *Jsapi) buildPayParams(req *dto.PayOrder) *JsApiPaymentRequest {
 	if p.payment == enum.Payment_Alipay {
 		result.TradeType = enum2.AliPaymentProductMap[p.paymentProduct]
 	}
-	result.GenSign(p.C.APISecret)
+	result.GenSign(p.C.Merchant.APISecret)
 	return result
 }

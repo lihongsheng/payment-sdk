@@ -51,7 +51,7 @@ func (j *Jsapi) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, e
 		return nil, until.ErrorHandler(ctx, result, err, "not return PrepayId")
 	}
 	var actionParams = map[string]string{}
-	actionParams["appId"] = j.C.AppID
+	actionParams["appId"] = j.C.Merchant.AppID
 	actionParams["timeStamp"] = fmt.Sprintf("%d", time.Now().Unix())
 	actionParams["nonceStr"] = tools.GenerateRandomDigits(10)
 	actionParams["package"] = fmt.Sprintf("prepay_id=%s", *resp.PrepayId)
@@ -99,8 +99,8 @@ func (j *Jsapi) buildPayParams(req *dto.PayOrder) jsapi.PrepayRequest {
 		amount.Currency = core.String(req.Order.PayAmount.Currency)
 	}
 	resp := jsapi.PrepayRequest{
-		Appid:       core.String(j.C.AppID),
-		Mchid:       core.String(j.C.MchID),
+		Appid:       core.String(j.C.Merchant.AppID),
+		Mchid:       core.String(j.C.Merchant.MchID),
 		OutTradeNo:  core.String(req.Order.OrderNo),
 		TimeExpire:  t,
 		Attach:      core.String(req.PassBackParams),
@@ -134,9 +134,9 @@ func (j *Jsapi) Query(ctx context.Context, req dto.Query) (*dto.PayDetail, error
 	var result *core.APIResult
 	var err error
 	if req.OrderNo != "" {
-		resp, result, err = j.client.QueryOrderByOutTradeNo(ctx, jsapi.QueryOrderByOutTradeNoRequest{OutTradeNo: core.String(req.OrderNo), Mchid: core.String(j.C.MchID)})
+		resp, result, err = j.client.QueryOrderByOutTradeNo(ctx, jsapi.QueryOrderByOutTradeNoRequest{OutTradeNo: core.String(req.OrderNo), Mchid: core.String(j.C.Merchant.MchID)})
 	} else if req.TradeNo != "" {
-		resp, result, err = j.client.QueryOrderById(ctx, jsapi.QueryOrderByIdRequest{TransactionId: core.String(req.TradeNo), Mchid: core.String(j.C.MchID)})
+		resp, result, err = j.client.QueryOrderById(ctx, jsapi.QueryOrderByIdRequest{TransactionId: core.String(req.TradeNo), Mchid: core.String(j.C.Merchant.MchID)})
 	} else {
 		return nil, errors2.ErrorParamError("order_no or trade_no is required")
 	}
@@ -175,7 +175,7 @@ func (j *Jsapi) Close(ctx context.Context, req dto.CloseQuery) error {
 		return errors2.ErrorParamError("order_no is required")
 	}
 	result, err := j.client.CloseOrder(ctx, jsapi.CloseOrderRequest{
-		Mchid:      core.String(j.C.MchID),
+		Mchid:      core.String(j.C.Merchant.MchID),
 		OutTradeNo: core.String(req.OrderNo),
 	})
 	if err != nil {

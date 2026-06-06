@@ -76,8 +76,8 @@ func (n *Native) buildPayParmams(req *dto.PayOrder) native.PrepayRequest {
 		amount.Currency = core.String(req.Order.PayAmount.Currency)
 	}
 	resp := native.PrepayRequest{
-		Appid:       core.String(n.C.AppID),
-		Mchid:       core.String(n.C.MchID),
+		Appid:       core.String(n.C.Merchant.AppID),
+		Mchid:       core.String(n.C.Merchant.MchID),
 		OutTradeNo:  core.String(req.Order.OrderNo),
 		TimeExpire:  t,
 		Attach:      core.String(req.PassBackParams),
@@ -109,9 +109,9 @@ func (n *Native) Query(ctx context.Context, req dto.Query) (*dto.PayDetail, erro
 	var result *core.APIResult
 	var err error
 	if req.OrderNo != "" {
-		resp, result, err = n.client.QueryOrderByOutTradeNo(ctx, native.QueryOrderByOutTradeNoRequest{OutTradeNo: core.String(req.OrderNo), Mchid: core.String(n.C.MchID)})
+		resp, result, err = n.client.QueryOrderByOutTradeNo(ctx, native.QueryOrderByOutTradeNoRequest{OutTradeNo: core.String(req.OrderNo), Mchid: core.String(n.C.Merchant.MchID)})
 	} else if req.TradeNo != "" {
-		resp, result, err = n.client.QueryOrderById(ctx, native.QueryOrderByIdRequest{TransactionId: core.String(req.TradeNo), Mchid: core.String(n.C.MchID)})
+		resp, result, err = n.client.QueryOrderById(ctx, native.QueryOrderByIdRequest{TransactionId: core.String(req.TradeNo), Mchid: core.String(n.C.Merchant.MchID)})
 	} else {
 		return nil, errors2.ErrorParamError("order_no or trade_no is required")
 	}
@@ -150,7 +150,7 @@ func (n *Native) Close(ctx context.Context, req dto.CloseQuery) error {
 		return errors2.ErrorParamError("order_no is required")
 	}
 	result, err := n.client.CloseOrder(ctx, native.CloseOrderRequest{
-		Mchid:      core.String(n.C.MchID),
+		Mchid:      core.String(n.C.Merchant.MchID),
 		OutTradeNo: core.String(req.OrderNo),
 	})
 	if err != nil {

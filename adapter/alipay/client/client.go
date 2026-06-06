@@ -55,18 +55,18 @@ func NewClient(conf config.Config, proxy *proxy.Proxy) (*Client, error) {
 
 func initConfig(conf config.Config) (config.Config, error) {
 	var err error
-	if conf.RsaRootCrt != "" {
-		conf.RsaRootCertSN, err = tools.GetCertInfo(conf.RsaRootCrt)
+	if conf.Cert.RsaRootCrt != "" {
+		conf.Cert.RsaRootCertSN, err = tools.GetCertInfo(conf.Cert.RsaRootCrt)
 		if err != nil {
 			return config.Config{}, err
 		}
-		conf.RsaPublic, err = tools.ParseCerToPublicKeyPEM(conf.RsaRootCrt)
+		conf.Cert.RsaPublic, err = tools.ParseCerToPublicKeyPEM(conf.Cert.RsaRootCrt)
 		if err != nil {
 			return config.Config{}, err
 		}
 	}
-	if conf.RsaAppCrt != "" {
-		conf.RsaAppCertSN, err = tools.GetCertInfo(conf.RsaAppCrt)
+	if conf.Cert.RsaAppCrt != "" {
+		conf.Cert.RsaAppCertSN, err = tools.GetCertInfo(conf.Cert.RsaAppCrt)
 		if err != nil {
 			return config.Config{}, err
 		}
@@ -94,7 +94,7 @@ func providerClient(proxy *proxy.Proxy) (*resty.Client, error) {
 
 func (c *Client) GetCommonRequestParams() map[string]string {
 	return map[string]string{
-		enum.COMMON_PARAM_APP_ID_NAME:    c.C.AppID,
+		enum.COMMON_PARAM_APP_ID_NAME:    c.C.Merchant.AppID,
 		enum.COMMON_PARAM_FORMAT_NAME:    "json",
 		enum.COMMON_PARAM_CHARSET_NAME:   "UTF-8",
 		enum.COMMON_PARAM_SIGN_TYPE_NAME: "RSA2",

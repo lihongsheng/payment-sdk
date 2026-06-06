@@ -132,14 +132,14 @@ func (r *Refund) Query(ctx context.Context, req dto.RefundQuery) (*dto.RefundDet
 }
 
 func (r *Refund) Callback(ctx context.Context, req *http.Request) (*dto.CallbackRefundDetail, error) {
-	no, err := notify.NewRSANotifyHandler(r.C.APISecret, r.Verifier)
+	no, err := notify.NewRSANotifyHandler(r.C.Cert.APISecret, r.Verifier)
 	if err != nil {
 		return nil, errors2.ErrorSystemError("wxpay new RSA NotifyHandler errors").WithCause(err)
 	}
 	var resp = &CallbackRefund{}
 	_, err = no.ParseNotifyRequest(ctx, req, resp)
 	if err != nil {
-		_, proErr := until.ProcessBody(r.C.APISecret, req, resp)
+		_, proErr := until.ProcessBody(r.C.Cert.APISecret, req, resp)
 		if proErr != nil {
 			return nil, err
 		}

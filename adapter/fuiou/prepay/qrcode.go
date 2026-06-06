@@ -41,7 +41,7 @@ func (p *Qrcode) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, 
 		return nil, err
 	}
 	r := p.Client.Client.R().SetHeader("Content-Type", "application/json")
-	result, err := r.SetContext(ctx).SetBody(reqParam).Post(p.C.ApiHost + qrcodeMethodPath)
+	result, err := r.SetContext(ctx).SetBody(reqParam).Post(p.C.API.ApiHost + qrcodeMethodPath)
 	if err != nil && errors.Is(context.DeadlineExceeded, err) {
 		return nil, errors2.ErrorTimeOut("pay timeout").WithCause(err)
 	}
@@ -60,7 +60,7 @@ func (p *Qrcode) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, 
 		return nil, errors2.ErrorSystemError("pay is error;err:%s", resp.ResultMsg).WithCause(errors.New(fmt.Sprintf("code:%s;Msg:%s", resp.ResultCode, resp.ResultMsg)))
 	}
 	re := &dto.PayResponse{
-		OrderNo: p.C.OrderPrefix + req.Order.OrderNo,
+		OrderNo: p.C.Merchant.OrderPrefix + req.Order.OrderNo,
 		TradeNo: resp.ReservedFyOrderNo,
 		PayAmount: dto.Amount{
 			Currency: req.Order.PayAmount.Currency,
@@ -79,10 +79,10 @@ func (p *Qrcode) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, 
 }
 func (p *Qrcode) buildPayParams(req *dto.PayOrder) *QrcodePaymentRequest {
 	result := &QrcodePaymentRequest{
-		MchntCd:              p.C.MchID,
+		MchntCd:              p.C.Merchant.MchID,
 		RandomStr:            tools.GenerateRandomDigits(4),
 		OrderAmt:             req.Order.PayAmount.Total,
-		MchntOrderNo:         enum2.GenOrder(p.C.OrderPrefix, req.Order.OrderNo),
+		MchntOrderNo:         enum2.GenOrder(p.C.Merchant.OrderPrefix, req.Order.OrderNo),
 		TermId:               tools.GenerateRandomDigits(4),
 		GoodsDes:             req.Order.Subject,
 		GoodsDetail:          "",
@@ -93,7 +93,7 @@ func (p *Qrcode) buildPayParams(req *dto.PayOrder) *QrcodePaymentRequest {
 		ReservedFyTermId:     "",
 		ReservedExpireMinute: 0,
 		Sign:                 "",
-		Version:              p.C.Version,
+		Version:              p.C.API.Version,
 	}
 	if req.SceneInfo != nil {
 		result.TermIp = req.SceneInfo.ClientIp
@@ -111,6 +111,6 @@ func (p *Qrcode) buildPayParams(req *dto.PayOrder) *QrcodePaymentRequest {
 	if p.payment == enum.Payment_Alipay {
 		result.OrderType = enum2.OrderTypeWECHAT
 	}
-	result.GenSign(p.C.APISecret)
+	result.GenSign(p.C.Merchant.APISecret)
 	return result
 }

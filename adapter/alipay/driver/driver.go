@@ -47,7 +47,7 @@ func (p Payment) GetConfigOptions() *iface.ChannelOption {
 	return &iface.ChannelOption{
 		Channel: channel.Channel_Alipay.String(),
 		Label:   "支付宝支付",
-		Options: options,
+		Schema:  schema,
 	}
 }
 

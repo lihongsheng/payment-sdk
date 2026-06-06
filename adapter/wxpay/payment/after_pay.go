@@ -63,8 +63,8 @@ func (a *AfterPay) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse
 func (a *AfterPay) BuildPayParams(req *dto.PayOrder) payscore.CreateServiceOrderRequest {
 	r := payscore.CreateServiceOrderRequest{
 		OutOrderNo:          core.String(req.Order.OrderNo),
-		Appid:               core.String(a.C.AppID),
-		ServiceId:           core.String(a.C.ScoreServiceID),
+		Appid:               core.String(a.C.Merchant.AppID),
+		ServiceId:           core.String(a.C.Service.ScoreServiceID),
 		ServiceIntroduction: core.String(req.Order.Subject),
 		PostPayments:        nil,
 		PostDiscounts:       nil,
@@ -93,8 +93,8 @@ func (a *AfterPay) BuildPayParams(req *dto.PayOrder) payscore.CreateServiceOrder
 
 func (a *AfterPay) Query(ctx context.Context, req dto.Query) (*dto.PayDetail, error) {
 	reqParams := payscore.GetServiceOrderRequest{
-		ServiceId: core.String(a.C.ScoreServiceID),
-		Appid:     core.String(a.C.AppID),
+		ServiceId: core.String(a.C.Service.ScoreServiceID),
+		Appid:     core.String(a.C.Merchant.AppID),
 	}
 	if req.TradeNo != "" {
 		reqParams.QueryId = core.String(req.TradeNo)
@@ -132,8 +132,8 @@ func (a *AfterPay) Query(ctx context.Context, req dto.Query) (*dto.PayDetail, er
 
 func (a *AfterPay) Close(ctx context.Context, req dto.CloseQuery) error {
 	reqParams := payscore.CancelServiceOrderRequest{
-		ServiceId: core.String(a.C.ScoreServiceID),
-		Appid:     core.String(a.C.AppID),
+		ServiceId: core.String(a.C.Service.ScoreServiceID),
+		Appid:     core.String(a.C.Merchant.AppID),
 	}
 	if req.OrderNo != "" {
 		reqParams.OutOrderNo = core.String(req.OrderNo)
@@ -151,8 +151,8 @@ func (a *AfterPay) Close(ctx context.Context, req dto.CloseQuery) error {
 func (a *AfterPay) Complete(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, error) {
 	reqParams := payscore.CompleteServiceOrderRequest{
 		OutOrderNo: core.String(req.Order.OrderNo),
-		Appid:      core.String(a.C.AppID),
-		ServiceId:  core.String(a.C.ScoreServiceID),
+		Appid:      core.String(a.C.Merchant.AppID),
+		ServiceId:  core.String(a.C.Service.ScoreServiceID),
 		PostPayments: []payscore.Payment{{
 			Name: core.String(req.Order.Subject),
 		}},

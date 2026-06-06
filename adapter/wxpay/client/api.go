@@ -27,7 +27,7 @@ type Api struct {
 func InitClient(c config.Config, proxyInfo *pro.Proxy) (*Api, error) {
 	w := &Api{C: c}
 	// 使用 utils 提供的函数从私钥字符串中加载商户私钥
-	mchPrivateKey, err := utils.LoadPrivateKey(c.RsaPrivate)
+	mchPrivateKey, err := utils.LoadPrivateKey(c.Cert.RsaPrivate)
 	if err != nil {
 		return nil, errors.ErrorParamError("wxpay load merchant private key errors;%s", err.Error())
 	}
@@ -35,15 +35,15 @@ func InitClient(c config.Config, proxyInfo *pro.Proxy) (*Api, error) {
 	ctx := context.Background()
 	opts := []core.ClientOption{}
 	// 使用商户私钥等初始化 client，并使它具有自动定时获取微信支付平台证书的能力
-	if c.RsaPublic != "" && c.RsaPublicNumber != "" {
-		publicKey, err := utils.LoadPublicKey(c.RsaPublic)
+	if c.Cert.RsaPublic != "" && c.Cert.RsaPublicNumber != "" {
+		publicKey, err := utils.LoadPublicKey(c.Cert.RsaPublic)
 		if err != nil {
 			return nil, errors.ErrorParamError("wxpay load merchant Public key errors;%s", err.Error())
 		}
-		w.Verifier = verifiers.NewSHA256WithRSAPubkeyVerifier(c.RsaPublicNumber, *publicKey)
-		opts = append(opts, option.WithWechatPayPublicKeyAuthCipher(c.MchID, c.RsaPrivateNumber, mchPrivateKey, c.RsaPublicNumber, publicKey))
+		w.Verifier = verifiers.NewSHA256WithRSAPubkeyVerifier(c.Cert.RsaPublicNumber, *publicKey)
+		opts = append(opts, option.WithWechatPayPublicKeyAuthCipher(c.Merchant.MchID, c.Cert.RsaPrivateNumber, mchPrivateKey, c.Cert.RsaPublicNumber, publicKey))
 	} else {
-		opts = append(opts, option.WithWechatPayAutoAuthCipher(c.MchID, c.RsaPrivateNumber, mchPrivateKey, c.APISecret))
+		opts = append(opts, option.WithWechatPayAutoAuthCipher(c.Merchant.MchID, c.Cert.RsaPrivateNumber, mchPrivateKey, c.Cert.APISecret))
 		visitor, err := autoVisitor(c, w.PrivateKey)
 		if err != nil {
 			return nil, err
@@ -65,14 +65,14 @@ func autoVisitor(c config.Config, privateKey *rsa.PrivateKey) (auth.Verifier, er
 	ctx := context.Background()
 	// 1. 使用 `RegisterDownloaderWithPrivateKey` 注册下载器
 	mgr := downloader.MgrInstance()
-	if !mgr.HasDownloader(context.Background(), c.MchID) {
-		err := downloader.MgrInstance().RegisterDownloaderWithPrivateKey(ctx, privateKey, c.RsaPrivateNumber, c.MchID, c.APISecret)
+	if !mgr.HasDownloader(context.Background(), c.Merchant.MchID) {
+		err := downloader.MgrInstance().RegisterDownloaderWithPrivateKey(ctx, privateKey, c.Cert.RsaPrivateNumber, c.Merchant.MchID, c.Cert.APISecret)
 		if err != nil {
 			return nil, err
 		}
 	}
 	// 2. 获取商户号对应的微信支付平台证书访问器
-	certificateVisitor := downloader.MgrInstance().GetCertificateVisitor(c.MchID)
+	certificateVisitor := downloader.MgrInstance().GetCertificateVisitor(c.Merchant.MchID)
 	return verifiers.NewSHA256WithRSAVerifier(certificateVisitor), nil
 }
 

@@ -60,7 +60,7 @@ func (c *TransferCallback) decryptResponse(req *http.Request) (*model.CommonEncr
 		}
 	}
 	encryptResponse.OriginBody = string(bodyBytes)
-	messageGbk, err := c.Sign.DecryptByKey(encryptResponse.Message, []byte(c.C.RsaPrivate))
+	messageGbk, err := c.Sign.DecryptByKey(encryptResponse.Message, []byte(c.C.Cert.RsaPrivate))
 	if err != nil {
 		return nil, err
 	}

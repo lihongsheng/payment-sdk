@@ -83,7 +83,7 @@ func (j *Jsapi) buildPayParams(req *dto.PayOrder) model.JsApiPaymentRequest {
 	result := model.JsApiPaymentRequest{
 		OutTradeNo:         req.Order.OrderNo,
 		ProductCode:        enum.JSAPI,
-		OpAppId:            j.Client.C.AppID,
+		OpAppId:            j.Client.C.Merchant.AppID,
 		TotalAmount:        req.Order.PayAmount.ToFloatString(),
 		ExtendParams:       nil,
 		DiscountableAmount: "",

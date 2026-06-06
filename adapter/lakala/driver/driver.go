@@ -36,7 +36,7 @@ func (p Payment) GetConfigOptions() *iface.ChannelOption {
 	return &iface.ChannelOption{
 		Channel: channel.Channel_Lakala.String(),
 		Label:   "拉卡拉支付",
-		Options: options,
+		Schema:  schema,
 	}
 }
 

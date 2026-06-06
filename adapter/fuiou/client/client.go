@@ -38,13 +38,13 @@ type Client struct {
 }
 
 func NewClient(conf config.Config, proxy *proxy.Proxy) (*Client, error) {
-	if conf.ApiHost == "" {
-		conf.ApiHost = enum2.ApiHost
+	if conf.API.ApiHost == "" {
+		conf.API.ApiHost = enum2.ApiHost
 	} else {
-		conf.ApiHost = strings.TrimRight(conf.ApiHost, "/")
+		conf.API.ApiHost = strings.TrimRight(conf.API.ApiHost, "/")
 	}
-	if conf.Version == "" {
-		conf.Version = enum2.Version
+	if conf.API.Version == "" {
+		conf.API.Version = enum2.Version
 	}
 	client, err := providerClient(conf, proxy)
 	if err != nil {
@@ -105,7 +105,7 @@ func (c *Client) PostReqFrom(ctx context.Context, path string, req Req, header m
 	xmlGbk, _ := util.URLEncodeGBK(xml)
 	values := url.Values{}
 	values.Add(enum.POST_COMMON_PARAM, xmlGbk)
-	resp, err := r.SetFormDataFromValues(values).Post(c.C.ApiHost + path)
+	resp, err := r.SetFormDataFromValues(values).Post(c.C.API.ApiHost + path)
 	if err != nil {
 		log.Error(ctx, "fuiou request failed",
 			log.F(log.FieldKeyChannel, "fuiou"),
@@ -145,14 +145,14 @@ func (c *Client) PostEncryptFrom(ctx context.Context, path string, req Req, head
 	req.Sign(sign)
 	xmlStr, err := req.Xml()
 	xmlGbk, _ := util.Utf8ToGbk(xmlStr)
-	encryptStr, err := c.Sign.EncryptByPublicKey([]byte(xmlGbk), []byte(c.C.RsaPublic))
+	encryptStr, err := c.Sign.EncryptByPublicKey([]byte(xmlGbk), []byte(c.C.Cert.RsaPublic))
 	if err != nil {
 		return nil, err
 	}
 	values := url.Values{}
-	values.Add(enum.POST_ENCRYPT_COMMON_PARAM_MCN, c.C.MchID)
+	values.Add(enum.POST_ENCRYPT_COMMON_PARAM_MCN, c.C.Merchant.MchID)
 	values.Add(enum.POST_ENCRYPT_COMMON_PARAM_MESSAGE, encryptStr)
-	resp, err := r.SetFormDataFromValues(values).Post(c.C.ApiHost + path)
+	resp, err := r.SetFormDataFromValues(values).Post(c.C.API.ApiHost + path)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func (c *Client) PostEncryptFrom(ctx context.Context, path string, req Req, head
 		}
 	}
 	encryptResponse.OriginBody = string(body)
-	messageGbk, err := c.Sign.DecryptByKey(encryptResponse.Message, []byte(c.C.RsaPrivate))
+	messageGbk, err := c.Sign.DecryptByKey(encryptResponse.Message, []byte(c.C.Cert.RsaPrivate))
 	if err != nil {
 		return nil, err
 	}

@@ -82,7 +82,7 @@ func (t *Transfer) validateTransferParams(req *dto.UintTransferRequest) error {
 
 func (t *Transfer) BuildTransfer(req *dto.UintTransferRequest) mchtransfer.TransferBillRequest {
 	r := mchtransfer.TransferBillRequest{
-		Appid:                    t.C.AppID,
+		Appid:                    t.C.Merchant.AppID,
 		NotifyUrl:                req.NotifyUrl,
 		Openid:                   req.User.OpenID,
 		UserName:                 req.User.UserName,

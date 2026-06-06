@@ -36,11 +36,11 @@ type Sign struct {
 }
 
 func NewSign(conf config.Config) (*Sign, error) {
-	private, err := loadPravate(conf.RsaPrivate)
+	private, err := loadPravate(conf.Cert.RsaPrivate)
 	if err != nil {
 		return nil, err
 	}
-	public, err := loadPublic(conf.RsaPublic)
+	public, err := loadPublic(conf.Cert.RsaPublic)
 	return &Sign{
 		conf:       conf,
 		PrivateKey: private,
@@ -69,7 +69,7 @@ func (s *Sign) Sign(signParams map[string]string, body map[string]string) (strin
 		signStr += k + "=" + signParams[k] + "&"
 	}
 	signStr = signStr[:len(signStr)-1]
-	return s.RsaSign(signStr, s.conf.RsaPrivate)
+	return s.RsaSign(signStr, s.conf.Cert.RsaPrivate)
 }
 
 func loadPravate(privateKeyPEM string) (*rsa.PrivateKey, error) {
