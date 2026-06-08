@@ -125,7 +125,7 @@ func (p Refund) Open(c config.Config) (iface.Refund, error) {
 
 func initConfig(c config.Config) (*client.Client, error) {
 	var cf conf.Config
-	if c.LakalaConfig != nil {
+	if c.AlipayConfig != nil {
 		cf = *c.AlipayConfig
 	} else {
 		if c.Config == "" {

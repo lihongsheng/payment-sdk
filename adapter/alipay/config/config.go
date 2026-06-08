@@ -1,15 +1,12 @@
 package config
 
 import (
-	"github.com/lihongsheng/payment-sdk/config/proxy"
 	"github.com/lihongsheng/payment-sdk/errors"
 )
 
 type Config struct {
 	Merchant Merchant `json:"merchant"`
 	Cert     Cert     `json:"cert"`
-	// 代理
-	Proxy proxy.Proxy `json:"proxy"`
 }
 
 type Merchant struct {

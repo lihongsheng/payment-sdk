@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -12,6 +13,8 @@ import (
 	"github.com/lihongsheng/payment-sdk/log"
 	"github.com/lihongsheng/payment-sdk/tools"
 	"html"
+	"io/ioutil"
+	"net/http"
 	"net/url"
 	"strings"
 	"time"
@@ -297,4 +300,58 @@ func (c *Client) GetResponseSignContent(body string, method string) (string, err
 		return body[errorIndex : lastIndex-1], nil
 	}
 	return "", errors.ErrorParamError("获取响应签名内容失败")
+}
+
+// VerifyCallback 统一验签回调请求
+// 返回: 解析后的参数 map, 原始 body 字节, 错误
+func (c *Client) VerifyCallback(ctx context.Context, req *http.Request) (url.Values, []byte, error) {
+	bodyBytes, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		log.Error(ctx, "alipay callback read body failed",
+			log.F(log.FieldKeyChannel, "alipay"),
+			log.F(log.FieldKeyError, err.Error()),
+		)
+		return nil, nil, errors.ErrorParamError("read request body err: %v", err)
+	}
+	req.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+
+	values, err := url.ParseQuery(string(bodyBytes))
+	if err != nil {
+		log.Error(ctx, "alipay callback parse body failed",
+			log.F(log.FieldKeyChannel, "alipay"),
+			log.F(log.FieldKeyError, err.Error()),
+		)
+		return nil, nil, errors.ErrorParamError("parse request body err: %v", err)
+	}
+
+	signStr, signValue, err := c.Sign.GenerateSignString(values)
+	if err != nil {
+		log.Error(ctx, "alipay callback generate sign string failed",
+			log.F(log.FieldKeyChannel, "alipay"),
+			log.F(log.FieldKeyError, err.Error()),
+		)
+		return nil, nil, err
+	}
+
+	verify, err := c.Sign.RsaVerify(signStr, signValue)
+	if err != nil || !verify {
+		log.Error(ctx, "alipay callback verify sign failed",
+			log.F(log.FieldKeyChannel, "alipay"),
+			log.F("sign_str", signStr),
+			log.F("sign_value", signValue),
+			log.F(log.FieldKeyError, err),
+		)
+		if err != nil {
+			return nil, nil, err
+		}
+		return nil, nil, errors.ErrorSignError("签名验证失败："+string(bodyBytes), nil)
+	}
+
+	log.Info(ctx, "alipay callback verify success",
+		log.F(log.FieldKeyChannel, "alipay"),
+		log.F(log.FieldKeyOrderNo, values.Get("out_trade_no")),
+		log.F(log.FieldKeyTradeNo, values.Get("trade_no")),
+	)
+
+	return values, bodyBytes, nil
 }

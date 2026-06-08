@@ -36,7 +36,7 @@ var schema = &params.Schema{
 			Type:        params.SchemaObject,
 			Title:       "证书配置",
 			Description: "应用私钥及证书",
-			Required:    []string{"rsa_private_key"},
+			Required:    []string{"rsa_private_key", "rsa_root_crt"},
 			Order:       []string{"rsa_private_key", "rsa_app_crt", "rsa_root_crt"},
 			Properties: map[string]*params.Schema{
 				"rsa_private_key": {
