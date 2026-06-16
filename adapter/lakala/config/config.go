@@ -1,29 +1,51 @@
 package config
 
-import "github.com/lihongsheng/payment-sdk/config/proxy"
+import "github.com/lihongsheng/payment-sdk/errors"
 
 type Config struct {
-	//app id
+	Merchant Merchant `json:"merchant"`
+	Cert     Cert     `json:"cert"`
+	API      API      `json:"api"`
+}
+
+type Merchant struct {
+	// 应用id
 	AppID string `json:"app_id"`
 	// 商户号
 	MchID string `json:"mch_id"`
-	// api  秘钥
-	APISecret string `json:"api_secret"`
-	// 证书
-	Cert Cert `json:"cert"`
-	// 代理
-	Proxy proxy.Proxy `json:"proxy"`
 	// 终端号
 	TermNO string `json:"term_no"`
-	// api 地址 https://s2.lakala.com
-	ApiHost string `json:"api_host"`
 }
 
 type Cert struct {
 	// 私钥 rsa 格式
-	Private string `json:"private_key"`
+	RsaPrivate string `json:"rsa_private_key"`
 	// 私钥证书序列号
-	PrivateNumber string `json:"private_number"`
+	RsaPrivateNumber string `json:"rsa_private_number"`
 	// 公钥 rsa 格式
-	Public string `json:"public_key"`
+	RsaPublic string `json:"rsa_public_key"`
+}
+
+type API struct {
+	// api 默认地址 https://s2.lakala.com
+	ApiHost string `json:"api_host"`
+}
+
+func (c Config) Validate() error {
+	if c.Merchant.AppID == "" {
+		return errors.ErrorParamError("拉卡拉: 应用ID is empty")
+	}
+	if c.Merchant.TermNO == "" {
+		return errors.ErrorParamError("拉卡拉: 终端号 is empty")
+	}
+	if c.Cert.RsaPrivate == "" {
+		return errors.ErrorParamError("拉卡拉: 私钥 is empty")
+	}
+	if c.Cert.RsaPrivateNumber == "" {
+		return errors.ErrorParamError("拉卡拉: 私钥正式序列号不可为空")
+	}
+	if c.Cert.RsaPublic == "" {
+		return errors.ErrorParamError("拉卡拉: 公钥不可为空")
+	}
+	return nil
 }

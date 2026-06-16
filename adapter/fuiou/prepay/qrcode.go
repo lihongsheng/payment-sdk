@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/lihongsheng/payment-sdk/adapter/fuiou/config"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/client"
 	enum2 "github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
@@ -25,13 +25,13 @@ type Qrcode struct {
 	*Api
 }
 
-func NewQrcode(conf config.Config, product enum.PaymentProduct, payment enum.Payment) (iface.Pay, error) {
-	api, err := NewApi(conf, product, payment)
+func NewQrcode(api *client.Client, product enum.PaymentProduct, payment enum.Payment) (iface.Pay, error) {
+	api2, err := NewApi(api, product, payment)
 	if err != nil {
 		return nil, err
 	}
 	return &Qrcode{
-		api,
+		api2,
 	}, nil
 }
 
@@ -41,7 +41,7 @@ func (p *Qrcode) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, 
 		return nil, err
 	}
 	r := p.Client.Client.R().SetHeader("Content-Type", "application/json")
-	result, err := r.SetContext(ctx).SetBody(reqParam).Post(p.C.ApiHost + qrcodeMethodPath)
+	result, err := r.SetContext(ctx).SetBody(reqParam).Post(p.C.API.ApiHost + qrcodeMethodPath)
 	if err != nil && errors.Is(context.DeadlineExceeded, err) {
 		return nil, errors2.ErrorTimeOut("pay timeout").WithCause(err)
 	}
@@ -60,7 +60,7 @@ func (p *Qrcode) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, 
 		return nil, errors2.ErrorSystemError("pay is error;err:%s", resp.ResultMsg).WithCause(errors.New(fmt.Sprintf("code:%s;Msg:%s", resp.ResultCode, resp.ResultMsg)))
 	}
 	re := &dto.PayResponse{
-		OrderNo: p.C.OrderPrefix + req.Order.OrderNo,
+		OrderNo: p.C.Merchant.OrderPrefix + req.Order.OrderNo,
 		TradeNo: resp.ReservedFyOrderNo,
 		PayAmount: dto.Amount{
 			Currency: req.Order.PayAmount.Currency,
@@ -79,10 +79,10 @@ func (p *Qrcode) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, 
 }
 func (p *Qrcode) buildPayParams(req *dto.PayOrder) *QrcodePaymentRequest {
 	result := &QrcodePaymentRequest{
-		MchntCd:              p.C.MchID,
+		MchntCd:              p.C.Merchant.MchID,
 		RandomStr:            tools.GenerateRandomDigits(4),
 		OrderAmt:             req.Order.PayAmount.Total,
-		MchntOrderNo:         enum2.GenOrder(p.C.OrderPrefix, req.Order.OrderNo),
+		MchntOrderNo:         enum2.GenOrder(p.C.Merchant.OrderPrefix, req.Order.OrderNo),
 		TermId:               tools.GenerateRandomDigits(4),
 		GoodsDes:             req.Order.Subject,
 		GoodsDetail:          "",
@@ -93,7 +93,7 @@ func (p *Qrcode) buildPayParams(req *dto.PayOrder) *QrcodePaymentRequest {
 		ReservedFyTermId:     "",
 		ReservedExpireMinute: 0,
 		Sign:                 "",
-		Version:              p.C.Version,
+		Version:              p.C.API.Version,
 	}
 	if req.SceneInfo != nil {
 		result.TermIp = req.SceneInfo.ClientIp
@@ -105,12 +105,12 @@ func (p *Qrcode) buildPayParams(req *dto.PayOrder) *QrcodePaymentRequest {
 		result.TxnBeginTs = req.Order.CreateAt.Format("20060102150405")
 	}
 
-	if p.payment == enum.Payment_Wxpay {
+	if p.payment == enum.Payment_Wechat {
 		result.OrderType = enum2.OrderTypeALIPAY
 	}
 	if p.payment == enum.Payment_Alipay {
 		result.OrderType = enum2.OrderTypeWECHAT
 	}
-	result.GenSign(p.C.APISecret)
+	result.GenSign(p.C.Merchant.APISecret)
 	return result
 }

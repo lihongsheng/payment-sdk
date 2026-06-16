@@ -27,6 +27,14 @@ func Payment(chl channel.Channel, options ...config.Option) (iface.Pay, error) {
 	return driver.Payment(chl, *cf)
 }
 
+func GetPaymentDriver(channelName channel.Channel) (iface.PaymentDriver, error) {
+	return driver.GetPaymentDriver(channelName)
+}
+
+func GetRefundDriver(channelName channel.Channel) (iface.RefundDriver, error) {
+	return driver.GetRefundDriver(channelName)
+}
+
 func Refund(chl channel.Channel, options ...config.Option) (iface.Refund, error) {
 	cf := config.NewRefund()
 	for _, option := range options {

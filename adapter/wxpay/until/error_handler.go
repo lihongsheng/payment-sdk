@@ -6,10 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 
-	errors2 "github.com/lihongsheng/payment-sdk/errors"
+	sdkerr "github.com/lihongsheng/payment-sdk/errors"
+	"github.com/lihongsheng/payment-sdk/log"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
-	"github.com/zeromicro/go-zero/core/logc"
 )
 
 // 微信支付错误处理
@@ -50,48 +51,69 @@ func ErrorHandler(ctx context.Context, result *core.APIResult, err error, messag
 			if message == "" {
 				message = apiErr.Message
 			}
-			return handlerErr(apiErr, message)
+			return handlerErr(ctx, apiErr, message)
 		}
-		return errors2.ErrorSystemError(message, nil).WithCause(err)
+		log.Error(ctx, "wxpay request failed",
+			log.F(log.FieldKeyChannel, "wxpay"),
+			log.F(log.FieldKeyError, err.Error()),
+		)
+		return sdkerr.ErrorSystemError(message, nil).WithCause(err)
 	}
 	if result == nil {
-		return errors2.ErrorSystemError("not return result;"+message, nil)
+		log.Error(ctx, "wxpay response empty",
+			log.F(log.FieldKeyChannel, "wxpay"),
+		)
+		return sdkerr.ErrorSystemError("not return result;"+message, nil)
 	}
 	if result.Response.StatusCode > 300 {
 		var errResp = core.APIError{}
 		body, err := io.ReadAll(result.Response.Body)
 		if err != nil {
-			logc.Debugw(ctx, "wxpay-is-error", logc.Field("Response", result))
-			return errors2.ErrorSystemError("wxpay is error;err:%s", err.Error()).WithCause(err)
+			log.Error(ctx, "wxpay read error response failed",
+				log.F(log.FieldKeyChannel, "wxpay"),
+				log.F(log.FieldKeyError, err.Error()),
+			)
+			return sdkerr.ErrorSystemError("wxpay is error;err:%s", err.Error()).WithCause(err)
 		}
 		_ = json.Unmarshal(body, &errResp)
 		if message == "" {
 			message = errResp.Message
 		}
-		return handlerErr(&errResp, message)
+		return handlerErr(ctx, &errResp, message)
 	}
 	return nil
 }
 
-func handlerErr(err *core.APIError, message string) error {
+func handlerErr(ctx context.Context, err *core.APIError, message string) error {
+	log.Error(ctx, "wxpay api error",
+		log.F(log.FieldKeyChannel, "wxpay"),
+		log.F("err_code", err.Code),
+		log.F("err_message", message),
+	)
+	if strings.Contains(message, "此商家的收款功能已被限制") {
+		return sdkerr.ErrorPaymentLimited("code:%s;message:%s", err.Code, message)
+	}
+	if strings.Contains(message, "invalid ip") {
+		return sdkerr.ErrorIpLimited("IP被限制;code:%s;message:%s", err.Code, message)
+	}
 	switch err.Code {
 	case OUT_TRADE_NO_USED:
-		return errors2.ErrorDuplicateRequest("order is used;"+message, nil).WithCause(err)
+		return sdkerr.ErrorDuplicateRequest("order is used; code:%s;message:%s", err.Code, message).WithCause(err)
 	case FREQUENCY_LIMITED:
-		return errors2.ErrorLimited("frequency is limited;"+message, nil).WithCause(err)
+		return sdkerr.ErrorLimited("frequency is limited; code:%s;message:%s", err.Code, message).WithCause(err)
 	case PARAM_ERROR:
-		return errors2.ErrorParamError("param is error;"+message, nil).WithCause(err)
+		return sdkerr.ErrorParamError("param is error; code:%s;message:%s", err.Code, message).WithCause(err)
 	case INVALID_REQUEST:
-		return errors2.ErrorInvalidRequest("invalid request;"+message, nil).WithCause(err)
+		return sdkerr.ErrorInvalidRequest("invalid request; code:%s;message:%s", err.Code, message).WithCause(err)
 	case SIGN_ERROR:
-		return errors2.ErrorSignError("sign is error;"+message, nil).WithCause(err)
+		return sdkerr.ErrorSignError("sign is error; code:%s;message:%s", err.Code, message).WithCause(err)
 	case APPID_MCHID_NOT_MATCH:
-		return errors2.ErrorAppidMchidNotMatch("appid or mchid is not match;"+message, nil).WithCause(err)
+		return sdkerr.ErrorAppidMchidNotMatch("appid or mchid is not match; code:%s;message:%s", err.Code, message).WithCause(err)
 	case MCH_NOT_EXISTS:
-		return errors2.ErrorMchNotExists("mch is not exists;"+message, nil).WithCause(err)
+		return sdkerr.ErrorMchNotExists("mch is not exists; code:%s;message:%s", err.Code, message).WithCause(err)
 	case SYSTEM_ERROR:
-		return errors2.ErrorRetrySystemError("system error;please retry;"+message, nil).WithCause(err)
+		return sdkerr.ErrorRetrySystemError("system error;please retry; code:%s;message:%s", err.Code, message).WithCause(err)
 	}
 
-	return errors2.ErrorSystemError(message, nil).WithCause(errors.New(fmt.Sprintf("code:%s;message:%s", err.Code, err.Message)))
+	return sdkerr.ErrorSystemError("code:%s;message:%s", err.Code, message).WithCause(errors.New(fmt.Sprintf("code:%s;message:%s", err.Code, err.Message)))
 }

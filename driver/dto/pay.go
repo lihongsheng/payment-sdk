@@ -2,6 +2,7 @@ package dto
 
 import (
 	"fmt"
+	enum2 "github.com/lihongsheng/payment-sdk/enum"
 	"time"
 
 	enum "github.com/lihongsheng/payment-sdk/enum/payment"
@@ -56,11 +57,9 @@ type Order struct {
 }
 
 type ApplicationInfo struct {
-	AppName        string `json:"app_name"`
-	Url            string `json:"url"`
-	IOSPackage     string `json:"ios_package"`
-	AndroidPackage string `json:"android_package"`
-	Type           string `json:"type"`
+	AppName    string `json:"app_name"`
+	Url        string `json:"url"`
+	AppPackage string `json:"app_package"`
 }
 
 type SceneInfo struct {
@@ -69,8 +68,12 @@ type SceneInfo struct {
 	// 设备ID
 	DeviceID string `json:"device_id"`
 	// 门店ID
-	Store  Store           `json:"store"`
-	H5Info ApplicationInfo `json:"h5_info"`
+	Store Store `json:"store"`
+	// 设备
+	Device enum2.Device `json:"device"`
+	// 系统
+	System          enum2.System    `json:"system"`
+	ApplicationInfo ApplicationInfo `json:"h5_info"`
 }
 
 type PayOrder struct {

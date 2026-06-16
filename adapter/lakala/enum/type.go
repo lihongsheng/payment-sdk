@@ -37,7 +37,7 @@ func GetPaymentStatus(state string) payment.Status {
 }
 
 var PaymentMap = map[payment.Payment]string{
-	payment.Payment_Wxpay:  "WECHAT",
+	payment.Payment_Wechat: "WECHAT",
 	payment.Payment_Alipay: "ALIPAY",
 }
 

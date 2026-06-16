@@ -25,7 +25,6 @@ func ErrorDuplicateRequest(format string, args ...interface{}) *errors.Error {
 	return errors.New(400, ErrorReason_DUPLICATE_REQUEST.String(), fmt.Sprintf(format, args...))
 }
 
-// 为某个枚举单独设置错误码业务错误
 func IsUnauthorized(err error) bool {
 	if err == nil {
 		return false
@@ -34,7 +33,6 @@ func IsUnauthorized(err error) bool {
 	return e.Reason == ErrorReason_UNAUTHORIZED.String() && e.Code == 401
 }
 
-// 为某个枚举单独设置错误码业务错误
 func ErrorUnauthorized(format string, args ...interface{}) *errors.Error {
 	return errors.New(401, ErrorReason_UNAUTHORIZED.String(), fmt.Sprintf(format, args...))
 }
@@ -205,4 +203,46 @@ func IsRetrySystemError(err error) bool {
 // 重试
 func ErrorRetrySystemError(format string, args ...interface{}) *errors.Error {
 	return errors.New(500, ErrorReason_RETRY_SYSTEM_ERROR.String(), fmt.Sprintf(format, args...))
+}
+
+// 用户被限制
+func IsUserLimited(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_USER_LIMITED.String() && e.Code == 429
+}
+
+// 用户被限制
+func ErrorUserLimited(format string, args ...interface{}) *errors.Error {
+	return errors.New(429, ErrorReason_USER_LIMITED.String(), fmt.Sprintf(format, args...))
+}
+
+// 支付被限制
+func IsPaymentLimited(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_PAYMENT_LIMITED.String() && e.Code == 429
+}
+
+// 支付被限制
+func ErrorPaymentLimited(format string, args ...interface{}) *errors.Error {
+	return errors.New(429, ErrorReason_PAYMENT_LIMITED.String(), fmt.Sprintf(format, args...))
+}
+
+// IP 被限制
+func IsIpLimited(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_IP_LIMITED.String() && e.Code == 429
+}
+
+// IP 被限制
+func ErrorIpLimited(format string, args ...interface{}) *errors.Error {
+	return errors.New(429, ErrorReason_IP_LIMITED.String(), fmt.Sprintf(format, args...))
 }

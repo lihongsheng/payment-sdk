@@ -116,15 +116,15 @@ type VoucherDetailList struct {
 }
 
 type QrCodePaymentRequest struct {
-	OutTradeNo     string              `json:"out_trade_no"`
-	TotalAmount    string              `json:"total_amount"`
-	Subject        string              `json:"subject"`
-	ProductCode    string              `json:"product_code"`
-	SellerId       string              `json:"seller_id"`
-	GoodsDetail    []*GoodDetails      `json:"goods_detail"`
-	ExtendParams   *PaymentExtendParam `json:"extend_params"`
-	BusinessParams *BusinessParams     `json:"business_params"`
-	StoreId        string              `json:"store_id"`
-	OperatorId     string              `json:"operator_id"`
-	TerminalId     string              `json:"terminal_id"`
+	OutTradeNo      string              `json:"out_trade_no"`
+	TotalAmount     string              `json:"total_amount"`
+	Subject         string              `json:"subject"`
+	ProductCode     string              `json:"product_code"`
+	SellerId        string              `json:"seller_id"`
+	GoodsDetail     []*GoodDetails      `json:"goods_detail"`
+	ExtendParams    *PaymentExtendParam `json:"extend_params"`
+	BusinessParams  *BusinessParams     `json:"business_params"`
+	StoreId         string              `json:"store_id,omitempty"`
+	QrPayMode       string              `json:"qr_pay_mode,omitempty"`
+	IntegrationType string              `json:"integration_type,omitempty"`
 }

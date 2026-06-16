@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/client"
-	"github.com/lihongsheng/payment-sdk/adapter/fuiou/config"
 	enum2 "github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/model"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/util"
@@ -18,7 +17,6 @@ import (
 	"github.com/zeromicro/go-zero/core/logc"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -28,18 +26,9 @@ type Api struct {
 	payment        enum.Payment
 }
 
-func NewApi(conf config.Config, product enum.PaymentProduct, payment enum.Payment) (*Api, error) {
-	api, err := client.NewClient(conf)
-	if err != nil {
-		return nil, err
-	}
+func NewApi(api *client.Client, product enum.PaymentProduct, payment enum.Payment) (*Api, error) {
 	if _, exists := enum2.WxPaymentProductMap[product]; !exists {
 		return nil, errors2.ErrorNoSupport("product [%s] is not exists", product.String())
-	}
-	if conf.ApiHost == "" {
-		conf.ApiHost = enum2.ApiHost
-	} else {
-		conf.ApiHost = strings.TrimRight(conf.ApiHost, "/")
 	}
 	return &Api{
 		Client:         api,
@@ -51,7 +40,7 @@ func NewApi(conf config.Config, product enum.PaymentProduct, payment enum.Paymen
 func (p *Api) Query(ctx context.Context, req dto.Query) (*dto.PayDetail, error) {
 	reqParam := p.buildQueryParams(req)
 	r := p.Client.Client.R().SetHeader("Content-Type", "application/json")
-	result, err := r.SetContext(ctx).SetBody(reqParam).Post(p.C.ApiHost + payQueryMethodPath)
+	result, err := r.SetContext(ctx).SetBody(reqParam).Post(p.C.API.ApiHost + payQueryMethodPath)
 	if err != nil && errors.Is(context.DeadlineExceeded, err) {
 		return nil, errors2.ErrorTimeOut("Query timeout").WithCause(err)
 	}
@@ -85,15 +74,15 @@ func (p *Api) Query(ctx context.Context, req dto.Query) (*dto.PayDetail, error) 
 }
 func (p *Api) buildQueryParams(req dto.Query) OrderRequest {
 	result := &OrderRequest{
-		Version:      p.C.Version,
-		MchntCd:      p.C.MchID,
+		Version:      p.C.API.Version,
+		MchntCd:      p.C.Merchant.MchID,
 		RandomStr:    tools.GenerateRandomDigits(4),
 		OrderType:    enum2.GetOrderType(p.payment, p.paymentProduct),
-		MchntOrderNo: enum2.GenOrder(p.C.OrderPrefix, req.OrderNo),
+		MchntOrderNo: enum2.GenOrder(p.C.Merchant.OrderPrefix, req.OrderNo),
 		TermId:       tools.GenerateRandomDigits(4),
 		Sign:         "",
 	}
-	result.GenSign(p.C.APISecret)
+	result.GenSign(p.C.Merchant.APISecret)
 	return *result
 }
 
@@ -103,7 +92,7 @@ func (p *Api) Close(ctx context.Context, req dto.CloseQuery) error {
 		return err
 	}
 	r := p.Client.Client.R().SetHeader("Content-Type", "application/json")
-	result, err := r.SetContext(ctx).SetBody(reqParam).Post(p.C.ApiHost + payCloseMethodPath)
+	result, err := r.SetContext(ctx).SetBody(reqParam).Post(p.C.API.ApiHost + payCloseMethodPath)
 	if err != nil && errors.Is(context.DeadlineExceeded, err) {
 		return errors2.ErrorTimeOut("Close timeout").WithCause(err)
 	}
@@ -122,15 +111,15 @@ func (p *Api) Close(ctx context.Context, req dto.CloseQuery) error {
 
 func (p *Api) buildCloseParams(req dto.CloseQuery) CloseOrderRequest {
 	result := &CloseOrderRequest{
-		Version:      p.C.Version,
-		MchntCd:      p.C.MchID,
+		Version:      p.C.API.Version,
+		MchntCd:      p.C.Merchant.MchID,
 		RandomStr:    tools.GenerateRandomDigits(4),
 		OrderType:    enum2.GetOrderType(p.payment, p.paymentProduct),
 		MchntOrderNo: req.OrderNo,
 		TermId:       tools.GenerateRandomDigits(4),
 		Sign:         "",
 	}
-	result.GenSign(p.C.APISecret)
+	result.GenSign(p.C.Merchant.APISecret)
 	return *result
 }
 
@@ -152,7 +141,7 @@ func (p *Api) Callback(ctx context.Context, req *http.Request) (*dto.CallbackPay
 		return nil, errors.New(fmt.Sprintf("%s - %s", resp.ResultCode, resp.ResultMsg))
 	}
 
-	if resp.Sign != resp.GenSign(p.C.APISecret) {
+	if resp.Sign != resp.GenSign(p.C.Merchant.APISecret) {
 		return nil, errors.New("签名错误：" + string(originBy))
 	}
 	// 外部需要在比对下金额
@@ -162,7 +151,7 @@ func (p *Api) Callback(ctx context.Context, req *http.Request) (*dto.CallbackPay
 		status = enum.Status_Success
 	}
 	return &dto.CallbackPayDetail{
-		OrderNo: enum2.ParseOrder(p.C.OrderPrefix, resp.MchntOrderNo),
+		OrderNo: enum2.ParseOrder(p.C.Merchant.OrderPrefix, resp.MchntOrderNo),
 		TradeNo: resp.TransactionId,
 		PayAmount: dto.Amount{
 			Currency: "CNY",

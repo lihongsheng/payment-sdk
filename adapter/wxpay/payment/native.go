@@ -3,6 +3,7 @@ package payment
 import (
 	"context"
 	"encoding/json"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client"
 	tools2 "github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
 	"time"
@@ -15,7 +16,6 @@ import (
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments"
 	"github.com/zeromicro/go-zero/core/logc"
 
-	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/native"
@@ -26,13 +26,13 @@ type Native struct {
 	client native.NativeApiService
 }
 
-func NewNative(conf config.Config) (iface.Pay, error) {
-	api, err := NewApi(conf)
+func NewNative(api *client.Api) (iface.Pay, error) {
+	api2, err := NewApi(api)
 	if err != nil {
 		return nil, err
 	}
 	return &Native{
-		Api:    api,
+		Api:    api2,
 		client: native.NativeApiService{Client: api.Client},
 	}, nil
 }
@@ -76,8 +76,8 @@ func (n *Native) buildPayParmams(req *dto.PayOrder) native.PrepayRequest {
 		amount.Currency = core.String(req.Order.PayAmount.Currency)
 	}
 	resp := native.PrepayRequest{
-		Appid:       core.String(n.C.AppID),
-		Mchid:       core.String(n.C.MchID),
+		Appid:       core.String(n.C.Merchant.AppID),
+		Mchid:       core.String(n.C.Merchant.MchID),
 		OutTradeNo:  core.String(req.Order.OrderNo),
 		TimeExpire:  t,
 		Attach:      core.String(req.PassBackParams),
@@ -109,9 +109,9 @@ func (n *Native) Query(ctx context.Context, req dto.Query) (*dto.PayDetail, erro
 	var result *core.APIResult
 	var err error
 	if req.OrderNo != "" {
-		resp, result, err = n.client.QueryOrderByOutTradeNo(ctx, native.QueryOrderByOutTradeNoRequest{OutTradeNo: core.String(req.OrderNo), Mchid: core.String(n.C.MchID)})
+		resp, result, err = n.client.QueryOrderByOutTradeNo(ctx, native.QueryOrderByOutTradeNoRequest{OutTradeNo: core.String(req.OrderNo), Mchid: core.String(n.C.Merchant.MchID)})
 	} else if req.TradeNo != "" {
-		resp, result, err = n.client.QueryOrderById(ctx, native.QueryOrderByIdRequest{TransactionId: core.String(req.TradeNo), Mchid: core.String(n.C.MchID)})
+		resp, result, err = n.client.QueryOrderById(ctx, native.QueryOrderByIdRequest{TransactionId: core.String(req.TradeNo), Mchid: core.String(n.C.Merchant.MchID)})
 	} else {
 		return nil, errors2.ErrorParamError("order_no or trade_no is required")
 	}
@@ -127,7 +127,7 @@ func (n *Native) Query(ctx context.Context, req dto.Query) (*dto.PayDetail, erro
 		return nil, tools2.ErrorHandler(ctx, result, err, "status is unknown")
 	}
 	var successTime time.Time
-	if resp.SuccessTime == nil && *resp.SuccessTime != "" {
+	if resp.SuccessTime != nil && *resp.SuccessTime != "" {
 		successTime, _ = time.Parse(time.RFC3339, *resp.SuccessTime)
 	}
 	originBy, _ := json.Marshal(resp)
@@ -150,7 +150,7 @@ func (n *Native) Close(ctx context.Context, req dto.CloseQuery) error {
 		return errors2.ErrorParamError("order_no is required")
 	}
 	result, err := n.client.CloseOrder(ctx, native.CloseOrderRequest{
-		Mchid:      core.String(n.C.MchID),
+		Mchid:      core.String(n.C.Merchant.MchID),
 		OutTradeNo: core.String(req.OrderNo),
 	})
 	if err != nil {

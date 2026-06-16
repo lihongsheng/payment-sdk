@@ -8,7 +8,6 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
-	"fmt"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/config"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/enum"
 	"github.com/lihongsheng/payment-sdk/errors"
@@ -32,11 +31,11 @@ type Sign struct {
 }
 
 func NewSign(conf config.Config) (*Sign, error) {
-	private, err := loadPravate(conf.Cert.Private)
+	private, err := loadPravate(conf.Cert.RsaPrivate)
 	if err != nil {
 		return nil, err
 	}
-	public, err := loadPublic(conf.Cert.Public)
+	public, err := loadPublic(conf.Cert.RsaPublic)
 	return &Sign{
 		conf:       conf,
 		PrivateKey: private,
@@ -65,7 +64,7 @@ func (s *Sign) Sign(signParams map[string]string, body map[string]string) (strin
 		signStr += k + "=" + signParams[k] + "&"
 	}
 	signStr = signStr[:len(signStr)-1]
-	return s.RsaSign(signStr, s.conf.Cert.Private)
+	return s.RsaSign(signStr, s.conf.Cert.RsaPrivate)
 }
 
 func loadPravate(privateKeyPEM string) (*rsa.PrivateKey, error) {
@@ -99,7 +98,7 @@ func loadPublic(publicKeyPEM string) (*rsa.PublicKey, error) {
 	// 类型断言，确保是RSA公钥
 	public, ok := publicKey.(*rsa.PublicKey)
 	if !ok {
-		return nil, fmt.Errorf("公钥不是RSA类型")
+		return nil, errors.ErrorParamError("公钥不是RSA类型")
 	}
 	return public, nil
 }
@@ -141,8 +140,12 @@ func (s *Sign) RsaVerify(data string, signatureBase64 string) (bool, error) {
 // 返回值: 按规则处理后的待签名字符串
 func (s *Sign) GenerateSignString(params url.Values) (string, string, error) {
 	if len(params) == 0 || len(params["sign"]) == 0 || params["sign"][0] == "" {
-		return "", "", errors.ErrorParamError("未找到签名字符串", nil)
+		return "", "", errors.ErrorParamError("未找到签名字符串")
 	}
+	signValue := params["sign"][0]
+	// 防御性修复：Base64 中不存在空格，所有空格都是 + 被误解析的
+	signValue = strings.ReplaceAll(signValue, " ", "+")
+
 	// 1. 过滤参数：剔除 sign、sign_type，保留其他非空参数
 	filteredParams := make(url.Values)
 	for k, v := range params {
@@ -175,5 +178,5 @@ func (s *Sign) GenerateSignString(params url.Values) (string, string, error) {
 		signStrBuilder.WriteString("=")
 		signStrBuilder.WriteString(decodedValue)
 	}
-	return signStrBuilder.String(), params["sign"][0], nil
+	return signStrBuilder.String(), signValue, nil
 }

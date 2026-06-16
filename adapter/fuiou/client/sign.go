@@ -42,7 +42,7 @@ func (s *Sign) Sign(signParams map[string]string, filter map[string]struct{}) (s
 	//fmt.Println("signStr", signStr)
 	// 需要转码为GBK
 	signBy, _ := util.GbkEncode(signStr)
-	sign, err = s.RsaSign(signBy, s.C.Cert.Private)
+	sign, err = s.RsaSign(signBy, s.C.Cert.RsaPrivate)
 	return sign, err
 }
 

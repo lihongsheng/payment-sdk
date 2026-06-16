@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client"
-	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	enum1 "github.com/lihongsheng/payment-sdk/enum"
@@ -21,11 +20,7 @@ type Api struct {
 	*client.Api
 }
 
-func NewApi(conf config.Config) (*Api, error) {
-	api, err := client.InitClient(conf)
-	if err != nil {
-		return nil, err
-	}
+func NewApi(api *client.Api) (*Api, error) {
 	return &Api{
 		Api: api,
 	}, nil
@@ -35,14 +30,14 @@ func (a *Api) Complete(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse
 	return nil, errors2.ErrorNoSupport("not support Complete")
 }
 func (c *Api) Callback(ctx context.Context, req *http.Request) (*dto.CallbackPayDetail, error) {
-	no, err := notify.NewRSANotifyHandler(c.C.APISecret, c.Verifier)
+	no, err := notify.NewRSANotifyHandler(c.C.Cert.APISecret, c.Verifier)
 	if err != nil {
 		return nil, errors2.ErrorSystemError("wxpay new RSA NotifyHandler errors").WithCause(err)
 	}
 	var resp = &payments.Transaction{}
 	_, err = no.ParseNotifyRequest(ctx, req, resp)
 	if err != nil {
-		_, proErr := until.ProcessBody(c.C.APISecret, req, resp)
+		_, proErr := until.ProcessBody(c.C.Cert.APISecret, req, resp)
 		if proErr != nil {
 			return nil, err
 		}

@@ -3,7 +3,7 @@ package payment
 import (
 	"context"
 	"encoding/json"
-	"github.com/lihongsheng/payment-sdk/adapter/alipay/config"
+	"github.com/lihongsheng/payment-sdk/adapter/alipay/client"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/model"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
@@ -20,13 +20,13 @@ type Jsapi struct {
 	*Api
 }
 
-func NewJsApi(conf config.Config) (iface.Pay, error) {
-	api, err := NewApi(conf)
+func NewJsApi(api *client.Client) (iface.Pay, error) {
+	api2, err := NewApi(api)
 	if err != nil {
 		return nil, err
 	}
 	return &Jsapi{
-		api,
+		api2,
 	}, nil
 }
 
@@ -83,7 +83,7 @@ func (j *Jsapi) buildPayParams(req *dto.PayOrder) model.JsApiPaymentRequest {
 	result := model.JsApiPaymentRequest{
 		OutTradeNo:         req.Order.OrderNo,
 		ProductCode:        enum.JSAPI,
-		OpAppId:            j.C.AppID,
+		OpAppId:            j.Client.C.Merchant.AppID,
 		TotalAmount:        req.Order.PayAmount.ToFloatString(),
 		ExtendParams:       nil,
 		DiscountableAmount: "",

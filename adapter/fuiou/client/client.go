@@ -10,6 +10,8 @@ import (
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/model"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/util"
 	enum2 "github.com/lihongsheng/payment-sdk/adapter/lakala/enum"
+	"github.com/lihongsheng/payment-sdk/config/proxy"
+	"github.com/lihongsheng/payment-sdk/log"
 	"net/url"
 	"strings"
 )
@@ -35,16 +37,16 @@ type Client struct {
 	Sign   *Sign
 }
 
-func NewClient(conf config.Config) (*Client, error) {
-	if conf.ApiHost == "" {
-		conf.ApiHost = enum2.ApiHost
+func NewClient(conf config.Config, proxy *proxy.Proxy) (*Client, error) {
+	if conf.API.ApiHost == "" {
+		conf.API.ApiHost = enum2.ApiHost
 	} else {
-		conf.ApiHost = strings.TrimRight(conf.ApiHost, "/")
+		conf.API.ApiHost = strings.TrimRight(conf.API.ApiHost, "/")
 	}
-	if conf.Version == "" {
-		conf.Version = enum2.Version
+	if conf.API.Version == "" {
+		conf.API.Version = enum2.Version
 	}
-	client, err := providerClient(conf)
+	client, err := providerClient(conf, proxy)
 	if err != nil {
 		return nil, err
 	}
@@ -55,18 +57,18 @@ func NewClient(conf config.Config) (*Client, error) {
 	}, nil
 }
 
-func providerClient(c config.Config) (*resty.Client, error) {
+func providerClient(c config.Config, proxy *proxy.Proxy) (*resty.Client, error) {
 	client := resty.New()
-	if c.Proxy.Host != "" {
-		u, err := url.Parse(fmt.Sprintf("http://%s:%d", c.Proxy.Host, c.Proxy.Port))
+	if proxy != nil && proxy.Host != "" {
+		u, err := url.Parse(fmt.Sprintf("http://%s:%d", proxy.Host, proxy.Port))
 		if err != nil {
 			return nil, err
 		}
-		if c.Proxy.UserName != "" && c.Proxy.Password != "" {
-			u.User = url.UserPassword(c.Proxy.UserName, c.Proxy.Password)
+		if proxy.UserName != "" && proxy.Password != "" {
+			u.User = url.UserPassword(proxy.UserName, proxy.Password)
 		}
-		if c.Proxy.UserName != "" {
-			u.User = url.User(c.Proxy.UserName)
+		if proxy.UserName != "" {
+			u.User = url.User(proxy.UserName)
 		}
 		client.SetProxy(u.String())
 	}
@@ -75,6 +77,11 @@ func providerClient(c config.Config) (*resty.Client, error) {
 
 // 非加密post
 func (c *Client) PostReqFrom(ctx context.Context, path string, req Req, header map[string]string) (*resty.Response, error) {
+	log.Info(ctx, "fuiou request start",
+		log.F(log.FieldKeyChannel, "fuiou"),
+		log.F(log.FieldKeyMethod, path),
+	)
+
 	r := c.Client.R().SetContext(ctx)
 	r.SetHeader("Content-Type", "application/x-www-form-urlencoded; charset=GBK")
 	if header != nil {
@@ -83,6 +90,11 @@ func (c *Client) PostReqFrom(ctx context.Context, path string, req Req, header m
 	origSign := req.GenerateSign()
 	sign, err := c.Sign.Sign(origSign, skipQueryParams)
 	if err != nil {
+		log.Error(ctx, "fuiou request sign failed",
+			log.F(log.FieldKeyChannel, "fuiou"),
+			log.F(log.FieldKeyMethod, path),
+			log.F(log.FieldKeyError, err.Error()),
+		)
 		return nil, err
 	}
 	req.Sign(sign)
@@ -93,14 +105,24 @@ func (c *Client) PostReqFrom(ctx context.Context, path string, req Req, header m
 	xmlGbk, _ := util.URLEncodeGBK(xml)
 	values := url.Values{}
 	values.Add(enum.POST_COMMON_PARAM, xmlGbk)
-	resp, err := r.SetFormDataFromValues(values).Post(c.C.ApiHost + path)
+	resp, err := r.SetFormDataFromValues(values).Post(c.C.API.ApiHost + path)
 	if err != nil {
+		log.Error(ctx, "fuiou request failed",
+			log.F(log.FieldKeyChannel, "fuiou"),
+			log.F(log.FieldKeyMethod, path),
+			log.F(log.FieldKeyError, err.Error()),
+		)
 		return nil, err
 	}
 	body := resp.Body()
 	if len(body) > 0 {
 		utf8Body, _ := util.URLDecodeGBK(string(body))
 		resp.SetBody([]byte(utf8Body))
+		log.Info(ctx, "fuiou request end",
+			log.F(log.FieldKeyChannel, "fuiou"),
+			log.F(log.FieldKeyMethod, path),
+			log.F(log.FieldKeyResponse, string(utf8Body)),
+		)
 	}
 	return resp, nil
 }
@@ -123,14 +145,14 @@ func (c *Client) PostEncryptFrom(ctx context.Context, path string, req Req, head
 	req.Sign(sign)
 	xmlStr, err := req.Xml()
 	xmlGbk, _ := util.Utf8ToGbk(xmlStr)
-	encryptStr, err := c.Sign.EncryptByPublicKey([]byte(xmlGbk), []byte(c.C.Cert.Public))
+	encryptStr, err := c.Sign.EncryptByPublicKey([]byte(xmlGbk), []byte(c.C.Cert.RsaPublic))
 	if err != nil {
 		return nil, err
 	}
 	values := url.Values{}
-	values.Add(enum.POST_ENCRYPT_COMMON_PARAM_MCN, c.C.MchID)
+	values.Add(enum.POST_ENCRYPT_COMMON_PARAM_MCN, c.C.Merchant.MchID)
 	values.Add(enum.POST_ENCRYPT_COMMON_PARAM_MESSAGE, encryptStr)
-	resp, err := r.SetFormDataFromValues(values).Post(c.C.ApiHost + path)
+	resp, err := r.SetFormDataFromValues(values).Post(c.C.API.ApiHost + path)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +166,7 @@ func (c *Client) PostEncryptFrom(ctx context.Context, path string, req Req, head
 		}
 	}
 	encryptResponse.OriginBody = string(body)
-	messageGbk, err := c.Sign.DecryptByKey(encryptResponse.Message, []byte(c.C.Cert.Private))
+	messageGbk, err := c.Sign.DecryptByKey(encryptResponse.Message, []byte(c.C.Cert.RsaPrivate))
 	if err != nil {
 		return nil, err
 	}

@@ -2,7 +2,7 @@ package payment
 
 import (
 	"context"
-	"github.com/lihongsheng/payment-sdk/adapter/alipay/config"
+	"github.com/lihongsheng/payment-sdk/adapter/alipay/client"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/alipay/model"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
@@ -16,13 +16,13 @@ type H5 struct {
 	*Api
 }
 
-func NewH5(conf config.Config) (iface.Pay, error) {
-	api, err := NewApi(conf)
+func NewH5(api *client.Client) (iface.Pay, error) {
+	api2, err := NewApi(api)
 	if err != nil {
 		return nil, err
 	}
 	return &H5{
-		api,
+		api2,
 	}, nil
 }
 
@@ -36,7 +36,7 @@ func (h *H5) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, erro
 		commonParam[enum.COMMON_PARAM_RETURN_URL_NAME] = req.RedirectUrl
 	}
 	commonParam[enum.COMMON_PARAM_METHOD_NAME] = enum.ALIPAY_H5_TRADES_CREATE
-	resp, params, err := h.Client.PageExecute(commonParam, reqParam)
+	resp, _, err := h.Client.GetPageExecute(commonParam, reqParam)
 	if err != nil {
 		return nil, err
 	}
@@ -52,9 +52,9 @@ func (h *H5) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, erro
 		PaymentProduct: payment.PaymentProduct_H5.String(),
 		Action: dto.Action{
 			Action:         action.Action_Redirect.String(),
-			Parameters:     params,
+			Parameters:     nil,
 			Url:            resp.String(),
-			RedirectMethod: "POST",
+			RedirectMethod: "GET",
 		},
 		OriginResponse: "",
 	}

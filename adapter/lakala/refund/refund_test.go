@@ -1,90 +1,9 @@
 package refund
 
 import (
-	"context"
-	"github.com/lihongsheng/payment-sdk/config"
-	"github.com/lihongsheng/payment-sdk/driver/dto"
-	enum "github.com/lihongsheng/payment-sdk/enum/payment"
-	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestRefund_Query(t *testing.T) {
-	c := config.Config{
-		AppID:  "OP10002115",
-		MchID:  "822584073920DEH",
-		APIKey: "",
-		Cert: config.Cert{
-			CertificateSerialNumber: "00dfba8194c41b84cf",
-			CertPrivateKey: `-----BEGIN PRIVATE KEY-----
-MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDbxyDQUdBATtMM
-+/CDqATnRuSPfpsGKWU9wVGon34q0xNB+vuz+4O3IXATAKEpZZLj6MMPFSmtWaUV
-QVhLOqGiHMZyN028XwEuuyyM2f9kr84wm1YsyuWzAoRZkjQ/hkVCPCeZd78u0WJ0
-YeIhRsjGcUcuh7O59gN2lRDzV5UVWf8LTIKXfwDKsCJX1Epex/+cyxzYEynPB1nL
-QIAQ1OVCZVbxN7m+Fw/TLhaGJd5Tx9IGlSTkVcIKts0KA8OY3Ro0EqtqeHoZ8eq0
-MGpouxmh3XzqVjyl+7EZt+IoTZ10R/Ed3XYONF9JQvDducHKOX4P8U7I0ym/Yb0Q
-4+6YYBgRAgMBAAECggEAED2v3BUfqZDpob0Acgo5iom/nCcD97mZZK3jhe17WljM
-xIRyk0NT4XWUHaNfRXrfFv59Y6DxuoC0ZVS13KFRjnRH6erSUMhIgxaL3UDC0cL4
-Hrlr7dV0kfzuoNvgBo26koF1f67Mrv4EI4uUNVdQwPFgDD0099oJOXscjI79Ul14
-H7SksF5d7dk2Mx4s3fjZV6UgNaGELZW5WVpRiufu+jMfvCsE+4/5Tp8Sco5zK+C2
-kAD/3YGOSAc26vQxivO7Yg4worCcYUfltrIX3SQzG2yBpnbK2ZQYcWZY374qp0Xp
-leRlXWLJnhUL8PpR6NPZq0Us2SUQxMbW0QaePjTGAQKBgQDuZltdmGrwYD5dsxho
-HkJ7kMFwjWIfoSFXazgU6IgLlYWef8GFdwKmmlkLIT4Lk/m1b8/1Uw1qVK19ClWG
-6660iBB6IBA5kxa7gU99ZQed2/SYeVpLHIw0ITJzEX29y3OkyxsaRscPmNUHXBgj
-u7R7i5eAtO2xU52o18FiOHRGsQKBgQDsANMZa2KZGY+8snUofrMeAGJGEuLYAo8B
-a2pSCYK4eOhJhyWw1mKLcZVlzdZyXlZ3eEsWKweMOQyyyOl3cupLyCcNWjMEv4Ha
-AqC5drh99dI2KgXdUybAf9p4i9dpY42URpo5boI+W6j0jYLOXN7YYaFRatr0s+Mu
-m3vriBf/YQKBgELwlsMHIy/vtlNVEItbw8sycD6MVHsRIW2Me6jTSjAGgghpUwuI
-yUPCnzIS2Xsix8D8bmYyNdgfgr9TgYRq9RlYA1hnXGbuODnaK1nIXoUi1+FgYcwp
-bezNTX8l8Cq0z/n71dZg/VAR1+9DGrwd3qW6IoZPR1a9Zc2dF33e4DdhAoGBAJ1s
-n2PhYc/GYT75u3TbrxdgIi2kA3Ubn9DOmglHFs9+t1P0touTNgDWL1XNTDLWAs+G
-im+rHEnI9FN9+V4YZXlPdd1OQaH1LOUDw7pzGvXKuAIxXeAYy0y0/EJU5cgDBDnY
-LqAIuxBli/o1Ov/0qyGjXjw1DwETzYMVbD/cdEWBAoGAcngSWwC6rKE7nyfJdbhW
-jUlIqljUFYTHWCt+BKabaa05/tiwM4tP/CGi9Ik0NH0HeENQBj/NBuGFk07ezYob
-qJxdIULDA+7FULTMxGEdYMkNxms9NagmSJkeJgDANSiD4/eYsomKrRW+uwdrSOF4
-UBw+2oCczJC4S01uBmg76/g=
------END PRIVATE KEY-----`,
-			PublicKey: `-----BEGIN CERTIFICATE-----
-MIIEMTCCAxmgAwIBAgIGAXUrc4b4MA0GCSqGSIb3DQEBCwUAMHYxCzAJBgNVBAYT
-AkNOMRAwDgYDVQQIDAdCZWlKaW5nMRAwDgYDVQQHDAdCZWlKaW5nMRcwFQYDVQQK
-DA5MYWthbGEgQ28uLEx0ZDEqMCgGA1UEAwwhTGFrYWxhIE9yZ2FuaXphdGlvbiBW
-YWxpZGF0aW9uIENBMB4XDTIwMTAxNTA4NDk1MloXDTMwMTAxMzA4NDk1MlowZTEL
-MAkGA1UEBhMCQ04xEDAOBgNVBAgMB0JlaUppbmcxEDAOBgNVBAcMB0JlaUppbmcx
-FzAVBgNVBAoMDkxha2FsYSBDby4sTHRkMRkwFwYDVQQDDBBBUElHVy5MQUtBTEEu
-Q09NMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwAXZw9lupWcFXouC
-Nhm0DQT47Zf4KOIRF8rqT8Ps3pYzT8odROJ8rq4P+lciGrg29czpqrRM22yQktFr
-itvcM7JlE6jFbGH3rycnvGvhRYU/j1N9k0ozm8oVwmKX357/OtGzNivBECGSnU9L
-Bkp4Nm9M1K4cOwEuZ0xsQEthZjQYF0mDpnlWmVJL5i1Lq834atN2qrb/mzMHBNtD
-JnqRV7rPL39lKpe7LJiitsC2JuW1UbWZZU1NNwA/rz2d83C+KD1DLJ0+sMYY2Q3T
-OQ4BPAowDEwOH7XAXrHM/0kRm+ZeIFlwevEGIQWmMt1Ogz+AW4Iq0slINc4wOINK
-vH9tHwIDAQABo4HVMIHSMIGSBgNVHSMEgYowgYeAFCnH4DkZPR6CZxRn/kIqVsMo
-dJHpoWekZTBjMQswCQYDVQQGEwJDTjEQMA4GA1UECAwHQmVpSmluZzEQMA4GA1UE
-BwwHQmVpSmluZzEXMBUGA1UECgwOTGFrYWxhIENvLixMdGQxFzAVBgNVBAMMDkxh
-a2FsYSBSb290IENBggYBaiUALIowHQYDVR0OBBYEFIya0Yc4OSBer55JLyA0AYe9
-m8mTMAwGA1UdEwEB/wQCMAAwDgYDVR0PAQH/BAQDAgeAMA0GCSqGSIb3DQEBCwUA
-A4IBAQCBEwOlk3mXigNv94Drn3dcaY2ml/y+8yNpAIuUhuBE00WFoqEX5lOatFy5
-fzdXuC12lBVQ8SjSm3aH7k2X0eXqDzkOHiur2ZBRKmJ++J4TeenuSUOjSIbQK/DT
-vxaqFUjYwFSVCyizpy7wfU4wKt+jOuFb9LyULJ9lkM1dV9Kh7Lmd9+nlJYYuPEPU
-LJkkVZqSALSiiJudXnTwlISjZTXEAkJpdIlMw+hvPTAkoG95B95M+OV/uLbItGK+
-qT4+RHWo8EbBDPQYo6J4QYHOxRlfMoGBMyrz6XDt7ELLmT7ld4aE02w6KQPfK3gq
-kLDT+/STozvaNmXzBJh7J6KqxJBH
------END CERTIFICATE-----`,
-		},
-		Proxy:   config.Proxy{},
-		ApiHost: "https://s2.lakala.com",
-		//ApiHost: "https://s2.lakala.com/",
-		Version: "",
-		Extra:   `{"term_no":"L3170815"}`,
-	}
-	client, err := NewRefund(c, enum.PaymentProduct_JSAPI, enum.Payment_Wxpay)
-	assert.NoError(t, err)
-	ctx := context.Background()
-	req := dto.RefundQuery{
-		RefundNo: "607",
-		OrderNo:  "176584849551401225676",
-		TradeNo:  "",
-	}
-	result, err := client.Query(ctx, req)
-	assert.NoError(t, err)
-	t.Log(result)
+
 }

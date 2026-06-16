@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client"
-	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
@@ -22,11 +21,7 @@ type Refund struct {
 	client refunddomestic.RefundsApiService
 }
 
-func NewRefund(conf config.Config) (iface.Refund, error) {
-	api, err := client.InitClient(conf)
-	if err != nil {
-		return nil, err
-	}
+func NewRefund(api *client.Api) (iface.Refund, error) {
 	return &Refund{
 		Api:    api,
 		client: refunddomestic.RefundsApiService{Client: api.Client},
@@ -137,14 +132,14 @@ func (r *Refund) Query(ctx context.Context, req dto.RefundQuery) (*dto.RefundDet
 }
 
 func (r *Refund) Callback(ctx context.Context, req *http.Request) (*dto.CallbackRefundDetail, error) {
-	no, err := notify.NewRSANotifyHandler(r.C.APISecret, r.Verifier)
+	no, err := notify.NewRSANotifyHandler(r.C.Cert.APISecret, r.Verifier)
 	if err != nil {
 		return nil, errors2.ErrorSystemError("wxpay new RSA NotifyHandler errors").WithCause(err)
 	}
 	var resp = &CallbackRefund{}
 	_, err = no.ParseNotifyRequest(ctx, req, resp)
 	if err != nil {
-		_, proErr := until.ProcessBody(r.C.APISecret, req, resp)
+		_, proErr := until.ProcessBody(r.C.Cert.APISecret, req, resp)
 		if proErr != nil {
 			return nil, err
 		}
@@ -165,6 +160,7 @@ func (r *Refund) Callback(ctx context.Context, req *http.Request) (*dto.Callback
 		},
 		UserReceivedAccount: resp.UserReceivedAccount,
 		OriginResponse:      string(originBy),
+		Response:            "",
 	}
 
 	if resp.RefundStatus != "" {
@@ -176,4 +172,8 @@ func (r *Refund) Callback(ctx context.Context, req *http.Request) (*dto.Callback
 		re.SuccessTime = resp.SuccessTime
 	}
 	return re, nil
+}
+
+func (r *Refund) IsSupportCallback() bool {
+	return true
 }

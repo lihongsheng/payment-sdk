@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/lihongsheng/payment-sdk/adapter/lakala/client"
-	"github.com/lihongsheng/payment-sdk/adapter/lakala/config"
+
 	"github.com/lihongsheng/payment-sdk/adapter/lakala/model"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
@@ -27,11 +27,7 @@ type Refund struct {
 	*client.Client
 }
 
-func NewRefund(conf config.Config) (iface.Refund, error) {
-	api, err := client.NewClient(conf)
-	if err != nil {
-		return nil, err
-	}
+func NewRefund(api *client.Client) (iface.Refund, error) {
 	return &Refund{
 		api,
 	}, nil
@@ -39,7 +35,7 @@ func NewRefund(conf config.Config) (iface.Refund, error) {
 
 func (r *Refund) Refund(ctx context.Context, req *dto.RefundRequest) (*dto.RefundDetail, error) {
 	reqParam := r.buildRefundQueryRequest(req)
-	result, err := r.Client.DoPost(ctx, reqParam, r.C.ApiHost+refundMethod, nil)
+	result, err := r.Client.DoPost(ctx, reqParam, r.C.API.ApiHost+refundMethod, nil)
 	if err != nil && errors.Is(context.DeadlineExceeded, err) {
 		return nil, errors2.ErrorTimeOut("Refund timeout").WithCause(err)
 	}
@@ -79,8 +75,8 @@ func (r *Refund) Refund(ctx context.Context, req *dto.RefundRequest) (*dto.Refun
 
 func (r *Refund) buildRefundQueryRequest(req *dto.RefundRequest) *model.RefundRequest {
 	rr := &model.RefundRequest{
-		MerchantNo:       r.C.MchID,
-		TermNo:           r.C.TermNO,
+		MerchantNo:       r.C.Merchant.MchID,
+		TermNo:           r.C.Merchant.TermNO,
 		OutTradeNo:       req.RefundNo,
 		RefundAmount:     fmt.Sprintf("%d", req.Amount.Total),
 		RefundReason:     req.Reason,
@@ -99,11 +95,11 @@ func (r *Refund) Query(ctx context.Context, req dto.RefundQuery) (*dto.RefundDet
 		return nil, errors.New("refund_no is  empty")
 	}
 	reqParam := model.PaymentQueryRequest{
-		MerchantNo: r.C.MchID,
-		TermNo:     r.C.TermNO,
+		MerchantNo: r.C.Merchant.MchID,
+		TermNo:     r.C.Merchant.TermNO,
 		OutTradeNo: req.RefundNo,
 	}
-	result, err := r.Client.DoPost(ctx, reqParam, r.C.ApiHost+QueryMethod, nil)
+	result, err := r.Client.DoPost(ctx, reqParam, r.C.API.ApiHost+QueryMethod, nil)
 	if err != nil && errors.Is(context.DeadlineExceeded, err) {
 		return nil, errors2.ErrorTimeOut("Refund query timeout").WithCause(err)
 	}
@@ -158,4 +154,8 @@ func (r *Refund) GetRefundStatus(status string) refund.Status {
 
 func (r *Refund) Callback(ctx context.Context, req *http.Request) (*dto.CallbackRefundDetail, error) {
 	return nil, errors2.ErrorNoSupport("not support refund callback", nil)
+}
+
+func (r *Refund) IsSupportCallback() bool {
+	return false
 }

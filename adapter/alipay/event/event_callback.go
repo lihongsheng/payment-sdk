@@ -70,7 +70,7 @@ package event
 //	if err != nil {
 //		return enum.EventTypeUnKnown, nil, err
 //	}
-//	verifg, err := RsaVerify(sign, signValue, e.C.Cert.PublicKey)
+//	verifg, err := RsaVerify(sign, signValue, e.C.RsaPublicKey)
 //	if err != nil {
 //		return enum.EventTypeUnKnown, nil, err
 //	}

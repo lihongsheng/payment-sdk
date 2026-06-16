@@ -63,9 +63,9 @@ const (
 
 //
 //func CallbackPaymentParse(ctx context.Context, conf config.Config, req *http.Request) (*dto.CallbackPayDetail, error) {
-//	pubKeyID := conf.Cert.PublicKeyID
+//	pubKeyID := conf.RsaPublicKeyID
 //	mchAPIv3Key := conf.APIKey
-//	publicKey, err := utils.LoadPublicKey(conf.Cert.Public)
+//	publicKey, err := utils.LoadPublicKey(conf.RsaPublic)
 //	if err != nil {
 //		return nil, errors.New("wxpay load merchant Public key errors")
 //	}
@@ -111,9 +111,9 @@ const (
 
 //
 //func CallbackRefundParse2(ctx context.Context, conf config.Config, req *http.Request) (*dto.RefundDetail, error) {
-//  pubKeyID := conf.Cert.PublicKeyID
+//  pubKeyID := conf.RsaPublicKeyID
 //  mchAPIv3Key := conf.APIKey
-//  publicKey, err := utils.LoadPublicKey(conf.Cert.Public)
+//  publicKey, err := utils.LoadPublicKey(conf.RsaPublic)
 //  if err != nil {
 //    return nil, errors.New("wxpay load merchant Public key errors")
 //  }
@@ -170,9 +170,9 @@ const (
 //}
 //
 //func CallbackRefundParse(ctx context.Context, conf config.Config, req *http.Request) (*dto.CallbackRefundDetail, error) {
-//	pubKeyID := conf.Cert.PublicKeyID
+//	pubKeyID := conf.RsaPublicKeyID
 //	mchAPIv3Key := conf.APIKey
-//	publicKey, err := utils.LoadPublicKey(conf.Cert.Public)
+//	publicKey, err := utils.LoadPublicKey(conf.RsaPublic)
 //	if err != nil {
 //		return nil, errors.New("wxpay load merchant Public key errors")
 //	}
@@ -241,9 +241,9 @@ const (
 //}
 //
 //func CallbackUnitTransferParse(ctx context.Context, conf config.Config, req *http.Request) (*dto.UintTransferDetailResponse, error) {
-//	pubKeyID := conf.Cert.PublicKeyID
+//	pubKeyID := conf.RsaPublicKeyID
 //	mchAPIv3Key := conf.APIKey
-//	publicKey, err := utils.LoadPublicKey(conf.Cert.Public)
+//	publicKey, err := utils.LoadPublicKey(conf.RsaPublic)
 //	if err != nil {
 //		return nil, errors.New("wxpay load merchant Public key errors")
 //	}
@@ -283,9 +283,9 @@ const (
 //
 //// CallbackComplaintParse 投诉回调
 //func CallbackComplaintParse(ctx context.Context, conf config.Config, req *http.Request) (*model.ComplaintCallbackRequest, error) {
-//	pubKeyID := conf.Cert.PublicKeyID
+//	pubKeyID := conf.RsaPublicKeyID
 //	mchAPIv3Key := conf.APIKey
-//	publicKey, err := utils.LoadPublicKey(conf.Cert.Public)
+//	publicKey, err := utils.LoadPublicKey(conf.RsaPublic)
 //	if err != nil {
 //		return nil, errors.New("wxpay load merchant Public key errors")
 //	}
@@ -380,9 +380,9 @@ const (
 //}
 //
 //func CallbackBatchTransferParse(ctx context.Context, conf config.Config, req *http.Request) (*dto.CallbackBatchTransferRequest, error) {
-//	pubKeyID := conf.Cert.PublicKeyID
+//	pubKeyID := conf.RsaPublicKeyID
 //	mchAPIv3Key := conf.APIKey
-//	publicKey, err := utils.LoadPublicKey(conf.Cert.Public)
+//	publicKey, err := utils.LoadPublicKey(conf.RsaPublic)
 //	if err != nil {
 //		return nil, errors.New("wxpay load merchant Public key errors")
 //	}

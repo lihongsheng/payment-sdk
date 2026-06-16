@@ -27,34 +27,41 @@ type Status int32
 
 const (
 	Status_Status_UNKNOWN Status = 0
+	// 初始化
+	Status_Created Status = 1
 	// 预支付,创建支付订单后的状态，等待用户完成支付
-	Status_Pending Status = 1
+	Status_Pending Status = 2
 	// 成功
-	Status_Success Status = 2
+	Status_Success Status = 3
 	// 失败
-	Status_Failed Status = 3
+	Status_Failed Status = 4
 	// 异常
-	Status_Abnormal Status = 4
-	Status_Closed   Status = 5
+	Status_Abnormal Status = 5
+	Status_Closed   Status = 6
+	Status_Cancel   Status = 7
 )
 
 // Enum value maps for Status.
 var (
 	Status_name = map[int32]string{
 		0: "Status_UNKNOWN",
-		1: "Pending",
-		2: "Success",
-		3: "Failed",
-		4: "Abnormal",
-		5: "Closed",
+		1: "Created",
+		2: "Pending",
+		3: "Success",
+		4: "Failed",
+		5: "Abnormal",
+		6: "Closed",
+		7: "Cancel",
 	}
 	Status_value = map[string]int32{
 		"Status_UNKNOWN": 0,
-		"Pending":        1,
-		"Success":        2,
-		"Failed":         3,
-		"Abnormal":       4,
-		"Closed":         5,
+		"Created":        1,
+		"Pending":        2,
+		"Success":        3,
+		"Failed":         4,
+		"Abnormal":       5,
+		"Closed":         6,
+		"Cancel":         7,
 	}
 )
 
@@ -151,16 +158,19 @@ var File_enum_refund_refund_proto protoreflect.FileDescriptor
 
 const file_enum_refund_refund_proto_rawDesc = "" +
 	"\n" +
-	"\x18enum/refund/refund.proto\x12\x06refund*\\\n" +
+	"\x18enum/refund/refund.proto\x12\x06refund*u\n" +
 	"\x06Status\x12\x12\n" +
 	"\x0eStatus_UNKNOWN\x10\x00\x12\v\n" +
-	"\aPending\x10\x01\x12\v\n" +
-	"\aSuccess\x10\x02\x12\n" +
+	"\aCreated\x10\x01\x12\v\n" +
+	"\aPending\x10\x02\x12\v\n" +
+	"\aSuccess\x10\x03\x12\n" +
 	"\n" +
-	"\x06Failed\x10\x03\x12\f\n" +
-	"\bAbnormal\x10\x04\x12\n" +
+	"\x06Failed\x10\x04\x12\f\n" +
+	"\bAbnormal\x10\x05\x12\n" +
 	"\n" +
-	"\x06Closed\x10\x05*l\n" +
+	"\x06Closed\x10\x06\x12\n" +
+	"\n" +
+	"\x06Cancel\x10\a*l\n" +
 	"\rRefundChannel\x12\x19\n" +
 	"\x15RefundChannel_UNKNOWN\x10\x00\x12\f\n" +
 	"\bORIGINAL\x10\x01\x12\v\n" +

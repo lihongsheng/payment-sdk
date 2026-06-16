@@ -3,11 +3,11 @@ package provider
 import (
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client/complaints"
-	"github.com/lihongsheng/payment-sdk/config"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 )
 
 func NewComplaint(c config.Config) (*complaints.ComplaintApiService, error) {
-	api, err := client.InitClient(c)
+	api, err := client.InitClient(c, nil)
 	if err != nil {
 		return nil, err
 	}

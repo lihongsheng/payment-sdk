@@ -2,12 +2,14 @@ package client
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/lihongsheng/payment-sdk/adapter/lakala/config"
 	"github.com/lihongsheng/payment-sdk/adapter/lakala/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/lakala/model"
+	"github.com/lihongsheng/payment-sdk/config/proxy"
+	"github.com/lihongsheng/payment-sdk/errors"
+	"github.com/lihongsheng/payment-sdk/log"
 	"net/url"
 	"strings"
 )
@@ -18,15 +20,15 @@ type Client struct {
 	Sign   *Sign
 }
 
-func NewClient(conf config.Config) (*Client, error) {
-	conf.ApiHost = strings.TrimRight(conf.ApiHost, "/")
-	if conf.ApiHost == "" {
-		conf.ApiHost = enum.ApiHost
+func NewClient(conf config.Config, proxy *proxy.Proxy) (*Client, error) {
+	conf.API.ApiHost = strings.TrimRight(conf.API.ApiHost, "/")
+	if conf.API.ApiHost == "" {
+		conf.API.ApiHost = enum.ApiHost
 	}
-	if conf.TermNO == "" {
-		return nil, errors.New("拉卡拉支付必须配置终端号")
+	if conf.Merchant.TermNO == "" {
+		return nil, errors.ErrorParamError("拉卡拉支付必须配置终端号")
 	}
-	client, err := providerClient(conf)
+	client, err := providerClient(proxy)
 	if err != nil {
 		return nil, err
 	}
@@ -41,18 +43,18 @@ func NewClient(conf config.Config) (*Client, error) {
 	}, nil
 }
 
-func providerClient(c config.Config) (*resty.Client, error) {
+func providerClient(proxy *proxy.Proxy) (*resty.Client, error) {
 	client := resty.New()
-	if c.Proxy.Host != "" {
-		u, err := url.Parse(fmt.Sprintf("http://%s:%d", c.Proxy.Host, c.Proxy.Port))
+	if proxy != nil && proxy.Host != "" {
+		u, err := url.Parse(fmt.Sprintf("http://%s:%d", proxy.Host, proxy.Port))
 		if err != nil {
 			return nil, err
 		}
-		if c.Proxy.UserName != "" && c.Proxy.Password != "" {
-			u.User = url.UserPassword(c.Proxy.UserName, c.Proxy.Password)
+		if proxy.UserName != "" && proxy.Password != "" {
+			u.User = url.UserPassword(proxy.UserName, proxy.Password)
 		}
-		if c.Proxy.UserName != "" {
-			u.User = url.User(c.Proxy.UserName)
+		if proxy.UserName != "" {
+			u.User = url.User(proxy.UserName)
 		}
 		client.SetProxy(u.String())
 	}
@@ -60,6 +62,12 @@ func providerClient(c config.Config) (*resty.Client, error) {
 }
 
 func (c *Client) DoPost(ctx context.Context, body interface{}, path string, header map[string]string) (*resty.Response, error) {
+	log.Info(ctx, "lakala request start",
+		log.F(log.FieldKeyChannel, "lakala"),
+		log.F(log.FieldKeyMethod, path),
+		log.F(log.FieldKeyRequest, body),
+	)
+
 	req := c.Client.R()
 	if header != nil {
 		req.SetHeaders(header)
@@ -74,10 +82,31 @@ func (c *Client) DoPost(ctx context.Context, body interface{}, path string, head
 	reqParam := model.BuildCommonReq(body)
 	sign, err := c.Sign.Gen(reqParam)
 	if err != nil {
+		log.Error(ctx, "lakala request sign failed",
+			log.F(log.FieldKeyChannel, "lakala"),
+			log.F(log.FieldKeyMethod, path),
+			log.F(log.FieldKeyError, err.Error()),
+		)
 		return nil, err
 	}
 	req.SetHeader("Authorization", sign)
-	return req.SetContext(ctx).SetBody(reqParam).Post(path)
+
+	resp, err := req.SetContext(ctx).SetBody(reqParam).Post(path)
+	if err != nil {
+		log.Error(ctx, "lakala request failed",
+			log.F(log.FieldKeyChannel, "lakala"),
+			log.F(log.FieldKeyMethod, path),
+			log.F(log.FieldKeyError, err.Error()),
+		)
+		return nil, err
+	}
+
+	log.Info(ctx, "lakala request end",
+		log.F(log.FieldKeyChannel, "lakala"),
+		log.F(log.FieldKeyMethod, path),
+		log.F(log.FieldKeyResponse, string(resp.Body())),
+	)
+	return resp, nil
 }
 
 func (c *Client) DoPostV2(ctx context.Context, body interface{}, path string, header map[string]string) (*resty.Response, error) {

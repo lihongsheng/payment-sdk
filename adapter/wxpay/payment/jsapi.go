@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/lihongsheng/payment-sdk/adapter/wxpay/client"
 	"github.com/lihongsheng/payment-sdk/adapter/wxpay/until"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
 	"github.com/lihongsheng/payment-sdk/enum/action"
 	"github.com/lihongsheng/payment-sdk/tools"
 	"time"
 
-	"github.com/lihongsheng/payment-sdk/adapter/wxpay/config"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	enum "github.com/lihongsheng/payment-sdk/enum/payment"
 	errors2 "github.com/lihongsheng/payment-sdk/errors"
@@ -26,22 +26,18 @@ type Jsapi struct {
 	client jsapi.JsapiApiService
 }
 
-func NewJsApi(conf config.Config) (iface.Pay, error) {
-	api, err := newJsApi(conf)
-	if err != nil {
-		return nil, err
-	}
-	return api, nil
+func NewJsApi(api *client.Api) (iface.Pay, error) {
+	return newJsApi(api)
 }
 
-func newJsApi(conf config.Config) (*Jsapi, error) {
-	api, err := NewApi(conf)
+func newJsApi(api *client.Api) (*Jsapi, error) {
+	api2, err := NewApi(api)
 	if err != nil {
 		return nil, err
 	}
 	svc := jsapi.JsapiApiService{Client: api.Client}
 	return &Jsapi{
-		Api:    api,
+		Api:    api2,
 		client: svc,
 	}, nil
 }
@@ -55,7 +51,7 @@ func (j *Jsapi) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, e
 		return nil, until.ErrorHandler(ctx, result, err, "not return PrepayId")
 	}
 	var actionParams = map[string]string{}
-	actionParams["appId"] = j.C.AppID
+	actionParams["appId"] = j.C.Merchant.AppID
 	actionParams["timeStamp"] = fmt.Sprintf("%d", time.Now().Unix())
 	actionParams["nonceStr"] = tools.GenerateRandomDigits(10)
 	actionParams["package"] = fmt.Sprintf("prepay_id=%s", *resp.PrepayId)
@@ -103,8 +99,8 @@ func (j *Jsapi) buildPayParams(req *dto.PayOrder) jsapi.PrepayRequest {
 		amount.Currency = core.String(req.Order.PayAmount.Currency)
 	}
 	resp := jsapi.PrepayRequest{
-		Appid:       core.String(j.C.AppID),
-		Mchid:       core.String(j.C.MchID),
+		Appid:       core.String(j.C.Merchant.AppID),
+		Mchid:       core.String(j.C.Merchant.MchID),
 		OutTradeNo:  core.String(req.Order.OrderNo),
 		TimeExpire:  t,
 		Attach:      core.String(req.PassBackParams),
@@ -138,9 +134,9 @@ func (j *Jsapi) Query(ctx context.Context, req dto.Query) (*dto.PayDetail, error
 	var result *core.APIResult
 	var err error
 	if req.OrderNo != "" {
-		resp, result, err = j.client.QueryOrderByOutTradeNo(ctx, jsapi.QueryOrderByOutTradeNoRequest{OutTradeNo: core.String(req.OrderNo), Mchid: core.String(j.C.MchID)})
+		resp, result, err = j.client.QueryOrderByOutTradeNo(ctx, jsapi.QueryOrderByOutTradeNoRequest{OutTradeNo: core.String(req.OrderNo), Mchid: core.String(j.C.Merchant.MchID)})
 	} else if req.TradeNo != "" {
-		resp, result, err = j.client.QueryOrderById(ctx, jsapi.QueryOrderByIdRequest{TransactionId: core.String(req.TradeNo), Mchid: core.String(j.C.MchID)})
+		resp, result, err = j.client.QueryOrderById(ctx, jsapi.QueryOrderByIdRequest{TransactionId: core.String(req.TradeNo), Mchid: core.String(j.C.Merchant.MchID)})
 	} else {
 		return nil, errors2.ErrorParamError("order_no or trade_no is required")
 	}
@@ -156,7 +152,7 @@ func (j *Jsapi) Query(ctx context.Context, req dto.Query) (*dto.PayDetail, error
 		return nil, until.ErrorHandler(ctx, result, err, "status is unknown")
 	}
 	var successTime time.Time
-	if resp.SuccessTime == nil && *resp.SuccessTime != "" {
+	if resp.SuccessTime != nil && *resp.SuccessTime != "" {
 		successTime, _ = time.Parse(time.RFC3339, *resp.SuccessTime)
 	}
 	originBy, _ := json.Marshal(resp)
@@ -179,7 +175,7 @@ func (j *Jsapi) Close(ctx context.Context, req dto.CloseQuery) error {
 		return errors2.ErrorParamError("order_no is required")
 	}
 	result, err := j.client.CloseOrder(ctx, jsapi.CloseOrderRequest{
-		Mchid:      core.String(j.C.MchID),
+		Mchid:      core.String(j.C.Merchant.MchID),
 		OutTradeNo: core.String(req.OrderNo),
 	})
 	if err != nil {

@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/lihongsheng/payment-sdk/adapter/fuiou/config"
+	"github.com/lihongsheng/payment-sdk/adapter/fuiou/client"
 	enum2 "github.com/lihongsheng/payment-sdk/adapter/fuiou/enum"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/driver/iface"
+	enum3 "github.com/lihongsheng/payment-sdk/enum"
 	"github.com/lihongsheng/payment-sdk/enum/action"
 	enum "github.com/lihongsheng/payment-sdk/enum/payment"
 	"net/url"
@@ -32,13 +33,13 @@ type Jsapi struct {
 	*Api
 }
 
-func NewJsApi(conf config.Config, product enum.PaymentProduct, payment enum.Payment) (iface.Pay, error) {
-	api, err := NewApi(conf, product, payment)
+func NewJsApi(api *client.Client, product enum.PaymentProduct, payment enum.Payment) (iface.Pay, error) {
+	api2, err := NewApi(api, product, payment)
 	if err != nil {
 		return nil, err
 	}
 	return &Jsapi{
-		api,
+		api2,
 	}, nil
 }
 
@@ -48,7 +49,7 @@ func (p *Jsapi) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, e
 		return nil, err
 	}
 	r := p.Client.Client.R().SetHeader("Content-Type", "application/json")
-	result, err := r.SetContext(ctx).SetBody(reqParam).Post(p.C.ApiHost + payMethodPath)
+	result, err := r.SetContext(ctx).SetBody(reqParam).Post(p.C.API.ApiHost + payMethodPath)
 	if err != nil && errors.Is(context.DeadlineExceeded, err) {
 		return nil, errors2.ErrorTimeOut("pay timeout").WithCause(err)
 	}
@@ -67,7 +68,7 @@ func (p *Jsapi) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, e
 		return nil, errors2.ErrorSystemError("pay is error;err:%s", resp.ResultMsg).WithCause(errors.New(fmt.Sprintf("code:%s;Msg:%s", resp.ResultCode, resp.ResultMsg)))
 	}
 	re := &dto.PayResponse{
-		OrderNo: p.C.OrderPrefix + req.Order.OrderNo,
+		OrderNo: p.C.Merchant.OrderPrefix + req.Order.OrderNo,
 		TradeNo: resp.ReservedFyOrderNo,
 		PayAmount: dto.Amount{
 			Currency: req.Order.PayAmount.Currency,
@@ -89,7 +90,7 @@ func (p *Jsapi) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, e
 			},
 		}
 	case enum2.JSAPI, enum2.LETPAY:
-		if p.payment == enum.Payment_Wxpay {
+		if p.payment == enum.Payment_Wechat {
 			var actionParams = map[string]string{}
 			actionParams["appId"] = resp.SdkAppid
 			actionParams["timeStamp"] = resp.SdkTimestamp
@@ -112,10 +113,10 @@ func (p *Jsapi) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, e
 }
 func (p *Jsapi) buildPayParams(req *dto.PayOrder) *JsApiPaymentRequest {
 	result := &JsApiPaymentRequest{
-		MchntCd:              p.C.MchID,
+		MchntCd:              p.C.Merchant.MchID,
 		RandomStr:            tools.GenerateRandomDigits(4),
 		OrderAmt:             req.Order.PayAmount.Total,
-		MchntOrderNo:         enum2.GenOrder(p.C.OrderPrefix, req.Order.OrderNo),
+		MchntOrderNo:         enum2.GenOrder(p.C.Merchant.OrderPrefix, req.Order.OrderNo),
 		ProductId:            "",
 		TermId:               tools.GenerateRandomDigits(4),
 		GoodsDes:             req.Order.Subject,
@@ -133,24 +134,34 @@ func (p *Jsapi) buildPayParams(req *dto.PayOrder) *JsApiPaymentRequest {
 		ReservedExpireMinute: 0,
 		//ReservedDeviceInfo:   DeviceInfo{},
 		Sign:    "",
-		Version: p.C.Version,
+		Version: p.C.API.Version,
 	}
 	if req.SceneInfo != nil {
 		result.TermIp = req.SceneInfo.ClientIp
 		if req.SceneInfo.DeviceID == "" {
 			result.TermId = tools.GenerateRandomDigits(4)
 		}
-		if req.SceneInfo.H5Info.Type != "" {
+		if req.SceneInfo.ApplicationInfo.AppName != "" {
 			deviceInfo := DeviceInfo{
-				Type:    req.SceneInfo.H5Info.Type,
-				AppName: req.SceneInfo.H5Info.AppName,
-				AppUrl:  req.SceneInfo.H5Info.Url,
+				Type:    string(req.SceneInfo.Device),
+				AppName: req.SceneInfo.ApplicationInfo.AppName,
+				AppUrl:  req.SceneInfo.ApplicationInfo.Url,
 			}
-			if req.SceneInfo.H5Info.IOSPackage != "" {
-				deviceInfo.AppUrl = req.SceneInfo.H5Info.IOSPackage
+			if req.SceneInfo.Device == enum3.Device_H5 {
+				deviceInfo.Type = string(enum3.Device_H5)
 			}
-			if req.SceneInfo.H5Info.AndroidPackage != "" {
-				deviceInfo.AppUrl = req.SceneInfo.H5Info.AndroidPackage
+			if req.SceneInfo.System == enum3.Android {
+				deviceInfo.Type = string(enum3.Android)
+			} else if req.SceneInfo.System == enum3.IOS {
+				deviceInfo.Type = "IOS"
+			}
+
+			if req.SceneInfo.ApplicationInfo.AppPackage != "" {
+				deviceInfo.Type = "IOS"
+				deviceInfo.AppUrl = req.SceneInfo.ApplicationInfo.AppPackage
+				if req.SceneInfo.System == enum3.Android {
+					deviceInfo.Type = string(enum3.Android)
+				}
 			}
 			result.ReservedDeviceInfo = deviceInfo.String()
 		}
@@ -162,12 +173,12 @@ func (p *Jsapi) buildPayParams(req *dto.PayOrder) *JsApiPaymentRequest {
 		result.TxnBeginTs = req.Order.CreateAt.Format("20060102150405")
 	}
 
-	if p.payment == enum.Payment_Wxpay {
+	if p.payment == enum.Payment_Wechat {
 		result.TradeType = enum2.WxPaymentProductMap[p.paymentProduct]
 	}
 	if p.payment == enum.Payment_Alipay {
 		result.TradeType = enum2.AliPaymentProductMap[p.paymentProduct]
 	}
-	result.GenSign(p.C.APISecret)
+	result.GenSign(p.C.Merchant.APISecret)
 	return result
 }

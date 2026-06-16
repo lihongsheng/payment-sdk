@@ -30,7 +30,7 @@ const (
 	// 支付宝
 	Channel_Alipay Channel = 1
 	// 微信
-	Channel_Wxpay Channel = 2
+	Channel_Wechat Channel = 2
 	// 富有
 	Channel_Fuiou Channel = 3
 	// 拉卡拉
@@ -42,14 +42,14 @@ var (
 	Channel_name = map[int32]string{
 		0: "Channel_UNKNOWN",
 		1: "Alipay",
-		2: "Wxpay",
+		2: "Wechat",
 		3: "Fuiou",
 		4: "Lakala",
 	}
 	Channel_value = map[string]int32{
 		"Channel_UNKNOWN": 0,
 		"Alipay":          1,
-		"Wxpay":           2,
+		"Wechat":          2,
 		"Fuiou":           3,
 		"Lakala":          4,
 	}
@@ -86,12 +86,13 @@ var File_enum_channel_channel_proto protoreflect.FileDescriptor
 
 const file_enum_channel_channel_proto_rawDesc = "" +
 	"\n" +
-	"\x1aenum/channel/channel.proto\x12\achannel*L\n" +
+	"\x1aenum/channel/channel.proto\x12\achannel*M\n" +
 	"\aChannel\x12\x13\n" +
 	"\x0fChannel_UNKNOWN\x10\x00\x12\n" +
 	"\n" +
-	"\x06Alipay\x10\x01\x12\t\n" +
-	"\x05Wxpay\x10\x02\x12\t\n" +
+	"\x06Alipay\x10\x01\x12\n" +
+	"\n" +
+	"\x06Wechat\x10\x02\x12\t\n" +
 	"\x05Fuiou\x10\x03\x12\n" +
 	"\n" +
 	"\x06Lakala\x10\x04B\x10Z\x0e./enum/channelb\x06proto3"

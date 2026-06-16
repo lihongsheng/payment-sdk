@@ -9,6 +9,7 @@ import (
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/config"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/model"
 	"github.com/lihongsheng/payment-sdk/adapter/fuiou/util"
+	"github.com/lihongsheng/payment-sdk/config/proxy"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
 	"github.com/lihongsheng/payment-sdk/enum/transfer"
 	"github.com/lihongsheng/payment-sdk/errors"
@@ -24,8 +25,8 @@ type Transfer struct {
 	*client.Client
 }
 
-func NewTransfer(conf config.Config) (*Transfer, error) {
-	api, err := client.NewClient(conf)
+func NewTransfer(conf config.Config, proxy *proxy.Proxy) (*Transfer, error) {
+	api, err := client.NewClient(conf, proxy)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +65,7 @@ func (t *Transfer) Transfer(ctx context.Context, req *dto.BatchTransferRequest) 
 
 func (t *Transfer) buildTransferParams(req *dto.BatchTransferRequest) *model.TransferRequest {
 	r := &model.TransferRequest{
-		MchntCd:       t.C.MchID,
+		MchntCd:       t.C.Merchant.MchID,
 		TraceNo:       req.TransferNO,
 		AccountIn:     req.SubAccountIn,
 		AccountInList: make([]model.TransferAccountInListItem, 0, len(req.Details)),
@@ -90,7 +91,7 @@ func (t *Transfer) Query(ctx context.Context, req *dto.BatchTransferQueryRequest
 	}
 	request := &model.TransferQueryRequest{
 		TraceNo:             fmt.Sprintf("%d", time.Now().UnixMilli()),
-		MchntCd:             t.C.MchID,
+		MchntCd:             t.C.Merchant.MchID,
 		TradeType:           "10",
 		BatchNo:             req.ThirdTransferNO,
 		SrcFasSsn:           "",

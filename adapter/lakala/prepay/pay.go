@@ -10,7 +10,6 @@ import (
 	"net/http"
 
 	"github.com/lihongsheng/payment-sdk/adapter/lakala/client"
-	"github.com/lihongsheng/payment-sdk/adapter/lakala/config"
 	enum2 "github.com/lihongsheng/payment-sdk/adapter/lakala/enum"
 	"github.com/lihongsheng/payment-sdk/adapter/lakala/model"
 	"github.com/lihongsheng/payment-sdk/driver/dto"
@@ -34,11 +33,7 @@ type Pay struct {
 	payment        enum.Payment
 }
 
-func NewPay(conf config.Config, product enum.PaymentProduct, payment enum.Payment) (iface.Pay, error) {
-	api, err := client.NewClient(conf)
-	if err != nil {
-		return nil, err
-	}
+func NewPay(api *client.Client, product enum.PaymentProduct, payment enum.Payment) (iface.Pay, error) {
 	return &Pay{
 		Client:         api,
 		paymentProduct: product,
@@ -48,7 +43,7 @@ func NewPay(conf config.Config, product enum.PaymentProduct, payment enum.Paymen
 
 func (p *Pay) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, error) {
 	reqParam := p.buildPayParams(req)
-	result, err := p.Client.DoPost(ctx, reqParam, p.C.ApiHost+PayMethod, nil)
+	result, err := p.Client.DoPost(ctx, reqParam, p.C.API.ApiHost+PayMethod, nil)
 	if err != nil && errors.Is(context.DeadlineExceeded, err) {
 		return nil, errors2.ErrorTimeOut("pay timeout").WithCause(err)
 	}
@@ -104,11 +99,11 @@ func (p *Pay) Pay(ctx context.Context, req *dto.PayOrder) (*dto.PayResponse, err
 	return re, nil
 }
 
-// 目前只支持微信
+// buildPayParams 目前只支持微信 JSAPI/小程序支付
 func (p *Pay) buildPayParams(req *dto.PayOrder) *model.PaymentRequest {
 	r := &model.PaymentRequest{
-		MerchantNo:  p.C.MchID,
-		TermNo:      p.C.TermNO,
+		MerchantNo:  p.C.Merchant.MchID,
+		TermNo:      p.C.Merchant.TermNO,
 		OutTradeNo:  req.Order.OrderNo,
 		AccountType: enum2.PaymentMap[p.payment],
 		TransType:   enum2.ProductMap[p.paymentProduct],
@@ -132,12 +127,12 @@ func (p *Pay) buildPayParams(req *dto.PayOrder) *model.PaymentRequest {
 
 func (p *Pay) Query(ctx context.Context, req dto.Query) (*dto.PayDetail, error) {
 	reqParam := model.PaymentQueryRequest{
-		MerchantNo: p.C.MchID,
-		TermNo:     p.C.TermNO,
+		MerchantNo: p.C.Merchant.MchID,
+		TermNo:     p.C.Merchant.TermNO,
 		OutTradeNo: req.OrderNo,
 		TradeNo:    req.TradeNo,
 	}
-	result, err := p.Client.DoPost(ctx, reqParam, p.C.ApiHost+QueryMethod, nil)
+	result, err := p.Client.DoPost(ctx, reqParam, p.C.API.ApiHost+QueryMethod, nil)
 	if err != nil && errors.Is(context.DeadlineExceeded, err) {
 		return nil, errors2.ErrorTimeOut("pay timeout").WithCause(err)
 	}

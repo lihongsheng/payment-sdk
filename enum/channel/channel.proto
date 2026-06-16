@@ -9,7 +9,7 @@ enum Channel {
   // 支付宝
   Alipay = 1;
   // 微信
-  Wxpay = 2;
+  Wechat = 2;
   // 富有
   Fuiou = 3;
   //  拉卡拉
