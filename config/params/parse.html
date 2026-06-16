@@ -33,44 +33,44 @@
       </el-form-item>
     </el-form>
 
-    <!-- 提交结果展示 -->
+    <!-- 提交结果展示：优化样式和交互 -->
     <el-divider content-position="left">提交的JSON数据</el-divider>
-    <el-input
-      type="textarea"
-      v-model="submitJson"
-      readonly
-      rows="10"
-      placeholder="提交后展示JSON数据..."
-      style="margin-top: 10px;"
-    >
-    </el-input>
+    <el-card v-if="submitJson" shadow="always" style="margin-top: 10px;">
+        <pre style="white-space: pre-wrap; word-wrap: break-word; font-size: 14px; line-height: 1.5;">
+{{ submitJson }}
+        </pre>
+    </el-card>
+    <el-empty v-else description="提交表单后将展示JSON数据" style="margin-top: 20px;"></el-empty>
   </el-card>
 </div>
 
 <script>
-  // 1. 定义递归渲染表单项的组件
+  // 1. 定义递归渲染表单项的组件（核心修复）
   Vue.component('FormItemRenderer', {
     props: {
-      params: { type: Array, required: true }, // 表单元数据
-      formData: { type: Object, required: true }, // 表单数据对象
-      prefix: { type: String, default: '' } // 嵌套字段前缀（如 cert.private_key）
+      params: { type: Array, required: true },
+      formData: { type: Object, required: true },
+      prefix: { type: String, default: '' }
     },
     render(h) {
       const items = [];
       this.params.forEach(param => {
-        // 生成字段名（处理嵌套：如 cert.private_key）
         const fieldName = this.prefix ? `${this.prefix}.${param.name}` : param.name;
-        // 表单标签
         const label = param.label || param.name;
 
-        // 生成el-form-item
+        // 修复：v-show 放在 attrs 中，且正确判断是否隐藏
+        const formItemAttrs = {};
+        if (param.name === '') {
+          formItemAttrs['v-show'] = false; // 隐藏无name的根节点
+        }
+
+        // 生成el-form-item（修复props/attrs绑定）
         const formItem = h('el-form-item', {
           props: {
             label: label,
-            prop: fieldName,
-            // 隐藏无name的根节点（如果有）
-            vShow: param.name !== ''
-          }
+            prop: fieldName
+          },
+          attrs: formItemAttrs // 正确绑定v-show
         }, [this.renderWidget(h, param, fieldName)]);
 
         items.push(formItem);
@@ -78,12 +78,13 @@
       return h('div', items);
     },
     methods: {
-      // 渲染具体的表单组件（input/select/textarea/checkbox等）
+      // 渲染表单组件（核心修复：值绑定改为model，事件改为input）
       renderWidget(h, param, fieldName) {
-        // 获取当前字段值
         const value = this.getNestedValue(this.formData, fieldName);
-        // 组件通用属性
+
+        // 修复：Element UI 组件使用 model 绑定值，input 事件更新
         const baseProps = {
+          model: value, // 替换原value为model
           on: {
             input: (val) => {
               this.setNestedValue(this.formData, fieldName, val, param.type);
@@ -91,14 +92,11 @@
           }
         };
 
-        // 根据类型渲染不同组件
         switch (param.input_type) {
-          // 下拉选择框
           case 'select':
             return h('el-select', {
               ...baseProps,
               props: {
-                value: value,
                 clearable: true,
                 placeholder: `请选择${param.label}`,
                 style: 'width: 100%;'
@@ -109,60 +107,54 @@
               })
             ));
 
-          // 单选框
           case 'radio':
             return h('el-radio-group', {
-              ...baseProps,
-              props: { value: value }
+              ...baseProps
             }, param.values.map(v =>
               h('el-radio', {
                 props: { label: v.value }
               }, v.label)
             ));
 
-          // 复选框（数组类型）
+          // 修复：复选框默认值设为空数组，确保可选中
           case 'checkbox':
             return h('el-checkbox-group', {
               ...baseProps,
-              props: { value: value || [] }
+              props: {
+                model: value || [] // 强制初始值为数组
+              }
             }, param.values.map(v =>
               h('el-checkbox', {
                 props: { label: v.value }
               }, v.label)
             ));
 
-          // 密码框
           case 'password':
             return h('el-input', {
               ...baseProps,
               props: {
-                value: value,
                 type: 'password',
                 placeholder: `请输入${param.label}`,
                 style: 'width: 100%;'
               }
             });
 
-          // 数字输入框
           case 'number':
             return h('el-input-number', {
               ...baseProps,
               props: {
-                value: value || 0,
                 placeholder: `请输入${param.label}`,
                 style: 'width: 100%;',
-                precision: param.type === 'Int' ? 0 : 2, // 整数无小数位
-                min: 1, // 端口最小1
-                max: 65535 // 端口最大65535
+                precision: param.type === 'Int' ? 0 : 2,
+                min: 1,
+                max: 65535
               }
             });
 
-          // 多行文本
           case 'textarea':
             return h('el-input', {
               ...baseProps,
               props: {
-                value: value,
                 type: 'textarea',
                 placeholder: `请输入${param.label}`,
                 rows: 6,
@@ -170,7 +162,6 @@
               }
             });
 
-          // Object类型（递归渲染子属性）
           case '':
             if (param.type === 'Object' && param.object && param.object.length) {
               return h('form-item-renderer', {
@@ -182,12 +173,10 @@
               });
             }
 
-          // 默认文本输入框
           default:
             return h('el-input', {
               ...baseProps,
               props: {
-                value: value,
                 type: 'text',
                 placeholder: `请输入${param.label}`,
                 style: 'width: 100%;'
@@ -195,14 +184,14 @@
             });
         }
       },
-      // 工具方法：获取嵌套对象的值（如 formData.cert.private_key）
+      // 工具方法：获取嵌套值
       getNestedValue(obj, path) {
         if (!path || path === '') return '';
         return path.split('.').reduce((acc, key) => {
           return acc && acc[key] !== undefined ? acc[key] : '';
         }, obj);
       },
-      // 工具方法：设置嵌套对象的值（自动类型转换）
+      // 工具方法：设置嵌套值（修复Array类型赋值）
       setNestedValue(obj, path, value, type) {
         if (!path || path === '') return;
         const keys = path.split('.');
@@ -212,7 +201,6 @@
           return acc[key];
         }, obj);
 
-        // 根据类型转换值
         switch (type) {
           case 'Int':
             target[lastKey] = Number(value) || 0;
@@ -221,7 +209,7 @@
             target[lastKey] = value === 'true' || value === true;
             break;
           case 'Array':
-            target[lastKey] = value || [];
+            target[lastKey] = Array.isArray(value) ? value : []; // 确保是数组
             break;
           default:
             target[lastKey] = value;
@@ -231,76 +219,48 @@
     }
   });
 
-  // 2. 定义校验规则方法
+  // 2. 校验规则
   const validateRules = {
-    // 邮箱校验
     validateEmail: (rule, value, callback) => {
       const reg = /^[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-      if (!value) {
-        callback(new Error(`请输入${rule.fieldName}`));
-      } else if (!reg.test(value)) {
-        callback(new Error(`${rule.fieldName}格式不正确`));
-      } else {
-        callback();
-      }
+      if (!value) callback(new Error(`请输入${rule.fieldName}`));
+      else if (!reg.test(value)) callback(new Error(`${rule.fieldName}格式不正确`));
+      else callback();
     },
-    // 手机号校验
     validatePhone: (rule, value, callback) => {
       const reg = /^1[3-9]\d{9}$/;
-      if (!value) {
-        callback(new Error(`请输入${rule.fieldName}`));
-      } else if (!reg.test(value)) {
-        callback(new Error(`${rule.fieldName}格式不正确`));
-      } else {
-        callback();
-      }
+      if (!value) callback(new Error(`请输入${rule.fieldName}`));
+      else if (!reg.test(value)) callback(new Error(`${rule.fieldName}格式不正确`));
+      else callback();
     },
-    // 域名校验
     validateDomain: (rule, value, callback) => {
       const reg = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$/;
-      if (!value) {
-        callback(new Error(`请输入${rule.fieldName}`));
-      } else if (!reg.test(value)) {
-        callback(new Error(`${rule.fieldName}格式不正确`));
-      } else {
-        callback();
-      }
+      if (!value) callback(new Error(`请输入${rule.fieldName}`));
+      else if (!reg.test(value)) callback(new Error(`${rule.fieldName}格式不正确`));
+      else callback();
     },
-    // URL校验
     validateUrl: (rule, value, callback) => {
       const reg = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w.-]*)*\/?$/;
-      if (!value) {
-        callback(new Error(`请输入${rule.fieldName}`));
-      } else if (!reg.test(value)) {
-        callback(new Error(`${rule.fieldName}格式不正确`));
-      } else {
-        callback();
-      }
+      if (!value) callback(new Error(`请输入${rule.fieldName}`));
+      else if (!reg.test(value)) callback(new Error(`${rule.fieldName}格式不正确`));
+      else callback();
     },
-    // 自定义正则校验
     validateReg: (rule, value, callback) => {
-      if (!value) {
-        callback(new Error(`请输入${rule.fieldName}`));
-      } else if (rule.reg && !rule.reg.test(value)) {
-        callback(new Error(`${rule.fieldName}格式不正确`));
-      } else {
-        callback();
-      }
+      if (!value) callback(new Error(`请输入${rule.fieldName}`));
+      else if (rule.reg && !rule.reg.test(value)) callback(new Error(`${rule.fieldName}格式不正确`));
+      else callback();
     }
   };
 
-  // 3. Vue 主实例
+  // 3. Vue 主实例（修复初始值初始化）
   new Vue({
     el: '#app',
     data() {
       return {
-        // 表单数据（最终提交的JSON结构）
         formData: {},
-        // 表单校验规则
         formRules: {},
-        // 提交的JSON字符串展示
         submitJson: '',
-        // 动态表单元数据（替换为你的Param JSON）
+        // 表单元数据
         formMetadata: [
           {
             "label": "配置项",
@@ -482,18 +442,15 @@
       };
     },
     created() {
-      // 初始化表单默认值
       this.initDefaultValues(this.formMetadata);
-      // 初始化表单校验规则
       this.initFormRules(this.formMetadata);
     },
     methods: {
-      // 初始化表单默认值
+      // 修复：初始化默认值时，Array类型强制设为空数组
       initDefaultValues(params, prefix = '') {
         params.forEach(param => {
           const fieldName = prefix ? `${prefix}.${param.name}` : param.name;
           if (param.name && param.default !== undefined) {
-            // 类型转换后设置默认值
             let defaultValue = param.default;
             switch (param.type) {
               case 'Int':
@@ -511,28 +468,29 @@
             }
             this.setNestedValue(this.formData, fieldName, defaultValue, param.type);
           }
-          // 递归初始化Object子属性
+          // 修复：Array类型无默认值时，初始化为空数组
+          if (param.type === 'Array' && param.name && !this.getNestedValue(this.formData, fieldName)) {
+            this.setNestedValue(this.formData, fieldName, [], param.type);
+          }
           if (param.type === 'Object' && param.object && param.object.length) {
             this.initDefaultValues(param.object, fieldName);
           }
         });
       },
-      // 初始化表单校验规则
+      // 初始化校验规则
       initFormRules(params, prefix = '') {
         params.forEach(param => {
-          if (!param.name) return; // 跳过无name的根节点
+          if (!param.name) return;
           const fieldName = prefix ? `${prefix}.${param.name}` : param.name;
           const rules = [];
           const fieldLabel = param.label || param.name;
 
-          // 必输校验
           rules.push({
             required: true,
             message: `请输入/选择${fieldLabel}`,
             trigger: ['blur', 'change']
           });
 
-          // 内置校验规则
           if (param.validate_type) {
             switch (param.validate_type) {
               case 'Email':
@@ -586,7 +544,6 @@
             }
           }
 
-          // 自定义正则校验
           if (param.validate_reg && !['Email', 'Phone', 'Domain', 'Url'].includes(param.validate_type)) {
             rules.push({
               validator: (rule, value, callback) => {
@@ -598,16 +555,14 @@
             });
           }
 
-          // 设置校验规则
           this.$set(this.formRules, fieldName, rules);
 
-          // 递归初始化Object子属性规则
           if (param.type === 'Object' && param.object && param.object.length) {
             this.initFormRules(param.object, fieldName);
           }
         });
       },
-      // 设置嵌套对象值（复用组件方法）
+      // 复用设置嵌套值方法
       setNestedValue(obj, path, value, type) {
         if (!path) return;
         const keys = path.split('.');
@@ -625,26 +580,27 @@
             target[lastKey] = value === 'true' || value === true;
             break;
           case 'Array':
-            target[lastKey] = value || [];
+            target[lastKey] = Array.isArray(value) ? value : [];
             break;
           default:
             target[lastKey] = value;
             break;
         }
       },
-      // 提交表单
+      // 修复：提交按钮逻辑，优化JSON展示
       submitForm() {
         this.$refs.configForm.validate((valid) => {
           if (valid) {
-            // 深拷贝表单数据，避免引用问题
             const submitData = JSON.parse(JSON.stringify(this.formData));
-            // 格式化JSON展示
+            // 格式化JSON，缩进2个空格，便于阅读
             this.submitJson = JSON.stringify(submitData, null, 2);
-            // 此处可替换为真实接口请求
             this.$message.success('表单提交成功！');
-            console.log('提交的配置数据：', submitData);
+            console.log('提交数据：', submitData);
+            // 滚动到JSON展示区域
+            document.querySelector('.el-divider').scrollIntoView({ behavior: 'smooth' });
           } else {
             this.$message.error('表单校验失败，请检查输入！');
+            this.submitJson = ''; // 清空错误提交的JSON
             return false;
           }
         });
@@ -652,10 +608,10 @@
       // 重置表单
       resetForm() {
         this.$refs.configForm.resetFields();
-        // 重置为默认值
         this.formData = {};
         this.initDefaultValues(this.formMetadata);
         this.submitJson = '';
+        this.$message.info('表单已重置！');
       }
     }
   });
