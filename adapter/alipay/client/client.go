@@ -168,7 +168,9 @@ func (c *Client) PageExecute(commonParams map[string]string, body any) (u *url.U
 			return nil, nil, err
 		}
 		byStr := string(by)
-		bodyParams[enum.COMMON_PARAM_Biz_NAME] = byStr
+		bodyParams = map[string]string{
+			enum.COMMON_PARAM_Biz_NAME: byStr,
+		}
 	}
 	sign, err := c.Sign.Sign(commonParams, bodyParams)
 	if err != nil {
@@ -256,7 +258,9 @@ func (c *Client) GetPageExecute(commonParams map[string]string, body any) (u *ur
 			return nil, nil, err
 		}
 		byStr := string(by)
-		bodyParams[enum.COMMON_PARAM_Biz_NAME] = byStr
+		bodyParams = map[string]string{
+			enum.COMMON_PARAM_Biz_NAME: byStr,
+		}
 	}
 	sign, err := c.Sign.Sign(commonParams, bodyParams)
 	if err != nil {

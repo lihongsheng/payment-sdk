@@ -36,6 +36,9 @@ func NewSign(conf config.Config) (*Sign, error) {
 		return nil, err
 	}
 	public, err := loadPublic(conf.Cert.RsaPublic)
+	if err != nil {
+		return nil, err
+	}
 	return &Sign{
 		conf:       conf,
 		PrivateKey: private,
